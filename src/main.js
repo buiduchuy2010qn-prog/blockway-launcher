@@ -351,6 +351,30 @@ if (!gotSingleInstanceLock) {
   });
 }
 
+function sha256Hex(buf) {
+  return crypto.createHash('sha256').update(buf).digest('hex').toLowerCase();
+}
+
+function otaBufferToLf(buf) {
+  return Buffer.from(buf.toString('latin1').replace(/\r\n/g, '\n'), 'latin1');
+}
+
+function otaBufferToCrlf(buf) {
+  return Buffer.from(buf.toString('latin1').replace(/\r\n/g, '\n').replace(/\n/g, '\r\n'), 'latin1');
+}
+
+const OTA_TEXT_PATH = /\.(js|json|html|css|txt|md|yml|yaml|bat|svg|xml|map)$/i;
+
+/** GitHub raw is LF; Windows checkout is often CRLF. Accept both for text files only. */
+function sha256MatchesExpected(buf, expectedSha, relPath) {
+  if (!expectedSha || !/^[a-f0-9]{64}$/.test(expectedSha)) return true;
+  if (sha256Hex(buf) === expectedSha) return true;
+  if (relPath && !OTA_TEXT_PATH.test(relPath)) return false;
+  if (sha256Hex(otaBufferToLf(buf)) === expectedSha) return true;
+  if (sha256Hex(otaBufferToCrlf(buf)) === expectedSha) return true;
+  return false;
+}
+
 function fetchBinaryBuffer(url, redirects = 3) {
   return new Promise((resolve, reject) => {
     const req = https.get(
@@ -1322,8 +1346,8 @@ ipcMain.handle('updater:install-now', async (_e, downloadUrl, latestVersion) => 
 
         if (/^[a-f0-9]{64}$/.test(expectedSha) && fs.existsSync(localFile)) {
           try {
-            const diskSha = crypto.createHash('sha256').update(fs.readFileSync(localFile)).digest('hex').toLowerCase();
-            if (diskSha === expectedSha) {
+            const diskBuf = fs.readFileSync(localFile);
+            if (sha256MatchesExpected(diskBuf, expectedSha, rel)) {
               mainWindow?.webContents.send('updater:progress', Math.round(((i + 1) / entriesToProcess.length) * 95));
               continue;
             }
@@ -1339,17 +1363,13 @@ ipcMain.handle('updater:install-now', async (_e, downloadUrl, latestVersion) => 
         if (!buf || buf.length < 32) {
           throw new Error(`Tệp tải về không hợp lệ hoặc bị gián đoạn: ${rel}`);
         }
-        if (/^[a-f0-9]{64}$/.test(expectedSha)) {
-          const actualSha = crypto.createHash('sha256').update(buf).digest('hex').toLowerCase();
-          if (actualSha !== expectedSha) {
-            // CDN edge cache may still be refreshing right after a release; keep going only if valid non-HTML payload, else retry once
-            const retryBuf = await fetchBinaryBuffer(`${baseRaw}/${rel}?nocache=${Date.now()}-${i}`).catch(() => buf);
-            const retrySha = crypto.createHash('sha256').update(retryBuf).digest('hex').toLowerCase();
-            if (retrySha === expectedSha) {
-              buf = retryBuf;
-            } else {
-              throw new Error(`Kiểm tra toàn vẹn SHA-256 thất bại cho ${rel} (CDN đang đồng bộ, hãy thử lại sau 15 giây).`);
-            }
+        if (/^[a-f0-9]{64}$/.test(expectedSha) && !sha256MatchesExpected(buf, expectedSha, rel)) {
+          // CDN edge cache may still be refreshing right after a release; retry once, then fail closed
+          const retryBuf = await fetchBinaryBuffer(`${baseRaw}/${rel}?nocache=${Date.now()}-${i}`).catch(() => buf);
+          if (sha256MatchesExpected(retryBuf, expectedSha, rel)) {
+            buf = retryBuf;
+          } else {
+            throw new Error(`Kiểm tra toàn vẹn SHA-256 thất bại cho ${rel} (CDN đang đồng bộ, hãy thử lại sau 15 giây).`);
           }
         }
         stagedFiles.push({ rel, buf, targetFile: localFile });

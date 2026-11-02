@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v41.2.1 PRO — Every World, One Place (`blockway-launcher`)
+# ⚡ BlockWay Launcher v41.2.3 PRO — Every World, One Place (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.2.1_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.2.3_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-7_Core_Loaders-06b6d4?style=for-the-badge" alt="Loaders" /></a>
 </p>
 
@@ -16,11 +16,12 @@
 
 ---
 
-## 📦 Mới trong phiên bản `v41.2.1 PRO`
+## 📦 Mới trong phiên bản `v41.2.3 PRO`
 
-- Đồng bộ phiên bản, giấy phép MIT, `appId` BlockWay, OTA SHA-256, Electron `sandbox` + `asar`.
+- OTA SHA-256: hash theo nội dung Git (LF) và chấp nhận CRLF trên Windows — bản cập nhật in-app không còn fail `package.json`.
+- Core OptiFine: ưu tiên profile OptiFine gốc / Forge jar trước khi fallback Fabric + Iris (Auto-Shader-Zoom).
+- Đồng bộ phiên bản, giấy phép MIT, `appId` BlockWay, Electron `sandbox`.
 - Tài khoản Cloud: scrypt (cục bộ) + SHA-256 tương thích RPC cũ; mật khẩu tối thiểu 8 ký tự; cổng web POST (không đưa mật khẩu lên URL); OTP không hiện trên trình duyệt.
-- Copy công khai: Microsoft + Offline/local (không dùng từ khóa crack/piracy trên website). Discord RPC tắt cho đến khi có Application ID riêng.
 
 ## 📦 Có sẵn từ `v41.2.0 PRO`
 
