@@ -1439,12 +1439,18 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   syncFeaturedServersIntoState();
 
-  document.getElementById('usernameInput').value = state.username;
-  document.getElementById('ramSlider').value = state.ramGB;
-  document.getElementById('ramValueDisplay').textContent = `${state.ramGB} GB`;
-  if (state.javaPath) document.getElementById('javaPathInput').value = state.javaPath;
-  if (state.gameDir) document.getElementById('gameDirInput').value = state.gameDir;
-  document.getElementById('crackSkinSyncToggle').checked = state.crackSkinSync !== false;
+  const usernameInputHydrate = document.getElementById('usernameInput');
+  if (usernameInputHydrate) usernameInputHydrate.value = state.username;
+  const ramSliderHydrate = document.getElementById('ramSlider');
+  if (ramSliderHydrate) ramSliderHydrate.value = state.ramGB;
+  const ramValueDisplayHydrate = document.getElementById('ramValueDisplay');
+  if (ramValueDisplayHydrate) ramValueDisplayHydrate.textContent = `${state.ramGB} GB`;
+  const javaPathHydrate = document.getElementById('javaPathInput');
+  if (state.javaPath && javaPathHydrate) javaPathHydrate.value = state.javaPath;
+  const gameDirHydrate = document.getElementById('gameDirInput');
+  if (state.gameDir && gameDirHydrate) gameDirHydrate.value = state.gameDir;
+  const crackSkinHydrate = document.getElementById('crackSkinSyncToggle');
+  if (crackSkinHydrate) crackSkinHydrate.checked = state.crackSkinSync !== false;
 
   setTheme(state.theme || 'lunar');
   applyUiScaleToUI(state.uiScale || 1.0, false);
@@ -1500,8 +1506,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (cpuB) cpuB.textContent = `${sys.cpuCores} Nhân CPU`;
     const ramSlider = document.getElementById('ramSlider');
     if (ramSlider) ramSlider.max = Math.max(4, sys.totalMemGB);
-    document.getElementById('javaPathInput').value = state.javaPath;
-    document.getElementById('gameDirInput').value = state.gameDir;
+    const javaPathAfterSys = document.getElementById('javaPathInput');
+    if (javaPathAfterSys) javaPathAfterSys.value = state.javaPath;
+    const gameDirAfterSys = document.getElementById('gameDirInput');
+    if (gameDirAfterSys) gameDirAfterSys.value = state.gameDir;
     updateSystemTelemetryUI(sys);
     if (!hadSavedGameDir && typeof renderLocalWorlds === 'function') renderLocalWorlds();
     saveCurrentConfig();
@@ -2034,7 +2042,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
-  document.getElementById('btnGoModStore').onclick = () => switchMainTab('mods');
+  const btnGoModStore = document.getElementById('btnGoModStore');
+  if (btnGoModStore) btnGoModStore.onclick = () => switchMainTab('mods');
   const btnBanWorlds = document.getElementById('btnBannerWorlds');
   if (btnBanWorlds) btnBanWorlds.onclick = () => switchMainTab('worlds');
   document.querySelectorAll('#ramPresetBar .ram-pill-btn[data-ram]').forEach((btn) => {
@@ -2431,11 +2440,14 @@ window.addEventListener('DOMContentLoaded', async () => {
       btn.classList.add('active'); state.activeLocalFolder = btn.dataset.localfolder; renderLocalAddonsManager();
     };
   });
-  document.getElementById('btnOpenModsFolder').onclick = () => {
-    const folderMap = { mod: 'mods', shader: 'shaderpacks', resourcepack: 'resourcepacks', installed: state.activeLocalFolder };
-    const targetDir = (typeof window.getModStoreTarget === 'function' ? window.getModStoreTarget().dir : '') || state.gameDir;
-    window.aetherAPI.openSubFolder(targetDir, folderMap[state.activeModStoreType] || 'mods');
-  };
+  const btnOpenModsFolder = document.getElementById('btnOpenModsFolder');
+  if (btnOpenModsFolder) {
+    btnOpenModsFolder.onclick = () => {
+      const folderMap = { mod: 'mods', shader: 'shaderpacks', resourcepack: 'resourcepacks', installed: state.activeLocalFolder };
+      const targetDir = (typeof window.getModStoreTarget === 'function' ? window.getModStoreTarget().dir : '') || state.gameDir;
+      window.aetherAPI.openSubFolder(targetDir, folderMap[state.activeModStoreType] || 'mods');
+    };
+  }
 
   const autoCreateWorldCheck = document.getElementById('autoCreateFirstWorldCheck');
   if (autoCreateWorldCheck) {
@@ -2730,15 +2742,19 @@ window.addEventListener('DOMContentLoaded', async () => {
     state.favoriteServers.unshift({ name, ip }); nameEl.value = ''; ipEl.value = '';
     renderFavoriteServers(); saveCurrentConfig();
   };
-  document.getElementById('btnOpenScreenshots').onclick = () => {
-    if (typeof window.openScreenshotsGalleryModal === 'function') {
-      window.openScreenshotsGalleryModal();
-    } else {
-      window.aetherAPI.openSubFolder(state.gameDir, 'screenshots');
-    }
-  };
+  const btnOpenScreenshots = document.getElementById('btnOpenScreenshots');
+  if (btnOpenScreenshots) {
+    btnOpenScreenshots.onclick = () => {
+      if (typeof window.openScreenshotsGalleryModal === 'function') {
+        window.openScreenshotsGalleryModal();
+      } else {
+        window.aetherAPI.openSubFolder(state.gameDir, 'screenshots');
+      }
+    };
+  }
   if (document.getElementById('btnOpenSavesFolder')) document.getElementById('btnOpenSavesFolder').onclick = () => window.aetherAPI.openSubFolder(state.gameDir, 'saves');
-  document.getElementById('btnRefreshWorlds').onclick = () => renderLocalWorlds();
+  const btnRefreshWorlds = document.getElementById('btnRefreshWorlds');
+  if (btnRefreshWorlds) btnRefreshWorlds.onclick = () => renderLocalWorlds();
 
   ramSlider.oninput = (e) => {
     state.ramGB = parseInt(e.target.value, 10);
@@ -3136,11 +3152,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     };
   });
 
-  document.getElementById('javaPathInput').oninput = (e) => { state.javaPath = e.target.value.trim() || 'java'; saveCurrentConfig(); };
-  document.getElementById('gameDirInput').oninput = (e) => { state.gameDir = e.target.value.trim(); saveCurrentConfig(); };
-  document.getElementById('crackSkinSyncToggle').onchange = (e) => { state.crackSkinSync = e.target.checked; updateSettingsCheckedCountBadge(); saveCurrentConfig(); };
-  document.getElementById('btnOpenDir').onclick = () => window.aetherAPI.openGameDir(state.gameDir);
-  document.getElementById('btnClearConsole').onclick = () => { document.getElementById('consoleOutput').innerHTML = ''; };
+  const javaPathInput = document.getElementById('javaPathInput');
+  if (javaPathInput) javaPathInput.oninput = (e) => { state.javaPath = e.target.value.trim() || 'java'; saveCurrentConfig(); };
+  const gameDirInput = document.getElementById('gameDirInput');
+  if (gameDirInput) gameDirInput.oninput = (e) => { state.gameDir = e.target.value.trim(); saveCurrentConfig(); };
+  const crackSkinSyncToggle = document.getElementById('crackSkinSyncToggle');
+  if (crackSkinSyncToggle) crackSkinSyncToggle.onchange = (e) => { state.crackSkinSync = e.target.checked; updateSettingsCheckedCountBadge(); saveCurrentConfig(); };
+  const btnOpenDir = document.getElementById('btnOpenDir');
+  if (btnOpenDir) btnOpenDir.onclick = () => window.aetherAPI.openGameDir(state.gameDir);
+  const btnClearConsole = document.getElementById('btnClearConsole');
+  if (btnClearConsole) btnClearConsole.onclick = () => { const out = document.getElementById('consoleOutput'); if (out) out.innerHTML = ''; };
   document.querySelectorAll('#consoleFilterBar [data-logfilter]').forEach((btn) => {
     btn.onclick = () => {
       document.querySelectorAll('#consoleFilterBar [data-logfilter]').forEach((b) => b.classList.toggle('active', b === btn));
@@ -3164,7 +3185,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       const info = await window.aetherAPI.getSystemInfo();
       if (info?.detectedJava) {
         state.javaPath = info.detectedJava;
-        document.getElementById('javaPathInput').value = state.javaPath;
+        const javaAfterDetect = document.getElementById('javaPathInput');
+        if (javaAfterDetect) javaAfterDetect.value = state.javaPath;
         saveCurrentConfig();
         btnAutoJava.textContent = '✓ Đã tìm thấy Java!';
         setTimeout(() => (btnAutoJava.textContent = '🔍 Tự Dò Java'), 1600);

@@ -1,13 +1,13 @@
 {
   "format": "blockway-ota-manifest-v1",
-  "version": "41.2.3",
-  "generatedAt": "2026-11-02T12:16:36.532Z",
+  "version": "41.3.0",
+  "generatedAt": "2026-11-02T13:03:01.239Z",
   "filesCount": 35,
   "files": [
     {
       "path": "package.json",
       "size": 2524,
-      "sha256": "ea8d2f759ad24d9a051fe17a43f426316644d9ddacbadc9a66d11e840850f1d5"
+      "sha256": "a62966818ebd041b6507877fa174c15e662540d57e582aec8ee106bea51205e5"
     },
     {
       "path": "src/aether-cloud-auth.js",
@@ -17,7 +17,7 @@
     {
       "path": "src/launcher-engine.js",
       "size": 531269,
-      "sha256": "5f66cb1301db42c89e21f20220d275b1fa931952068077f495bfa698c86dad7b"
+      "sha256": "cd86f9cd085addbbac9fa4397c8bbc8672106500b37b88fa9f0a6b6b3d22ccc3"
     },
     {
       "path": "src/main.js",
@@ -56,8 +56,8 @@
     },
     {
       "path": "src/ui/index.html",
-      "size": 229087,
-      "sha256": "da5c88e7cd4f01dfb6fa3464b6d22d4ff734c0a6d5f56a48f5e65c8f6aa93638"
+      "size": 229043,
+      "sha256": "2dfbb97c8e2f3ea6ad166ef0f8989795978ff729d9046f72ca3957fc5c720bb5"
     },
     {
       "path": "src/ui/installer-eula.txt",
@@ -66,8 +66,8 @@
     },
     {
       "path": "src/ui/layout-v33.css",
-      "size": 249036,
-      "sha256": "fbbd1c537a7ebd19e110a85fd19646cae94ec2d7508d529df24586a216c1ede1"
+      "size": 249615,
+      "sha256": "0fb5c8e4143630cf834436a4b6f2e3590c479fa509a8242a664b213f472e7bd1"
     },
     {
       "path": "src/ui/minecraft-logo.png",
@@ -76,8 +76,8 @@
     },
     {
       "path": "src/ui/renderer.js",
-      "size": 161417,
-      "sha256": "afe909a2217e4add68876fd78e1837d872a95b33d4f51c63400fac982636fc30"
+      "size": 162677,
+      "sha256": "eac61f841a9f02e79715e49f5e1ef25c1d88b0d9f8f6a41217371512c020a524"
     },
     {
       "path": "src/ui/seeds/badlands-gold-oasis-icon.png",

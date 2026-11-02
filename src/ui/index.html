@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>BlockWay Launcher v41.2.0 PRO — Every World, One Place</title>
+  <title>BlockWay Launcher v41.3.0 PRO — Every World, One Place</title>
   <link rel="icon" href="app-icon.ico" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="layout-v33.css" />
@@ -23,7 +23,7 @@
         </div>
         <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
           <span>🔄 Kiểm tra cập nhật</span>
-          <strong id="titlebarUpdateVer">v41.2.0</strong>
+          <strong id="titlebarUpdateVer">v41.3.0</strong>
         </button>
       </div>
 
@@ -154,7 +154,7 @@
           <button class="nav-item nav-item-packs" data-tab="packs">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" fill="currentColor" fill-opacity="0.16"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
             <span>Modpack</span>
-            <em class="nav-new-badge">MỚI</em>
+            <em class="nav-new-badge hidden">MỚI</em>
           </button>
           <button class="nav-item" data-tab="servers">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><circle cx="6" cy="6.5" r="1" fill="currentColor"/><circle cx="6" cy="17.5" r="1" fill="currentColor"/></svg>
@@ -230,7 +230,7 @@
                       <p id="bannerSubStatus">Phiên bản đã sẵn sàng trên máy — Bấm CHƠI NGAY để vào thẳng thế giới.</p>
                     </div>
                     <!-- MANDATORY 4 BANNER UTILITY BUTTONS -->
-                    <div class="hbc-quick-actions">
+                    <div class="hbc-quick-actions v413-compact-hide hidden">
                       <button class="banner-cta-btn secondary" id="btnOpenMigrateModal" title="Đồng bộ Thế giới, Mods, Server & Tài khoản từ Launcher cũ (TLauncher, CurseForge, Prism, Modrinth...)">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Đồng bộ dữ liệu từ Launcher cũ</span>
@@ -253,7 +253,7 @@
               </div>
 
               <!-- 2. FIVE QUICK ACTION CARDS ROW -->
-              <div class="quick-actions-5grid">
+              <div class="quick-actions-5grid v413-compact-hide hidden">
                 <button class="qa-card" id="qaCreateWorld">
                   <img src="data:image/png;base64,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" class="qa-icon-img" alt="" draggable="false" />
                   <div class="qa-text">
@@ -629,6 +629,21 @@
               </div>
             </div>
 
+            <!-- v41.3: PvP HUD moved here from Máy chủ (client overlay, not a server) -->
+            <div class="bento-card pvp-client-banner" id="pvpClientModeCard">
+              <div class="pvp-banner-left">
+                <div class="pvp-title-row">
+                  <span class="pvp-badge-pill">⚔️ CHẾ ĐỘ PVP</span>
+                  <strong>Giao Diện PvP / BedWars 1-Click (Phong Cách Lunar Client)</strong>
+                  <span class="installed-count-tag" id="pvpModeStateBadge">Đang tắt</span>
+                </div>
+                <p class="pvp-desc-text">Trang bị <strong>Keystrokes + CPS, ToggleSprint, Thanh độ bền Giáp, Tâm ngắm động, Zoom &amp; Lửa thấp</strong> — tắt 1-Click trả lại nguyên bộ Mod sinh tồn.</p>
+              </div>
+              <div class="pvp-banner-actions">
+                <button type="button" class="btn-fps-boost-1click" id="btnTogglePvpClientMode">⚔️ Bật Chế Độ PvP 1-Click</button>
+              </div>
+            </div>
+
             <div class="direct-selector-panel">
               <!-- CARD A: VERSION & LOADER BUILD SELECTOR + POPULAR VERSIONS -->
               <div class="dsp-block">
@@ -860,15 +875,15 @@
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <input type="text" id="worldSearchInput" class="pro-input" placeholder="Tìm tên thế giới..." style="width:175px;" />
               <button class="btn-fps-boost-1click" id="btnWorldsCreateNew" title="Khởi chạy Minecraft để tạo thế giới mới">➕ Tạo Thế Giới Mới</button>
-              <button class="btn-sync-skin" id="btnWorldsQuickSkyBlock" title="Tạo gói Đảo Sinh Tồn SkyBlock chuẩn 1-Click (Cây Sồi + Rương Lava/Băng giữa hư không)">🏝️ Đảo SkyBlock (1-Click)</button>
-              <button class="btn-sync-skin" id="btnWorldsQuickOneBlock" title="Tạo gói Một Ô Đất OneBlock chuẩn 1-Click">🧱 Đảo OneBlock (1-Click)</button>
               <button class="btn-sync-skin" id="btnImportWorldZip" title="Nhập file bản đồ / thế giới (.zip) tải từ mạng hoặc bạn bè gửi">📥 Nhập Map (.zip)</button>
               <button class="btn-sync-skin" id="btnToggleWorldBackups" title="Xem và khôi phục các bản sao lưu thế giới (.zip)">💾 Bản Sao Lưu (<span id="worldBackupsCount">0</span>)</button>
               <button class="btn-sync-skin is-ok" id="btnToggleAutoBackupWorlds" title="Tự động sao lưu ngầm các thế giới vừa chơi khi bạn thoát Minecraft (Giữ tối đa 3 bản gần nhất cho mỗi Map, không lo đầy ổ cứng)">🛡️ Tự sao lưu: BẬT</button>
-              <button class="btn-sync-skin" id="btnWorldsMigrateOld" title="Đồng bộ Thế giới, Mods, Server & Tài khoản từ Launcher cũ">🔄 Đồng bộ Launcher cũ</button>
               <button class="btn-sync-skin" id="btnOpenSavesFolder">📂 Thư Mục Saves</button>
-              <button class="btn-sync-skin" id="btnOpenScreenshots">📸 Ảnh Chụp</button>
               <button class="vtype-btn" id="btnRefreshWorlds">🔄</button>
+              <button class="btn-sync-skin hidden" id="btnWorldsQuickSkyBlock" title="Tạo gói Đảo Sinh Tồn SkyBlock chuẩn 1-Click">🏝️ Đảo SkyBlock (1-Click)</button>
+              <button class="btn-sync-skin hidden" id="btnWorldsQuickOneBlock" title="Tạo gói Một Ô Đất OneBlock chuẩn 1-Click">🧱 Đảo OneBlock (1-Click)</button>
+              <button class="btn-sync-skin hidden" id="btnWorldsMigrateOld" title="Đồng bộ từ Launcher cũ">🔄 Đồng bộ Launcher cũ</button>
+              <button class="btn-sync-skin hidden" id="btnOpenScreenshots">📸 Ảnh Chụp</button>
             </div>
           </div>
 
@@ -958,25 +973,13 @@
               <button class="btn-sync-skin is-ok" id="btnModsOptifineHub" title="Trang bị 1-Click trọn bộ tính năng OptiFine (Shader, Zoom phím C, Đuốc sáng hang, Nối kính, Fresh Animations) hoặc cài tệp OptiFine.jar">
                 🔆 Bộ Chuẩn OptiFine
               </button>
-              <button class="btn-sync-skin" id="btnModsVisualBoost" title="Mở Kho Làm Đẹp 0% Lag: Lửa thấp PvP, Viền quặng phát sáng, Hoạt ảnh sinh vật, Âm thanh 3D &amp; Tăng tốc tải Chunk">
-                🎨 Làm Đẹp 0% Lag
-              </button>
-              <button class="btn-sync-skin is-turbo" id="btnModsTurboSmooth" title="Mở Turbo Smooth Core™: Can thiệp sâu 6 tầng tệp cấu hình Sodium, OptiFine, ModernFix, ImmediatelyFast &amp; options.txt">
-                ⚡ Can Thiệp File Mượt
-              </button>
-              <button class="btn-sync-skin" id="btnModsSharePack" title="Đóng gói bộ Mod, Shader, Resource Pack &amp; Cấu hình đang bật để lưu trữ hoặc gửi cho bạn bè">
-                📦 Đóng gói gửi bạn
-              </button>
-              <button class="btn-sync-skin" id="btnSyncAllModsToVer" title="Tự động nâng cấp & đổi toàn bộ Mod đã cài sang đúng phiên bản Minecraft + Loader đang chọn">
-                🔄 Đồng Bộ Mod Sang Bản Này
-              </button>
-              <button class="btn-sync-skin" id="btnModsCrashDoctor" title="Mở Bác Sĩ Chẩn Đoán & Tự Sửa Lỗi Xung Đột Mod / Thiếu Thư Viện">
-                🩺 Bác Sĩ Sửa Lỗi Mod
-              </button>
-              <button class="btn-sync-skin" id="btnModsGameTweaker" title="Chỉnh FOV, Sáng hang động Fullbright, FPS & tự động gỡ trùng phím tắt Modpack">
-                🎛️ Phím Tắt &amp; Cấu Hình
-              </button>
               <button class="btn-sync-skin" id="btnOpenModsFolder">📂 Mở Thư Mục</button>
+              <button class="btn-sync-skin hidden" id="btnModsVisualBoost" title="Mở Kho Làm Đẹp 0% Lag: Lửa thấp PvP, Viền quặng phát sáng, Hoạt ảnh sinh vật, Âm thanh 3D &amp; Tăng tốc tải Chunk">🎨 Làm Đẹp 0% Lag</button>
+              <button class="btn-sync-skin is-turbo hidden" id="btnModsTurboSmooth" title="Mở Turbo Smooth Core™">⚡ Can Thiệp File Mượt</button>
+              <button class="btn-sync-skin hidden" id="btnModsSharePack" title="Đóng gói bộ Mod gửi bạn bè">📦 Đóng gói gửi bạn</button>
+              <button class="btn-sync-skin hidden" id="btnSyncAllModsToVer" title="Đồng bộ Mod sang phiên bản đang chọn">🔄 Đồng Bộ Mod Sang Bản Này</button>
+              <button class="btn-sync-skin hidden" id="btnModsCrashDoctor" title="Bác Sĩ Sửa Lỗi Mod">🩺 Bác Sĩ Sửa Lỗi Mod</button>
+              <button class="btn-sync-skin hidden" id="btnModsGameTweaker" title="Phím tắt &amp; cấu hình">🎛️ Phím Tắt &amp; Cấu Hình</button>
             </div>
           </div>
 
@@ -1322,21 +1325,6 @@
             </div>
           </div>
 
-          <!-- v40.7 PRO: LUNAR-STYLE 1-CLICK PVP / BEDWARS CLIENT MODE -->
-          <div class="bento-card pvp-client-banner" id="pvpClientModeCard">
-            <div class="pvp-banner-left">
-              <div class="pvp-title-row">
-                <span class="pvp-badge-pill">⚔️ CHẾ ĐỘ PVP</span>
-                <strong>Giao Diện PvP / BedWars 1-Click (Phong Cách Lunar Client)</strong>
-                <span class="installed-count-tag" id="pvpModeStateBadge">Đang tắt</span>
-              </div>
-              <p class="pvp-desc-text">Trang bị <strong>Keystrokes + CPS, ToggleSprint, Thanh độ bền Giáp, Tâm ngắm động, Zoom &amp; Lửa thấp</strong> — tắt 1-Click trả lại nguyên bộ Mod sinh tồn.</p>
-            </div>
-            <div class="pvp-banner-actions">
-              <button type="button" class="btn-fps-boost-1click" id="btnTogglePvpClientMode">⚔️ Bật Chế Độ PvP 1-Click</button>
-            </div>
-          </div>
-
           <div class="bento-card worlds-col-card" style="padding:18px;">
             <div class="srv-toolbar-row" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
               <div class="srv-category-bar" id="serverCategoryBar" style="margin-bottom:0;">
@@ -1419,7 +1407,7 @@
                 </div>
 
                 <!-- SUB-TAB 2: KHO SKIN MẪU & TẢI PNG -->
-                <div class="wtab-panel active" id="wtab-skin">
+                <div class="wtab-panel hidden" id="wtab-skin">
                   <div class="wtab-sec-head">
                     <span class="wtab-sec-title">👕 2. Kho Skin nổi tiếng &amp; Tải file Skin (.PNG)</span>
                     <span class="wtab-sec-hint">Tự chuẩn hóa 64×64</span>
@@ -1453,7 +1441,7 @@
                 </div>
 
                 <!-- SUB-TAB 3: ÁO CHOÀNG & CÁNH ELYTRA -->
-                <div class="wtab-panel active" id="wtab-cape">
+                <div class="wtab-panel hidden" id="wtab-cape">
                   <div class="wtab-sec-head">
                     <span class="wtab-sec-title">🦸 3. Áo choàng (Cape) &amp; Cánh cứng Elytra 3D</span>
                     <span class="wtab-sec-hint">Hiển thị trực tiếp trên lưng</span>
@@ -1520,11 +1508,12 @@
           <div class="subtab-header">
             <div class="subpage-title-block">
               <h2>🛠️ Công Cụ Hữu Ích &amp; Nhật Ký Hệ Thống (Console)</h2>
-              <p>Các công cụ mở rộng 1-Click: cần mục nào thì bấm mở mục đó, gọn nhẹ và dễ đọc.</p>
+              <p>Bốn nhóm: Tối ưu • Sửa lỗi &amp; Console • Media F2/Replay • Migrate &amp; dọn rác. Studio trùng tab khác đã ẩn (giữ nút cho JS).</p>
             </div>
           </div>
 
           <div class="settings-bento-4" style="margin-bottom:16px;">
+            <div class="v413-tools-group-label">⚡ Tối ưu</div>
             <!-- SIGNATURE FEATURE (v41.2.0 PRO): TURBO SMOOTH CORE™ — 6-LAYER DEEP GAME FILE OPTIMIZER -->
             <div class="bento-card settings-card-unit turbo-signature-card" id="turboSmoothSignatureCard" style="grid-column: 1 / -1;">
               <div class="dsp-head">
@@ -1552,8 +1541,8 @@
               </div>
             </div>
 
-            <!-- NEW v41.2 OPT-IN HUB: 5 POWER TOOLS (AI CẦN THÌ MỞ LÀM THÔI) -->
-            <div class="bento-card settings-card-unit" style="grid-column: 1 / -1;">
+            <!-- v41.3: keep IDs for JS; hidden because these open studios already on Máy chủ / Mod / Cài đặt -->
+            <div class="bento-card settings-card-unit v413-tools-dup hidden" style="grid-column: 1 / -1;">
               <div class="dsp-head">
                 <div class="dsp-head-left">
                   <span class="card-dot emerald"></span>
@@ -1569,19 +1558,6 @@
                 <button class="btn-sync-skin" id="btnToolsBackupPrefs">☁️ Sao Lưu Phím Tắt &amp; Server</button>
                 <button class="btn-sync-skin" id="btnToolsRestorePrefs">♻️ Khôi Phục Phím Tắt</button>
               </div>
-            </div>
-
-            <!-- TOOL 1: MIGRATE FROM OLD LAUNCHERS -->
-            <div class="bento-card settings-card-unit">
-              <div class="dsp-head">
-                <div class="dsp-head-left">
-                  <span class="card-dot emerald"></span>
-                  <h3>Đồng bộ dữ liệu từ launcher cũ</h3>
-                </div>
-                <span class="installed-count-tag">1-Click Sync</span>
-              </div>
-              <p class="settings-card-desc">Chuyển Map, Mods, Shaders, Server &amp; Tài khoản từ TLauncher, CurseForge, Prism, Modrinth sang BlockWay.</p>
-              <button class="btn-fps-boost-1click" id="btnSettingsMigrate" style="width:100%;">🔄 Mở Trình Đồng Bộ Dữ Liệu (1-Click)</button>
             </div>
 
             <!-- TOOL 2: RAM CLEANER & FPS BOOST -->
@@ -1602,35 +1578,6 @@
               </div>
             </div>
 
-            <!-- TOOL 3: SMART CRASH DOCTOR & SCREENSHOTS GALLERY -->
-            <div class="bento-card settings-card-unit">
-              <div class="dsp-head">
-                <div class="dsp-head-left">
-                  <span class="card-dot emerald"></span>
-                  <h3>Bác Sĩ Sửa Lỗi Crash &amp; Đồng Bộ Mod</h3>
-                </div>
-                <span class="installed-count-tag">AI Doctor Tiếng Việt</span>
-              </div>
-              <p class="settings-card-desc">Chẩn đoán lỗi văng game bằng Tiếng Việt, gỡ xung đột Mod và tự cài thư viện thiếu 1-Click.</p>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn-fps-boost-1click" id="btnOpenCrashDoctor" style="flex:1;">🩺 Mở Bác Sĩ Sửa Lỗi Crash</button>
-                <button class="btn-sync-skin" id="btnToolsSyncMods" style="flex:1;">🔄 Đồng Bộ Toàn Bộ Mod</button>
-              </div>
-            </div>
-
-            <!-- TOOL 4: IN-LAUNCHER SCREENSHOTS GALLERY -->
-            <div class="bento-card settings-card-unit">
-              <div class="dsp-head">
-                <div class="dsp-head-left">
-                  <span class="card-dot cyan"></span>
-                  <h3>Studio Ảnh Chụp Trong Game (F2)</h3>
-                </div>
-                <span class="installed-count-tag">Copy Zalo / Discord</span>
-              </div>
-              <p class="settings-card-desc">Xem ảnh chụp (<code>F2</code>), bấm 1-Click <strong>Copy ảnh hoặc Đóng khung thông tin</strong> dán thẳng Zalo / Discord.</p>
-              <button class="btn-sync-skin" id="btnToolsOpenScreenshots" style="width:100%;">📸 Mở Thư Viện Ảnh Chụp Trong Game</button>
-            </div>
-
             <!-- TOOL 5 (v40.6 PRO): OUT-OF-GAME OPTIONS & KEYBIND CONFLICT FIXER -->
             <div class="bento-card settings-card-unit" style="grid-column: 1 / -1;">
               <div class="dsp-head">
@@ -1648,6 +1595,37 @@
               </div>
             </div>
 
+            <div class="v413-tools-group-label">🩺 Sửa lỗi &amp; Console</div>
+            <!-- TOOL 3: SMART CRASH DOCTOR -->
+            <div class="bento-card settings-card-unit">
+              <div class="dsp-head">
+                <div class="dsp-head-left">
+                  <span class="card-dot emerald"></span>
+                  <h3>Bác Sĩ Sửa Lỗi Crash &amp; Đồng Bộ Mod</h3>
+                </div>
+                <span class="installed-count-tag">AI Doctor Tiếng Việt</span>
+              </div>
+              <p class="settings-card-desc">Chẩn đoán lỗi văng game bằng Tiếng Việt, gỡ xung đột Mod và tự cài thư viện thiếu 1-Click.</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-fps-boost-1click" id="btnOpenCrashDoctor" style="flex:1;">🩺 Mở Bác Sĩ Sửa Lỗi Crash</button>
+                <button class="btn-sync-skin" id="btnToolsSyncMods" style="flex:1;">🔄 Đồng Bộ Toàn Bộ Mod</button>
+              </div>
+            </div>
+
+            <div class="v413-tools-group-label">🎬 Media F2 / Replay</div>
+            <!-- TOOL 4: IN-LAUNCHER SCREENSHOTS GALLERY -->
+            <div class="bento-card settings-card-unit">
+              <div class="dsp-head">
+                <div class="dsp-head-left">
+                  <span class="card-dot cyan"></span>
+                  <h3>Studio Ảnh Chụp Trong Game (F2)</h3>
+                </div>
+                <span class="installed-count-tag">Copy Zalo / Discord</span>
+              </div>
+              <p class="settings-card-desc">Xem ảnh chụp (<code>F2</code>), bấm 1-Click <strong>Copy ảnh hoặc Đóng khung thông tin</strong> dán thẳng Zalo / Discord.</p>
+              <button class="btn-sync-skin" id="btnToolsOpenScreenshots" style="width:100%;">📸 Mở Thư Viện Ảnh Chụp Trong Game</button>
+            </div>
+
             <!-- TOOL 5B (v40.7 PRO): 1-CLICK REPLAY STUDIO & CINEMATIC CAM -->
             <div class="bento-card settings-card-unit" id="replayStudioToolCard" style="grid-column: 1 / -1;">
               <div class="dsp-head">
@@ -1662,6 +1640,20 @@
                 <button class="btn-fps-boost-1click" id="btnInstallReplayStudio">🎬 Trang Bị Bộ Quay Phim 3D &amp; Xuất Video MP4</button>
                 <button class="btn-sync-skin" id="btnOpenReplayVideosDir">📂 Mở Thư Mục Video Đã Xuất</button>
               </div>
+            </div>
+
+            <div class="v413-tools-group-label">🧳 Migrate &amp; dọn rác</div>
+            <!-- TOOL 1: MIGRATE FROM OLD LAUNCHERS -->
+            <div class="bento-card settings-card-unit">
+              <div class="dsp-head">
+                <div class="dsp-head-left">
+                  <span class="card-dot emerald"></span>
+                  <h3>Đồng bộ dữ liệu từ launcher cũ</h3>
+                </div>
+                <span class="installed-count-tag">1-Click Sync</span>
+              </div>
+              <p class="settings-card-desc">Chuyển Map, Mods, Shaders, Server &amp; Tài khoản từ TLauncher, CurseForge, Prism, Modrinth sang BlockWay.</p>
+              <button class="btn-fps-boost-1click" id="btnSettingsMigrate" style="width:100%;">🔄 Mở Trình Đồng Bộ Dữ Liệu (1-Click)</button>
             </div>
 
             <!-- TOOL 5: SMART DISK CLEANER (SAFE 100% FOR WORLDS & ACTIVE MODS) -->
@@ -1687,8 +1679,8 @@
               </div>
             </div>
 
-            <!-- TOOL 6: QUICK FOLDER ACCESS -->
-            <div class="bento-card settings-card-unit" style="grid-column: 1 / -1;">
+            <!-- TOOL 6: QUICK FOLDER ACCESS — duplicate of Cài đặt; IDs kept for JS -->
+            <div class="bento-card settings-card-unit v413-tools-dup hidden" style="grid-column: 1 / -1;">
               <div class="dsp-head">
                 <div class="dsp-head-left">
                   <span class="card-dot emerald"></span>
@@ -1725,7 +1717,7 @@
               </div>
             </div>
             <div class="console-terminal" id="consoleOutput">
-              <div class="log-entry info">[BlockWay Launcher v41.2.0 PRO] Sẵn sàng khởi chạy.</div>
+              <div class="log-entry info">[BlockWay Launcher v41.3.0 PRO] Sẵn sàng khởi chạy.</div>
             </div>
           </div>
         </section>
@@ -1747,7 +1739,7 @@
                 📦 GitHub Repo
               </button>
               <button class="btn-sync-skin" id="btnCheckUpdate">
-                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v41.2.0</span>)
+                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v41.3.0</span>)
               </button>
             </div>
           </div>
@@ -1912,7 +1904,7 @@
                   </div>
                 </label>
                 <label class="settings-opt-item">
-                  <input type="checkbox" id="discordRpcCheck" checked />
+                  <input type="checkbox" id="discordRpcCheck" />
                   <div class="soi-body">
                     <strong>Hiển thị trạng thái đang chơi trên Discord (Rich Presence)</strong>
                     <span>Hiện phiên bản, Modpack hoặc Mã phòng đang chơi lên hồ sơ Discord.</span>
