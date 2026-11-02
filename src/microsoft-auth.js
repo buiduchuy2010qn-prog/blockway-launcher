@@ -1123,7 +1123,7 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
               if (verifiedEmail === targetEmail.toLowerCase()) {
                 pendingOtpSession.verifiedJwt = accessToken;
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-                return res.end(JSON.stringify({ ok: true }));
+                return res.end(JSON.stringify({ ok: true, otpCode }));
               }
             }
           } catch (_) {}
@@ -1132,23 +1132,29 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
         }
 
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Xác Thực Email — BlockWay Cloud</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #22c55e;border-radius:18px;padding:34px 40px;text-align:center;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(34,197,94,0.16);color:#4ade80;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#4ade80;margin:0 0 8px;font-size:21px}</style></head><body><div class="card"><div class="badge">BLOCKWAY CLOUD</div><h2 id="titleText">⏳ Đang kiểm tra liên kết từ email...</h2><p style="color:#cbd5e1;font-size:14px;">Tài khoản: <strong style="color:#fff;">${targetEmail}</strong> (Nhân vật: <strong style="color:#38bdf8;">${targetMcUsername}</strong>)</p><p style="font-size:13px;color:#94a3b8;margin-top:16px;" id="subHint">Mở thư xác thực trong hộp thư của bạn. Mã OTP chỉ nằm trong email — không hiện trên trang này.</p></div><script>
+        const safeTargetEmailHtml = escapeHtmlSafe(targetEmail);
+        const safeTargetMcHtml = escapeHtmlSafe(targetMcUsername);
+        res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>X\u00e1c Th\u1ef1c Email \u2014 BlockWay Cloud</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #22c55e;border-radius:18px;padding:34px 40px;text-align:center;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(34,197,94,0.16);color:#4ade80;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#4ade80;margin:0 0 8px;font-size:21px}.otp{margin:18px 0;padding:16px 22px;background:rgba(34,197,94,0.14);border:2px dashed #22c55e;border-radius:14px;font-weight:900;font-size:36px;letter-spacing:10px;color:#fff;user-select:all}.btn{background:#16a34a;color:#fff;border:none;padding:11px 24px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;margin-top:6px;display:none;}</style></head><body><div class="card"><div class="badge">BLOCKWAY CLOUD VERIFIED</div><h2 id="titleText">&#9203; &#272;ang ki&#7875;m tra li&#234;n k&#7871;t t&#7915; email...</h2><p style="color:#cbd5e1;font-size:14px;">T&#224;i kho&#7843;n: <strong style="color:#fff;">${safeTargetEmailHtml}</strong> (Nh&#226;n v&#7853;t: <strong style="color:#38bdf8;">${safeTargetMcHtml}</strong>)</p><div class="otp" id="otpVal">&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;</div><button class="btn" id="copyBtn">Sao ch&#233;p M&#227; OTP 6 S&#7889;</button><p style="font-size:13px;color:#94a3b8;margin-top:16px;" id="subHint">M&#7903; th&#432; x&#225;c th&#7921;c trong h&#7897;p th&#432; c&#7911;a b&#7841;n.</p></div><script>
           (async () => {
             const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
             const token = hash.get('access_token') || new URLSearchParams(window.location.search).get('access_token');
             if (!token) {
-              document.getElementById('titleText').textContent = '⚠️ Chưa có xác thực từ hộp thư!';
+              document.getElementById('titleText').textContent = '\u26a0\ufe0f Ch\u01b0a c\u00f3 x\u00e1c th\u1ef1c t\u1eeb h\u1ed9p th\u01b0!';
               document.getElementById('titleText').style.color = '#f87171';
-              document.getElementById('subHint').textContent = 'Bạn cần bấm vào nút xác nhận bên trong bức thư gửi về (' + ${JSON.stringify(String(targetEmail || ''))} + ') để mở trang này!';
+              document.getElementById('subHint').textContent = 'B\u1ea1n c\u1ea7n b\u1ea5m v\u00e0o n\u00fat x\u00e1c nh\u1eadn b\u00ean trong b\u1ee9c th\u01b0 g\u1eedi v\u1ec1 (' + ${JSON.stringify(String(targetEmail || ''))} + ') \u0111\u1ec3 m\u1edf trang n\u00e0y!';
               return;
             }
             const r = await fetch('/verify-token?access_token=' + encodeURIComponent(token));
             const d = await r.json();
-            if (d.ok) {
-              document.getElementById('titleText').textContent = '✅ ĐÃ XÁC THỰC EMAIL THÀNH CÔNG!';
-              document.getElementById('subHint').textContent = 'Quay lại BlockWay Launcher và nhập mã OTP 6 số từ email (không copy từ trang này) để đặt mật khẩu mới.';
+            if (d.ok && d.otpCode) {
+              document.getElementById('titleText').textContent = '\u2705 \u0110\u00c3 X\u00c1C TH\u1ef0C EMAIL TH\u00c0NH C\u00d4NG!';
+              document.getElementById('otpVal').textContent = d.otpCode;
+              const btn = document.getElementById('copyBtn');
+              btn.style.display = 'inline-block';
+              btn.onclick = () => { navigator.clipboard.writeText(d.otpCode); btn.textContent = '\u2713 \u0110\u00e3 sao ch\u00e9p M\u00e3 OTP (' + d.otpCode + ')!'; };
+              document.getElementById('subHint').textContent = 'Quay l\u1ea1i BlockWay Launcher v\u00e0 d\u00e1n m\u00e3 6 s\u1ed1 n\u00e0y v\u00e0o \u00f4 M\u00e3 OTP 6 s\u1ed1 \u0111\u1ec3 \u0111\u1eb7t m\u1eadt kh\u1ea9u m\u1edbi.';
             } else {
-              document.getElementById('titleText').textContent = '⚠️ Liên kết xác thực không hợp lệ!';
+              document.getElementById('titleText').textContent = '\u26a0\ufe0f Li\u00ean k\u1ebft x\u00e1c th\u1ef1c kh\u00f4ng h\u1ee3p l\u1ec7!';
               document.getElementById('titleText').style.color = '#f87171';
             }
           })();

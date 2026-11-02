@@ -46,7 +46,7 @@
   "build": {
     "appId": "com.blockway.launcher",
     "productName": "BlockWay Launcher",
-    "asar": true,
+    "asar": false,
     "directories": {
       "output": "dist"
     },

@@ -137,9 +137,9 @@ function recordPlaytimeDelta(deltaSec, { instanceSlug = '', mcVersion = '', isFi
   return stats;
 }
 
-const DISCORD_RPC_CLIENT_ID = '';
+const DISCORD_RPC_CLIENT_ID = '450485984333660181';
 const launcherBootEpochSec = Math.floor(Date.now() / 1000);
-let discordRpcEnabled = false;
+let discordRpcEnabled = true;
 let discordSocket = null;
 let discordReady = false;
 let discordConnecting = false;

@@ -1,18 +1,18 @@
 {
   "format": "blockway-ota-manifest-v1",
   "version": "41.2.1",
-  "generatedAt": "2026-11-02T11:44:48.109Z",
+  "generatedAt": "2026-11-02T11:51:20.188Z",
   "filesCount": 35,
   "files": [
     {
       "path": "package.json",
-      "size": 2614,
-      "sha256": "96126eb578cae4f01aee5ddd5a6cb0258e59682dd45a9f88db7e7b260a0dfa9a"
+      "size": 2524,
+      "sha256": "d9957533ac18410db8c224c75bf21cd1025db8cb13ca01b6f350115cfd4d9e19"
     },
     {
       "path": "src/aether-cloud-auth.js",
-      "size": 104,
-      "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3"
+      "size": 100,
+      "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4"
     },
     {
       "path": "src/launcher-engine.js",
@@ -21,13 +21,13 @@
     },
     {
       "path": "src/main.js",
-      "size": 105489,
-      "sha256": "2fe83ac520024fb4017fa0ffa857c27f857997c8e2dcadb8db7c425aeacaab36"
+      "size": 105506,
+      "sha256": "fa9bb35c472ca45f9964589343e9dddba2956bf318cdab49f74f26519a94db0d"
     },
     {
       "path": "src/microsoft-auth.js",
-      "size": 72533,
-      "sha256": "2b7eb95b0e234c7c8d25271820460faabe0d9beeb427636eb94e65b4e92fd843"
+      "size": 71932,
+      "sha256": "8efa75b3fb22599d0dadc6b1bdc1433b50fa5ec5722feae5a5357ed87abbeff0"
     },
     {
       "path": "src/preload.js",
@@ -61,13 +61,13 @@
     },
     {
       "path": "src/ui/installer-eula.txt",
-      "size": 1700,
-      "sha256": "b58a7a3604dcb1f2ade5c99b228d2868e1da70eaa0a92ee7409b1edd2822b82f"
+      "size": 1682,
+      "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c"
     },
     {
       "path": "src/ui/layout-v33.css",
-      "size": 259074,
-      "sha256": "8898d8bd09b3e0685f65b0cd5d92db43a8b765131969716b218cbdb7c43b37ef"
+      "size": 249036,
+      "sha256": "fbbd1c537a7ebd19e110a85fd19646cae94ec2d7508d529df24586a216c1ede1"
     },
     {
       "path": "src/ui/minecraft-logo.png",
@@ -161,8 +161,8 @@
     },
     {
       "path": "src/ui/skinview3d.bundle.js",
-      "size": 479194,
-      "sha256": "0e7591e4dc81003fcfa20d82873b7c2f78131726430a3e24d6a3bb755c508abe"
+      "size": 477198,
+      "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3"
     },
     {
       "path": "src/ui/store-features.js",
@@ -171,13 +171,13 @@
     },
     {
       "path": "src/ui/styles.css",
-      "size": 119072,
-      "sha256": "d8b05493837dfd1ed504d85153b483388faab93400bae101821c1f836d0fb2a4"
+      "size": 113560,
+      "sha256": "4f1bb32acb703aa49cfb26085cb77abae482ba32c1a487a9de213fa659f57fc0"
     },
     {
       "path": "src/world-creator.js",
-      "size": 51124,
-      "sha256": "4f13b3af1ed79369cea910c137dd2570a7e0d63d081eae2b818b7c97ffcf5a3e"
+      "size": 49913,
+      "sha256": "2cb6b5b37862454bd7b3da99a031a1a05da26d61360b29cc850e98d47a84e36a"
     }
   ]
 }
