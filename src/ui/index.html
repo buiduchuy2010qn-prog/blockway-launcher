@@ -311,7 +311,7 @@
                     <div class="hpc-status-wrap">
                       <span class="drs-text" id="statusText">🟢 Sẵn sàng vào game</span>
                       <span class="drs-pct hidden" id="progressPercent">0%</span>
-                      <span class="drs-account-hidden hidden">Tài khoản: <strong id="dockAccountText">StevePlayer (Crack)</strong></span>
+                      <span class="drs-account-hidden hidden">Tài khoản: <strong id="dockAccountText">StevePlayer (Offline)</strong></span>
                     </div>
                   </div>
 
@@ -726,7 +726,7 @@
                       <input type="email" id="aetherRegEmailInput" class="pro-input" placeholder="Nhập Email Gmail của bạn (vd: huy@gmail.com)..." />
                       <div class="aether-inputs-row">
                         <input type="text" id="aetherRegMcNameInput" class="pro-input" maxlength="16" placeholder="Tên nhân vật Game (3-16 ký tự)..." />
-                        <input type="password" id="aetherRegPassInput" class="pro-input" placeholder="Mật khẩu mới (≥4 ký tự)..." />
+                        <input type="password" id="aetherRegPassInput" class="pro-input" placeholder="Mật khẩu mới (≥8 ký tự)..." />
                       </div>
                       <div class="aether-captcha-row">
                         <span class="aether-captcha-badge" id="aetherRegCaptchaQ">🛡️ Chống Bot: 7 + 4 = ?</span>
@@ -745,7 +745,7 @@
                       <button class="btn-sync-skin aether-btn-reg" id="btnAetherRequestOtp" style="width:100% !important;">📨 Bước 1: Gửi Mã OTP 6 Số Về Hộp Thư Gmail</button>
                       <div class="aether-inputs-row">
                         <input type="text" id="aetherOtpInput" class="pro-input" maxlength="6" placeholder="Nhập Mã OTP 6 số..." />
-                        <input type="password" id="aetherResetNewPassInput" class="pro-input" placeholder="Mật khẩu mới (≥4 ký tự)..." />
+                        <input type="password" id="aetherResetNewPassInput" class="pro-input" placeholder="Mật khẩu mới (≥8 ký tự)..." />
                       </div>
                       <button class="btn-sync-skin aether-btn-login" id="btnAetherConfirmReset" style="width:100% !important;">✓ Bước 2: Xác Nhận Đặt Lại Mật Khẩu</button>
                     </div>
@@ -769,13 +769,13 @@
                     </div>
                     <div id="aetherChangePassRow" class="input-with-btn hidden" style="margin-top:6px;">
                       <input type="password" id="aetherOldPassInput" class="pro-input" placeholder="Mật khẩu cũ..." style="flex:1;" />
-                      <input type="password" id="aetherLoggedNewPassInput" class="pro-input" placeholder="Mật khẩu mới (≥4)..." style="flex:1;" />
+                      <input type="password" id="aetherLoggedNewPassInput" class="pro-input" placeholder="Mật khẩu mới (≥8)..." style="flex:1;" />
                       <button class="btn-sync-skin aether-btn-login" id="btnAetherSavePass" style="width:auto !important;padding:0 12px !important;">Lưu MK</button>
                     </div>
                   </div>
                 </div>
 
-                <!-- PANEL 2: OFFLINE / CRACK -->
+                <!-- PANEL 2: OFFLINE / LOCAL -->
                 <div id="panelCrack" class="auth-input-area">
                   <div class="ver-label-bar">
                     <label class="field-label no-wrap-label" style="margin:0;">Tên nhân vật &amp; Đổi nhanh</label>
@@ -1255,7 +1255,7 @@
                 <div class="cmb-ip-strip" id="coopLocalIpStrip">🖧 IP LAN máy bạn: <strong>Đang dò...</strong></div>
                 <div class="cmb-actions">
                   <button class="btn-sync-skin" id="btnCoopScanLan">🔍 Quét Phòng LAN</button>
-                  <button class="btn-sync-skin" id="btnCoopInstallLanMod" title="Tự cài Mod hỗ trợ bạn bè Offline/Crack vào được phòng LAN của bạn">🔓 Cài Mod Hỗ Trợ LAN</button>
+                  <button class="btn-sync-skin" id="btnCoopInstallLanMod" title="Tự cài Mod hỗ trợ bạn bè Offline/local vào được phòng LAN của bạn">🔓 Cài Mod Hỗ Trợ LAN</button>
                 </div>
                 <div class="coop-lan-list" id="coopLanWorldsList">
                   <div class="coop-lan-empty">Bấm <strong>🔍 Quét Phòng LAN</strong> để tìm phòng bạn bè đang mở trong cùng Wi-Fi.</div>
@@ -1342,7 +1342,7 @@
               <div class="srv-category-bar" id="serverCategoryBar" style="margin-bottom:0;">
                 <button class="vtype-btn active" data-srvcat="all">Tất cả</button>
                 <button class="vtype-btn" data-srvcat="vn">⭐ Server Việt Nam</button>
-                <button class="vtype-btn" data-srvcat="crack">🔓 Quốc Tế (Crack)</button>
+                <button class="vtype-btn" data-srvcat="crack">🔓 Quốc Tế (Offline)</button>
                 <button class="vtype-btn" data-srvcat="premium">👑 Bản Quyền</button>
               </div>
               <input type="text" id="serverSearchInput" class="pro-input" placeholder="🔍 Tìm nhanh tên hoặc IP máy chủ..." style="width:250px;max-width:100%;" />
@@ -2354,7 +2354,7 @@
             <div class="ls-field">
               <label for="lsAuthModeSelect">🔓 Tài Khoản Bạn Bè</label>
               <select id="lsAuthModeSelect" class="pro-select">
-                <option value="offline" selected>🔓 Crack &amp; Bản quyền (Tất cả)</option>
+                <option value="offline" selected>🔓 Offline &amp; Microsoft (Tất cả)</option>
                 <option value="online">👑 Chỉ Bản quyền Microsoft</option>
               </select>
             </div>

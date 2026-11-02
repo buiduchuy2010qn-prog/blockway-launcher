@@ -1,5 +1,5 @@
 const DEFAULT_FEATURED_SERVERS = [
-  // 🇻🇳 MÁY CHỦ VIỆT NAM NỔI BẬT (HỖ TRỢ CRACK / OFFLINE & BẢN QUYỀN)
+  // 🇻🇳 MÁY CHỦ VIỆT NAM NỔI BẬT (OFFLINE / LOCAL & MICROSOFT)
   { name: 'KingMC Network (Việt Nam • BoxPvP / Skyblock)', ip: 'play.kingmc.vn', cat: 'vn' },
   { name: 'LuckyVN Network (Việt Nam • Sinh Tồn / Skyblock)', ip: 'mc.luckyvn.com', cat: 'vn' },
   { name: 'GrassMine VN (Việt Nam • Towny / Sinh Tồn)', ip: 'grassmine.vn', cat: 'vn' },
@@ -7,14 +7,14 @@ const DEFAULT_FEATURED_SERVERS = [
   { name: 'SuperMC Network (Việt Nam • RPG / Skyblock)', ip: 'supermc.vn', cat: 'vn' },
   { name: 'AEMine Việt Nam (Sinh Tồn / BoxPvP / Lifesteal)', ip: 'aemine.vn', cat: 'vn' },
   { name: '3FMC Network (Việt Nam • Sinh Tồn / Skyblock)', ip: 'play.3fmc.com', cat: 'vn' },
-  // 🔓 MÁY CHỦ QUỐC TẾ HỖ TRỢ CRACK / OFFLINE
-  { name: 'MineBerry Network (Crack • BedWars / Survival)', ip: 'play.mineberry.org', cat: 'crack' },
-  { name: 'PikaNetwork (Crack • BedWars / SkyWars / PvP)', ip: 'play.pika-network.net', cat: 'crack' },
-  { name: 'JartexNetwork (Crack • Minigames / Factions)', ip: 'play.jartexnetwork.com', cat: 'crack' },
-  { name: 'ExtremeCraft (Crack • Skyblock / Survival / PvP)', ip: 'play.extremecraft.net', cat: 'crack' },
-  { name: 'Gamster Network (Crack • BedWars / Practice PvP)', ip: 'play.gamster.org', cat: 'crack' },
-  { name: 'BlocksMC Quốc Tế (Crack • BedWars / SkyWars)', ip: 'mc.blocksmc.com', cat: 'crack' },
-  { name: 'Mineland Network (Crack • Creative / Minigames)', ip: 'play.mineland.net', cat: 'crack' },
+  // 🔓 MÁY CHỦ QUỐC TẾ HỖ TRỢ OFFLINE / LOCAL
+  { name: 'MineBerry Network (Offline • BedWars / Survival)', ip: 'play.mineberry.org', cat: 'crack' },
+  { name: 'PikaNetwork (Offline • BedWars / SkyWars / PvP)', ip: 'play.pika-network.net', cat: 'crack' },
+  { name: 'JartexNetwork (Offline • Minigames / Factions)', ip: 'play.jartexnetwork.com', cat: 'crack' },
+  { name: 'ExtremeCraft (Offline • Skyblock / Survival / PvP)', ip: 'play.extremecraft.net', cat: 'crack' },
+  { name: 'Gamster Network (Offline • BedWars / Practice PvP)', ip: 'play.gamster.org', cat: 'crack' },
+  { name: 'BlocksMC Quốc Tế (Offline • BedWars / SkyWars)', ip: 'mc.blocksmc.com', cat: 'crack' },
+  { name: 'Mineland Network (Offline • Creative / Minigames)', ip: 'play.mineland.net', cat: 'crack' },
   // 👑 MÁY CHỦ QUỐC TẾ BẢN QUYỀN (MICROSOFT PREMIUM)
   { name: 'Hypixel Official (Bản Quyền • Số 1 Thế Giới)', ip: 'mc.hypixel.net', cat: 'premium' },
   { name: 'DonutSMP Official (Bản Quyền • Hardcore Lifesteal)', ip: 'donutsmp.net', cat: 'premium' },
@@ -34,7 +34,7 @@ const state = {
   favoriteServers: [...DEFAULT_FEATURED_SERVERS],
   winResolution: '1280x720', uiScale: 1.0, outerLayerVisible: true, stageBgMode: 'stars', serverPingCache: {}, acceptedEula: false, skipLaunchConfirm: false, isLaunching: false,
   activeLaunchContext: null, lastLaunchContext: null,
-  autoBackupWorlds: true, discordRpcEnabled: true, autoViLang: true, potatoGraphicsPreset: false, smartRamCoach: true, gentleSmoothMode: true,
+  autoBackupWorlds: true, discordRpcEnabled: false, autoViLang: true, potatoGraphicsPreset: false, smartRamCoach: true, gentleSmoothMode: true,
   deepSmoothEngine: true, deepSmoothProfile: 'balanced', deepSmoothLayers: ['vanilla_io', 'optifine', 'sodium', 'modernfix', 'culling_hud', 'jvm_lowlatency'],
   autoCreateFirstWorld: true, modTargetInstanceDir: '', pendingQuickWorldFolder: '', pendingQuickWorldTitle: '',
   playtimeStats: { totalSeconds: 0, sessionsCount: 0, byInstance: {}, byVersion: {} }
@@ -755,7 +755,7 @@ function updateSummaryUI() {
     sbBadge.textContent = badgeKind === 'ms' ? '👑 MICROSOFT' : (badgeKind === 'cloud' ? '🛡️ CLOUD' : '👤 OFFLINE');
   }
   if (typeof window.renderSidebarProfilePopover === 'function') window.renderSidebarProfilePopover();
-  const modeLabel = state.authMode === 'microsoft' ? 'Microsoft' : (state.authMode === 'aether' ? 'BlockWay Cloud' : 'Crack');
+  const modeLabel = state.authMode === 'microsoft' ? 'Microsoft' : (state.authMode === 'aether' ? 'BlockWay Cloud' : 'Offline');
   const dockAcc = document.getElementById('dockAccountText');
   if (dockAcc) dockAcc.textContent = `${playerName} (${modeLabel})`;
 
@@ -2599,13 +2599,13 @@ window.addEventListener('DOMContentLoaded', async () => {
       state.crackSkinSync = true;
       state.autoBackupWorlds = true;
       state.autoCreateFirstWorld = true;
-      state.discordRpcEnabled = true;
+      state.discordRpcEnabled = false;
       state.autoViLang = true;
       state.gentleSmoothMode = true;
       state.potatoGraphicsPreset = false;
       const crackToggle = document.getElementById('crackSkinSyncToggle');
       if (crackToggle) crackToggle.checked = true;
-      window.aetherAPI.setDiscordRpcEnabled?.(true);
+      window.aetherAPI.setDiscordRpcEnabled?.(false);
       syncBoosterCheckboxes();
       syncAutoBackupAndDiscordUI();
       saveCurrentConfig();
@@ -2846,8 +2846,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       const password = document.getElementById('aetherRegPassInput')?.value || '';
       const capVal = parseInt(document.getElementById('aetherRegCaptchaInp')?.value.trim() || '', 10);
 
-      if (!loginId || password.length < 4) {
-        showAetherNotification('⚠️ Vui lòng nhập đầy đủ Email Gmail và Mật khẩu (≥4 ký tự)!', 'error', 4500);
+      if (!loginId || password.length < 8) {
+        showAetherNotification('⚠️ Vui lòng nhập đầy đủ Email và Mật khẩu (≥8 ký tự)!', 'error', 4500);
         return;
       }
       if (capVal !== regCaptchaAns) {
@@ -3077,7 +3077,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       const ask = await askUserAgreement({
         title: '⚠️ Tài Khoản Chưa Sở Hữu Bản Quyền Minecraft: Java Edition!',
         message: res.error,
-        agreeText: '⚡ Chuyển sang Chế độ Offline (Crack) miễn phí',
+        agreeText: '⚡ Chuyển sang chế độ Offline (tên nhân vật local)',
         cancelText: 'Đóng'
       });
       if (ask?.agreed) {

@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v41.2.0 PRO — Every World, One Place (`blockway-launcher`)
+# ⚡ BlockWay Launcher v41.2.1 PRO — Every World, One Place (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,21 +6,27 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.2.0_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.2.1_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-7_Core_Loaders-06b6d4?style=for-the-badge" alt="Loaders" /></a>
 </p>
 
-**BlockWay Launcher** (*Every World, One Place* — phát triển bởi **buiduchuy2010qn-prog**) là trình khởi chạy Minecraft thế hệ mới sở hữu **🖥️ Trạm Server Ngầm `0% GPU` kèm Tư Vấn Cấu Hình Thông Minh**, **🎨 Kho Làm Đẹp Không Tụt FPS 1-Click**, **📸 Studio Ảnh Chụp 2.0 (Copy Kèm Khung Thông Tin)**, **☁️ Sao Lưu & Khôi Phục Phím Tắt + Danh Sách Server**, **🚀 Tăng Tốc Nạp Thế Giới Đa Nhân**, **⚡ Turbo Smooth Core™ — Can Thiệp Sâu 6 Tầng Tệp Cấu Hình Game & Hoàn Tác 1-Click**, hỗ trợ đầy đủ cả **Tài khoản Bản quyền Microsoft**, **Chế độ Ngoại tuyến (Offline / LAN)** và **Tài khoản Đám mây 24/7** kèm **Mã OTP 6 số gửi thẳng về Gmail**.
+**BlockWay Launcher** (*Every World, One Place* — phát triển bởi **buiduchuy2010qn-prog**) là trình khởi chạy Minecraft thế hệ mới sở hữu **🖥️ Trạm Server Ngầm `0% GPU` kèm Tư Vấn Cấu Hình Thông Minh**, **🎨 Kho Làm Đẹp Không Tụt FPS 1-Click**, **📸 Studio Ảnh Chụp 2.0 (Copy Kèm Khung Thông Tin)**, **☁️ Sao Lưu & Khôi Phục Phím Tắt + Danh Sách Server**, **🚀 Tăng Tốc Nạp Thế Giới Đa Nhân**, **⚡ Turbo Smooth Core™ — Can Thiệp Sâu 6 Tầng Tệp Cấu Hình Game & Hoàn Tác 1-Click**, hỗ trợ **Tài khoản Microsoft**, **chế độ Offline / tên nhân vật local** và **Tài khoản Đám mây 24/7** (OTP gửi về email). Cần bản quyền Minecraft: Java Edition để chơi online trên máy chủ chính thức.
 
 🌐 **Trang chủ chính thức:** **[https://buiduchuy2010qn-prog.github.io/blockway-launcher/](https://buiduchuy2010qn-prog.github.io/blockway-launcher/)**
 
 ---
 
-## 📦 Mới trong phiên bản `v41.2.0 PRO`
+## 📦 Mới trong phiên bản `v41.2.1 PRO`
+
+- Đồng bộ phiên bản, giấy phép MIT, `appId` BlockWay, OTA SHA-256, Electron `sandbox` + `asar`.
+- Tài khoản Cloud: scrypt (cục bộ) + SHA-256 tương thích RPC cũ; mật khẩu tối thiểu 8 ký tự; cổng web POST (không đưa mật khẩu lên URL); OTP không hiện trên trình duyệt.
+- Copy công khai: Microsoft + Offline/local (không dùng từ khóa crack/piracy trên website). Discord RPC tắt cho đến khi có Application ID riêng.
+
+## 📦 Có sẵn từ `v41.2.0 PRO`
 
 1. **🖥️ Trạm Server Ngầm `0% GPU` & Tư Vấn Cấu Hình Máy Chủ Thông Minh (MỚI `v41.2.0 PRO`):**
    - **Tư vấn cấu hình tự động trước khi mở Server:** Tự động đo dung lượng RAM & số luồng CPU của máy chủ để đưa ra khuyến cáo rõ ràng (máy `< 8 GB RAM` được khuyên dùng **Chơi Chung LAN `e4mc`** để không quá tải khi vừa mở Server vừa bật game 3D; máy `8–16 GB+ RAM` được tự động gợi ý mức RAM Server tối ưu).
-   - **Chạy `server.jar` chính chủ ở chế độ `nogui` (`0% GPU`):** Tự tải `server.jar` Mojang, tự điền `eula=true`, cho phép bật hỗ trợ bạn bè Ngoại tuyến / LAN (`online-mode=false`), copy map từ Chơi Đơn sang Server và tích hợp sẵn các nút lệnh Admin 1-Click (`👑 Cấp OP`, `☀️ Trời sáng`, `🌤️ Tạnh mưa`, `🛡️ Giữ đồ khi chết`, `💾 Lưu Map`).
+   - **Chạy `server.jar` chính chủ ở chế độ `nogui` (`0% GPU`):** Tự tải `server.jar` Mojang, tự điền `eula=true`, cho phép bật hỗ trợ bạn bè Offline/LAN (`online-mode=false`), copy map từ Chơi Đơn sang Server và tích hợp sẵn các nút lệnh Admin 1-Click (`👑 Cấp OP`, `☀️ Trời sáng`, `🌤️ Tạnh mưa`, `🛡️ Giữ đồ khi chết`, `💾 Lưu Map`).
 2. **🎨 Kho Làm Đẹp Không Tụt FPS 1-Click (MỚI `v41.2.0 PRO`):**
    - Tích hợp sẵn 4 gói làm đẹp nhẹ máy, ai cần mục nào chỉ việc bấm bật mục đó: **🔥 Lửa Thấp PvP & Bỏ Mờ Bí Ngô** (tạo trực tiếp gói Resource Pack nội bộ trong `< 15 ms`), **💎 Viền Quặng Phát Sáng** (dễ nhìn Kim Cương & Khoáng sản trong hang tối không cần Shader), **🐾 Cử Động Sinh Vật Sống Động (Fresh Animations + EMF/ETF)** và **🔊 Âm Thanh Vòm Hang Động & Tiếng Bước Chân**.
 3. **📸 Studio Ảnh Chụp 2.0 — Copy Kèm Khung Thông Tin 1-Click (MỚI `v41.2.0 PRO`):**
@@ -108,4 +114,4 @@
 ---
 
 ### 🔍 Từ khóa tìm kiếm (SEO Keywords)
-`blockway-launcher`, `blockway launcher`, `tải minecraft launcher tiếng việt`, `minecraft bản quyền và offline`, `chơi chung minecraft lan e4mc`, `trạm server ngầm minecraft`, `optifine launcher`, `modrinth launcher`, `neoforge launcher`, `fabric launcher`, `buiduchuy2010qn-prog`, `minecraft launcher vietnam`
+`blockway-launcher`, `blockway launcher`, `tải minecraft launcher tiếng việt`, `minecraft microsoft offline lan`, `chơi chung minecraft lan e4mc`, `trạm server ngầm minecraft`, `optifine launcher`, `modrinth launcher`, `neoforge launcher`, `fabric launcher`, `buiduchuy2010qn-prog`, `minecraft launcher vietnam`

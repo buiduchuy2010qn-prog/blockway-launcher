@@ -156,7 +156,7 @@ async function authenticateMinecraftChain({ code, refreshToken, redirectUri }) {
   if (!xstsRes.ok) {
     const xstsErr = await xstsRes.json().catch(() => ({}));
     if (xstsErr.XErr === 2148916233) {
-      throw new Error(`Tài khoản Microsoft "${accountLabel}" chưa tạo hồ sơ Xbox Live và chưa sở hữu bản quyền Minecraft: Java Edition! Vui lòng chuyển sang chế độ "Offline / LAN" hoặc "BlockWay Cloud" để chơi miễn phí.`);
+      throw new Error(`Tài khoản Microsoft "${accountLabel}" chưa tạo hồ sơ Xbox Live và chưa sở hữu bản quyền Minecraft: Java Edition! Vui lòng chuyển sang tab Offline (tên nhân vật local) hoặc BlockWay Cloud.`);
     }
     if (xstsErr.XErr === 2148916238) {
       throw new Error(`Tài khoản Microsoft "${accountLabel}" dưới 18 tuổi cần được người lớn thêm vào nhóm Gia đình (Microsoft Family) trước khi đăng nhập.`);
@@ -194,7 +194,7 @@ async function authenticateMinecraftChain({ code, refreshToken, redirectUri }) {
   });
 
   if (profileRes.status === 404) {
-    throw new Error(`Tài khoản Microsoft "${accountLabel}" CHƯA MUA bản quyền Minecraft: Java Edition trên hệ thống Mojang (minecraft.net)! Chỉ tài khoản đã mua game (hoặc có gói Xbox Game Pass PC) mới đăng nhập được mục Bản Quyền. Bạn hãy chọn chế độ "Offline / LAN" hoặc "BlockWay Cloud" bên cạnh để chơi miễn phí nhé!`);
+    throw new Error(`Tài khoản Microsoft "${accountLabel}" chưa có bản quyền Minecraft: Java Edition trên hệ thống Mojang (minecraft.net)! Chỉ tài khoản đã mua game (hoặc Xbox Game Pass PC) mới đăng nhập được mục Microsoft. Bạn có thể dùng tab Offline (tên nhân vật local) để chơi đơn / LAN.`);
   }
   if (!profileRes.ok) {
     throw new Error(`Tài khoản Microsoft "${accountLabel}" không có hồ sơ Minecraft bản quyền hợp lệ (Mã lỗi: ${profileRes.status}).`);
@@ -310,7 +310,7 @@ function buildErrorHtml(errorMsg) {
     <div class="badge">✕</div>
     <h2>Tài Khoản Chưa Có Bản Quyền Minecraft!</h2>
     <p>${safeErr}</p>
-    <div class="hint">💡 Quay lại <strong>BlockWay Launcher</strong> và chọn chế độ <strong>"Offline / LAN"</strong> hoặc <strong>"BlockWay Cloud"</strong> để chơi miễn phí với mọi tính năng Skin 3D &amp; Modrinth!</div>
+    <div class="hint">💡 Quay lại <strong>BlockWay Launcher</strong> và chọn tab <strong>Offline</strong> (tên nhân vật local) để chơi đơn / LAN. Cần bản quyền Minecraft: Java Edition để chơi online trên máy chủ chính thức.</div>
   </div>
 </body>
 </html>`;
@@ -529,11 +529,55 @@ async function callSupabaseRpc(fnName, params = {}, bearerJwt = '') {
   }
 }
 
-function hashPassword(rawPassword) {
+const MIN_PASSWORD_LENGTH = 8;
+const SCRYPT_KEYLEN = 32;
+const SCRYPT_SALT_BYTES = 16;
+const SCRYPT_OPTS = { N: 16384, r: 8, p: 1 };
+const LEGACY_PASSWORD_PREFIX = 'aether_cloud_salt_v1:';
+
+function hashPasswordLegacy(rawPassword) {
   return crypto
     .createHash('sha256')
-    .update(`aether_cloud_salt_v1:${String(rawPassword || '')}`, 'utf8')
+    .update(`${LEGACY_PASSWORD_PREFIX}${String(rawPassword || '')}`, 'utf8')
     .digest('hex');
+}
+
+function hashPassword(rawPassword) {
+  const salt = crypto.randomBytes(SCRYPT_SALT_BYTES);
+  const derived = crypto.scryptSync(String(rawPassword || ''), salt, SCRYPT_KEYLEN, SCRYPT_OPTS);
+  return `scrypt$${salt.toString('hex')}$${derived.toString('hex')}`;
+}
+
+function verifyPassword(rawPassword, storedHash) {
+  const stored = String(storedHash || '');
+  if (stored.startsWith('scrypt$')) {
+    const parts = stored.split('$');
+    if (parts.length !== 3) return false;
+    try {
+      const salt = Buffer.from(parts[1], 'hex');
+      const expected = Buffer.from(parts[2], 'hex');
+      if (!salt.length || !expected.length) return false;
+      const derived = crypto.scryptSync(String(rawPassword || ''), salt, expected.length, SCRYPT_OPTS);
+      return expected.length === derived.length && crypto.timingSafeEqual(expected, derived);
+    } catch (_) {
+      return false;
+    }
+  }
+  const legacy = hashPasswordLegacy(rawPassword);
+  try {
+    const a = Buffer.from(legacy, 'hex');
+    const b = Buffer.from(stored, 'hex');
+    if (a.length !== b.length || a.length === 0) return false;
+    return crypto.timingSafeEqual(a, b);
+  } catch (_) {
+    return false;
+  }
+}
+
+function assertPasswordStrength(rawPassword) {
+  if (!rawPassword || String(rawPassword).length < MIN_PASSWORD_LENGTH) {
+    throw new Error(`Mật khẩu phải có ít nhất ${MIN_PASSWORD_LENGTH} ký tự!`);
+  }
 }
 
 function sanitizeMcUsername(rawInput) {
@@ -700,9 +744,7 @@ async function registerCloudAccount({
       throw new Error('🛡️ Chống Spam: Không chấp nhận Email ảo / Email rác tạm thời! Vui lòng dùng Gmail hoặc Email thật.');
     }
   }
-  if (!password || String(password).length < 4) {
-    throw new Error('Mật khẩu phải có ít nhất 4 ký tự!');
-  }
+  assertPasswordStrength(password);
 
   const desiredMcName = sanitizeMcUsername(mcUsername || cleanLogin.split('@')[0]);
   if (desiredMcName.length < 3) {
@@ -711,14 +753,15 @@ async function registerCloudAccount({
 
   const accountId = 'ac_' + crypto.randomBytes(6).toString('hex');
   const sessionToken = generateSessionToken();
+  const passHashLegacy = hashPasswordLegacy(password);
   const passHash = hashPassword(password);
   const cleanSkinUrl = (typeof skinDataUrl === 'string' && skinDataUrl.length < 35000) ? skinDataUrl : '';
 
-  // Cloud RPC sync
+  // Cloud RPC still stores SHA-256 hashes; local fallback stores scrypt.
   const rpcRes = await callSupabaseRpc('aether_rpc_register', {
     p_account_id: accountId,
     p_login_id: cleanLogin,
-    p_password_hash: passHash,
+    p_password_hash: passHashLegacy,
     p_mc_username: desiredMcName,
     p_uuid: generateOfflineUUID(desiredMcName),
     p_skin_model: skinModel || 'default',
@@ -745,13 +788,13 @@ async function registerCloudAccount({
     (u) => u.loginId && u.loginId.toLowerCase() === cleanLogin
   );
   if (existingAccount) {
-    throw new Error(`Tài khoản "${loginId}" đã được đăng ký trên Aether Cloud! Hãy chuyển sang mục "🔑 Đăng Nhập".`);
+    throw new Error(`Tài khoản "${loginId}" đã được đăng ký trên BlockWay Cloud! Hãy chuyển sang mục "🔑 Đăng Nhập".`);
   }
 
   const nameKey = desiredMcName.toLowerCase();
   const currentOwnerId = db.usernames[nameKey];
   if (currentOwnerId && db.users[currentOwnerId]) {
-    throw new Error(`Tên nhân vật "${desiredMcName}" đã có người sở hữu trên Aether Cloud! Bạn hãy chọn tên khác nhé.`);
+    throw new Error(`Tên nhân vật "${desiredMcName}" đã có người sở hữu trên BlockWay Cloud! Bạn hãy chọn tên khác nhé.`);
   }
 
   const newUser = {
@@ -787,13 +830,13 @@ async function loginCloudAccount({ loginId, password, customDbUrl = '' }) {
     throw new Error('Vui lòng nhập đầy đủ Tên tài khoản và Mật khẩu!');
   }
 
-  const passHash = hashPassword(password);
   const sessionToken = generateSessionToken();
+  const passHashLegacy = hashPasswordLegacy(password);
 
-  // Cloud RPC sync (Never exposes password_hash to client!)
+  // Cloud RPC still stores SHA-256 hashes; local fallback uses scrypt (see verifyPassword).
   const rpcRes = await callSupabaseRpc('aether_rpc_login', {
     p_login_id: cleanLogin,
-    p_password_hash: passHash,
+    p_password_hash: passHashLegacy,
     p_session_token: sessionToken,
     p_now: Date.now()
   });
@@ -818,12 +861,15 @@ async function loginCloudAccount({ loginId, password, customDbUrl = '' }) {
 
   if (!user) {
     recordFailedAuthAttempt();
-    throw new Error(`Không tìm thấy tài khoản "${loginId}" trên Aether Cloud! Nếu chưa có tài khoản, hãy chuyển sang mục "✨ Tạo Tài Khoản".`);
+    throw new Error(`Không tìm thấy tài khoản "${loginId}" trên BlockWay Cloud! Nếu chưa có tài khoản, hãy chuyển sang mục "✨ Tạo Tài Khoản".`);
   }
 
-  if (user.passwordHash !== passHash) {
+  if (!verifyPassword(password, user.passwordHash)) {
     recordFailedAuthAttempt();
     throw new Error(`Mật khẩu không chính xác! (Còn ${5 - antiSpamState.failedAttempts} lần thử trước khi tạm khóa chống Bot).`);
+  }
+  if (user.passwordHash && !String(user.passwordHash).startsWith('scrypt$')) {
+    user.passwordHash = hashPassword(password);
   }
 
   resetFailedAuthAttempts();
@@ -835,7 +881,7 @@ async function loginCloudAccount({ loginId, password, customDbUrl = '' }) {
 
 async function changeCloudUsername({ accountId, sessionToken = '', newMcUsername, customDbUrl = '' }) {
   if (!accountId) {
-    throw new Error('Bạn cần đăng nhập tài khoản Aether Cloud trước khi đổi tên!');
+    throw new Error('Bạn cần đăng nhập tài khoản BlockWay Cloud trước khi đổi tên!');
   }
 
   const now = Date.now();
@@ -870,13 +916,13 @@ async function changeCloudUsername({ accountId, sessionToken = '', newMcUsername
   const db = await fetchCloudDatabase(customDbUrl);
   const user = db.users[accountId];
   if (!user) {
-    throw new Error('Không tìm thấy hồ sơ tài khoản trên Aether Cloud!');
+    throw new Error('Không tìm thấy hồ sơ tài khoản trên BlockWay Cloud!');
   }
 
   const newKey = cleanNewName.toLowerCase();
   const existingOwner = db.usernames[newKey];
   if (existingOwner && existingOwner !== accountId && db.users[existingOwner]) {
-    throw new Error(`⚠️ Tên nhân vật "${cleanNewName}" đã có người khác sở hữu trên Aether Cloud! Vui lòng chọn tên khác.`);
+    throw new Error(`⚠️ Tên nhân vật "${cleanNewName}" đã có người khác sở hữu trên BlockWay Cloud! Vui lòng chọn tên khác.`);
   }
 
   const oldKey = String(user.mcUsername || '').toLowerCase();
@@ -931,16 +977,15 @@ async function syncCloudCosmetics({ accountId, sessionToken = '', skinModel, cap
 
 async function changeCloudPassword({ accountId, sessionToken = '', oldPassword, newPassword, customDbUrl = '' }) {
   if (!accountId) {
-    throw new Error('Bạn cần đăng nhập tài khoản Aether Cloud trước!');
+    throw new Error('Bạn cần đăng nhập tài khoản BlockWay Cloud trước!');
   }
   if (!oldPassword) {
     throw new Error('⚠️ Vui lòng nhập Mật khẩu cũ hiện tại để xác minh bảo mật!');
   }
-  if (!newPassword || String(newPassword).length < 4) {
-    throw new Error('Mật khẩu mới phải có ít nhất 4 ký tự!');
-  }
+  assertPasswordStrength(newPassword);
 
-  const oldHash = hashPassword(oldPassword);
+  const oldHash = hashPasswordLegacy(oldPassword);
+  const newHashLegacy = hashPasswordLegacy(newPassword);
   const newHash = hashPassword(newPassword);
   const nextSessionToken = generateSessionToken();
 
@@ -948,7 +993,7 @@ async function changeCloudPassword({ accountId, sessionToken = '', oldPassword, 
   const rpcRes = await callSupabaseRpc('aether_rpc_change_password', {
     p_account_id: accountId,
     p_old_password_hash: oldHash,
-    p_new_password_hash: newHash,
+    p_new_password_hash: newHashLegacy,
     p_new_session_token: nextSessionToken,
     p_now: Date.now()
   });
@@ -964,10 +1009,10 @@ async function changeCloudPassword({ accountId, sessionToken = '', oldPassword, 
   const db = await fetchCloudDatabase(customDbUrl);
   const user = db.users[accountId];
   if (!user) {
-    throw new Error('Không tìm thấy hồ sơ tài khoản trên Aether Cloud!');
+    throw new Error('Không tìm thấy hồ sơ tài khoản trên BlockWay Cloud!');
   }
 
-  if (user.passwordHash && user.passwordHash !== oldHash) {
+  if (user.passwordHash && !verifyPassword(oldPassword, user.passwordHash)) {
     throw new Error('⚠️ Mật khẩu cũ không chính xác! Vui lòng nhập đúng mật khẩu hiện tại.');
   }
 
@@ -996,6 +1041,7 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
       }
 
       const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+      const otpHashLegacy = hashPasswordLegacy(otpCode);
       const otpHash = hashPassword(otpCode);
       const otpExpires = now + 10 * 60 * 1000;
 
@@ -1005,7 +1051,7 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
       // Cloud RPC sync
       const rpcRes = await callSupabaseRpc('aether_rpc_prepare_otp', {
         p_login_id: cleanLogin,
-        p_otp_hash: otpHash,
+        p_otp_hash: otpHashLegacy,
         p_otp_expires: otpExpires,
         p_now: now
       });
@@ -1077,7 +1123,7 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
               if (verifiedEmail === targetEmail.toLowerCase()) {
                 pendingOtpSession.verifiedJwt = accessToken;
                 res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-                return res.end(JSON.stringify({ ok: true, otpCode }));
+                return res.end(JSON.stringify({ ok: true }));
               }
             }
           } catch (_) {}
@@ -1086,25 +1132,21 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
         }
 
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Xác Thực Email Gmail — Aether Cloud (Supabase)</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #22c55e;border-radius:18px;padding:34px 40px;text-align:center;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(34,197,94,0.16);color:#4ade80;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#4ade80;margin:0 0 8px;font-size:21px}.otp{margin:18px 0;padding:16px 22px;background:rgba(34,197,94,0.14);border:2px dashed #22c55e;border-radius:14px;font-weight:900;font-size:36px;letter-spacing:10px;color:#fff;user-select:all}.btn{background:#16a34a;color:#fff;border:none;padding:11px 24px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;margin-top:6px}</style></head><body><div class="card"><div class="badge">⚡ SUPABASE GMAIL VERIFIED</div><h2 id="titleText">⏳ Đang kiểm tra liên kết từ Gmail...</h2><p style="color:#cbd5e1;font-size:14px;">Tài khoản: <strong style="color:#fff;">${targetEmail}</strong> (Nhân vật: <strong style="color:#38bdf8;">${targetMcUsername}</strong>)</p><div class="otp" id="otpVal">••••••</div><button class="btn" id="copyBtn" style="display:none;">📋 Sao chép Mã OTP 6 Số</button><p style="font-size:13px;color:#94a3b8;margin-top:16px;" id="subHint">Vui lòng mở thư từ Supabase trong hộp thư Gmail của bạn.</p></div><script>
+        res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Xác Thực Email — BlockWay Cloud</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #22c55e;border-radius:18px;padding:34px 40px;text-align:center;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(34,197,94,0.16);color:#4ade80;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#4ade80;margin:0 0 8px;font-size:21px}</style></head><body><div class="card"><div class="badge">BLOCKWAY CLOUD</div><h2 id="titleText">⏳ Đang kiểm tra liên kết từ email...</h2><p style="color:#cbd5e1;font-size:14px;">Tài khoản: <strong style="color:#fff;">${targetEmail}</strong> (Nhân vật: <strong style="color:#38bdf8;">${targetMcUsername}</strong>)</p><p style="font-size:13px;color:#94a3b8;margin-top:16px;" id="subHint">Mở thư xác thực trong hộp thư của bạn. Mã OTP chỉ nằm trong email — không hiện trên trang này.</p></div><script>
           (async () => {
             const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
             const token = hash.get('access_token') || new URLSearchParams(window.location.search).get('access_token');
             if (!token) {
-              document.getElementById('titleText').textContent = '⚠️ Chưa có xác thực từ hộp thư Gmail!';
+              document.getElementById('titleText').textContent = '⚠️ Chưa có xác thực từ hộp thư!';
               document.getElementById('titleText').style.color = '#f87171';
-              document.getElementById('subHint').textContent = 'Bạn cần bấm vào nút xác nhận bên trong bức thư gửi về Gmail (' + ${JSON.stringify(String(targetEmail || ''))} + ') để mở trang này!';
+              document.getElementById('subHint').textContent = 'Bạn cần bấm vào nút xác nhận bên trong bức thư gửi về (' + ${JSON.stringify(String(targetEmail || ''))} + ') để mở trang này!';
               return;
             }
             const r = await fetch('/verify-token?access_token=' + encodeURIComponent(token));
             const d = await r.json();
-            if (d.ok && d.otpCode) {
-              document.getElementById('titleText').textContent = '✅ ĐÃ XÁC THỰC GMAIL THÀNH CÔNG!';
-              document.getElementById('otpVal').textContent = d.otpCode;
-              const btn = document.getElementById('copyBtn');
-              btn.style.display = 'inline-block';
-              btn.onclick = () => { navigator.clipboard.writeText(d.otpCode); btn.textContent = '✓ Đã sao chép Mã OTP (' + d.otpCode + ')!'; };
-              document.getElementById('subHint').textContent = 'Quay lại BlockWay Launcher và dán mã 6 số này vào ô Mã OTP 6 số để đặt mật khẩu mới!';
+            if (d.ok) {
+              document.getElementById('titleText').textContent = '✅ ĐÃ XÁC THỰC EMAIL THÀNH CÔNG!';
+              document.getElementById('subHint').textContent = 'Quay lại BlockWay Launcher và nhập mã OTP 6 số từ email (không copy từ trang này) để đặt mật khẩu mới.';
             } else {
               document.getElementById('titleText').textContent = '⚠️ Liên kết xác thực không hợp lệ!';
               document.getElementById('titleText').style.color = '#f87171';
@@ -1167,11 +1209,10 @@ async function resetCloudPassword({ loginId, otpCode, newPassword, customDbUrl =
   if (!/^\d{6}$/.test(cleanOtp)) {
     throw new Error('⚠️ Vui lòng nhập đúng Mã OTP 6 chữ số nhận được từ hộp thư Gmail!');
   }
-  if (!newPassword || String(newPassword).length < 4) {
-    throw new Error('Mật khẩu mới phải có ít nhất 4 ký tự!');
-  }
+  assertPasswordStrength(newPassword);
 
-  const otpHash = hashPassword(cleanOtp);
+  const otpHashLegacy = hashPasswordLegacy(cleanOtp);
+  const newPassHashLegacy = hashPasswordLegacy(newPassword);
   const newPassHash = hashPassword(newPassword);
   const nextSessionToken = generateSessionToken();
 
@@ -1204,7 +1245,7 @@ async function resetCloudPassword({ loginId, otpCode, newPassword, customDbUrl =
   }
 
   // Or if user verified via Magic Link on localhost:3000 and typed the 6-digit code shown on the verified browser page
-  if (!verifiedSupabaseJwt && pendingOtpSession.verifiedJwt && Date.now() <= pendingOtpSession.expiresAt && otpHash === pendingOtpSession.otpHash) {
+  if (!verifiedSupabaseJwt && pendingOtpSession.verifiedJwt && Date.now() <= pendingOtpSession.expiresAt && verifyPassword(cleanOtp, pendingOtpSession.otpHash)) {
     if (cleanLogin === pendingOtpSession.requestedLogin || cleanLogin === pendingOtpSession.targetEmail) {
       verifiedSupabaseJwt = pendingOtpSession.verifiedJwt;
       supabaseDirectVerified = true;
@@ -1214,9 +1255,9 @@ async function resetCloudPassword({ loginId, otpCode, newPassword, customDbUrl =
   // Cloud RPC sync (passing real Supabase Auth JWT when available)
   const rpcRes = await callSupabaseRpc('aether_rpc_reset_password', {
     p_login_id: cleanLogin,
-    p_otp_hash: otpHash,
+    p_otp_hash: otpHashLegacy,
     p_supabase_verified: supabaseDirectVerified,
-    p_new_password_hash: newPassHash,
+    p_new_password_hash: newPassHashLegacy,
     p_new_session_token: nextSessionToken,
     p_now: Date.now()
   }, verifiedSupabaseJwt);
@@ -1245,7 +1286,7 @@ async function resetCloudPassword({ loginId, otpCode, newPassword, customDbUrl =
   let otpVerified = supabaseDirectVerified;
 
   if (!otpVerified && user.resetOtpHash && user.resetOtpExpires && Date.now() <= user.resetOtpExpires) {
-    if (otpHash === user.resetOtpHash) {
+    if (verifyPassword(cleanOtp, user.resetOtpHash)) {
       otpVerified = true;
     }
   }
@@ -1283,7 +1324,7 @@ async function findOrCreateBrowserCloudAccount({ name, email, sub, customDbUrl =
   }
 
   let baseMcName = sanitizeMcUsername(name || cleanEmail.split('@')[0]);
-  if (baseMcName.length < 3) baseMcName = sanitizeMcUsername(cleanEmail.split('@')[0]) || 'AetherPlayer';
+  if (baseMcName.length < 3) baseMcName = sanitizeMcUsername(cleanEmail.split('@')[0]) || 'BlockWayPlayer';
 
   let finalMcName = baseMcName;
   let suffix = 1;
@@ -1312,6 +1353,31 @@ async function findOrCreateBrowserCloudAccount({ name, email, sub, customDbUrl =
   db.usernames[finalMcName.toLowerCase()] = accountId;
   await saveCloudDatabase(db, customDbUrl);
   return toPublicProfile(user);
+}
+
+function parseFormBody(req) {
+  return new Promise((resolve) => {
+    const chunks = [];
+    let size = 0;
+    const limit = 64 * 1024;
+    req.on('data', (c) => {
+      size += c.length;
+      if (size > limit) {
+        req.destroy();
+        resolve(new URLSearchParams());
+        return;
+      }
+      chunks.push(c);
+    });
+    req.on('end', () => {
+      try {
+        resolve(new URLSearchParams(Buffer.concat(chunks).toString('utf8')));
+      } catch (_) {
+        resolve(new URLSearchParams());
+      }
+    });
+    req.on('error', () => resolve(new URLSearchParams()));
+  });
 }
 
 function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
@@ -1351,21 +1417,14 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
           return res.end();
         }
 
-        let formParams = reqUrl.searchParams;
-        if (req.method === 'POST') {
-          const bodyStr = await new Promise((r) => {
-            let chunks = '';
-            req.on('data', (c) => { if (chunks.length < 32768) chunks += c.toString('utf8'); });
-            req.on('end', () => r(chunks));
-            req.on('error', () => r(''));
-          });
-          if (bodyStr) formParams = new URLSearchParams(bodyStr);
+        if (req.method === 'GET') {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          return res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Cổng Tài Khoản BlockWay Cloud</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #06b6d4;border-radius:18px;padding:32px 38px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(6,182,212,0.16);color:#22d3ee;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#22d3ee;margin:0 0 6px;font-size:21px}p{color:#94a3b8;font-size:13px;margin:0 0 18px}label{display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin:10px 0 4px}input{width:100%;box-sizing:border-box;height:40px;padding:0 12px;border-radius:9px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:14px;outline:none}input:focus{border-color:#06b6d4}.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.btn{height:42px;border-radius:10px;border:none;font-weight:800;font-size:13.5px;cursor:pointer;color:#fff}.login{background:#16a34a}.reg{background:#0284c7}</style></head><body><div class="card"><div class="badge">🛡️ BLOCKWAY CLOUD WEB PORTAL</div><h2>Đăng Nhập / Đăng Ký Trên Web</h2><p>Hệ thống tài khoản độc lập của BlockWay Launcher (không cần Microsoft). Tự động đồng bộ vào Launcher ngay sau khi xác nhận!</p><form method="POST" action="/"><label>Email hoặc Tên đăng nhập:</label><input type="text" name="loginId" required placeholder="VD: player@gmail.com" autocomplete="username" /><label>Mật khẩu (≥8 ký tự):</label><input type="password" name="password" required minlength="8" placeholder="Nhập mật khẩu..." autocomplete="current-password" /><label>Tên Nhân Vật Minecraft (Nếu đăng ký mới):</label><input type="text" name="mcUsername" maxlength="16" placeholder="VD: StevePlayer (Bỏ trống nếu đã có TK)" /><div class="btns"><button class="btn login" type="submit" name="action" value="login">🔑 Đăng Nhập</button><button class="btn reg" type="submit" name="action" value="register">✨ Tạo Tài Khoản</button></div></form></div></body></html>`);
         }
 
-        const action = formParams.get('action') || reqUrl.searchParams.get('action');
-        if (!action) {
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-          return res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Cổng Tài Khoản BlockWay Cloud 24/7</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #06b6d4;border-radius:18px;padding:32px 38px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(6,182,212,0.16);color:#22d3ee;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#22d3ee;margin:0 0 6px;font-size:21px}p{color:#94a3b8;font-size:13px;margin:0 0 18px}label{display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin:10px 0 4px}input{width:100%;box-sizing:border-box;height:40px;padding:0 12px;border-radius:9px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:14px;outline:none}input:focus{border-color:#06b6d4}.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.btn{height:42px;border-radius:10px;border:none;font-weight:800;font-size:13.5px;cursor:pointer;color:#fff}.login{background:#16a34a}.reg{background:#0284c7}</style></head><body><div class="card"><div class="badge">🛡️ BLOCKWAY CLOUD WEB PORTAL 24/7</div><h2>Đăng Nhập / Đăng Ký Trên Web</h2><p>Hệ thống tài khoản đám mây độc lập của BlockWay Launcher. Tự động đồng bộ vào Launcher ngay sau khi xác nhận!</p><form method="POST" action="/"><label>Email hoặc Tên đăng nhập:</label><input type="text" name="loginId" required placeholder="VD: player@gmail.com" /><label>Mật khẩu (≥4 ký tự):</label><input type="password" name="password" required minlength="4" placeholder="Nhập mật khẩu..." /><label>Tên Nhân Vật Minecraft (Nếu đăng ký mới):</label><input type="text" name="mcUsername" maxlength="16" placeholder="VD: StevePlayer (Bỏ trống nếu đã có TK)" /><div class="btns"><button class="btn login" type="submit" name="action" value="login">🔑 Đăng Nhập</button><button class="btn reg" type="submit" name="action" value="register">✨ Tạo Tài Khoản</button></div></form></div></body></html>`);
+        if (req.method !== 'POST') {
+          res.writeHead(405, { 'Content-Type': 'text/plain; charset=utf-8' });
+          return res.end('Method Not Allowed');
         }
 
         if (completed) {
@@ -1373,9 +1432,15 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
           return res.end('<h3>Đã đồng bộ vào Launcher.</h3>');
         }
 
-        const loginId = formParams.get('loginId') || '';
-        const password = formParams.get('password') || '';
-        const mcUsername = formParams.get('mcUsername') || '';
+        const form = await parseFormBody(req);
+        const action = form.get('action') || '';
+        const loginId = form.get('loginId') || '';
+        const password = form.get('password') || '';
+        const mcUsername = form.get('mcUsername') || '';
+        if (action !== 'login' && action !== 'register') {
+          res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+          return res.end('Invalid action');
+        }
 
         let profile;
         if (action === 'register') {
@@ -1415,7 +1480,7 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
       if (!completed) {
         completed = true;
         cleanup();
-        reject(new Error('Đã đóng cổng Web Aether Cloud.'));
+        reject(new Error('Đã đóng cổng Web BlockWay Cloud.'));
       }
     }, 180000);
   });

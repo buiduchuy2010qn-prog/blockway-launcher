@@ -20,7 +20,8 @@ contextBridge.exposeInMainWorld('aetherAPI', {
 
   loginMicrosoft: () => ipcRenderer.invoke('auth:ms-login'),
   refreshMicrosoft: (refreshToken) => ipcRenderer.invoke('auth:ms-refresh', refreshToken),
-  getCrackUuid: (username) => ipcRenderer.invoke('auth:crack-uuid', username),
+  getCrackUuid: (username) => ipcRenderer.invoke('auth:offline-uuid', username),
+  getOfflineUuid: (username) => ipcRenderer.invoke('auth:offline-uuid', username),
   cloudRegister: (params) => ipcRenderer.invoke('cloud:register', params),
   cloudLogin: (params) => ipcRenderer.invoke('cloud:login', params),
   cloudBrowserLogin: (params) => ipcRenderer.invoke('cloud:browser-login', params),

@@ -1,7 +1,7 @@
 {
   "name": "blockway-launcher",
-  "version": "41.2.0",
-  "description": "BlockWay Launcher v41.2.0 PRO — Every World, One Place (🖥️ Trạm Server Ngầm 0% GPU & Tư Vấn Cấu Hình, 🎨 Kho Làm Đẹp Không Tụt FPS, 📸 Copy Ảnh Chụp Kèm Khung, ☁️ Sao Lưu Phím Tắt & Server, 🚀 Nạp Chunk Đa Nhân)",
+  "version": "41.2.1",
+  "description": "BlockWay Launcher v41.2.1 PRO — Every World, One Place. Minecraft Java launcher with Microsoft login, offline/local profiles, Cloud ID, Modrinth, OptiFine, Fabric/Forge/NeoForge/Quilt.",
   "homepage": "https://buiduchuy2010qn-prog.github.io/blockway-launcher/",
   "repository": {
     "type": "git",
@@ -46,7 +46,7 @@
   "build": {
     "appId": "com.blockway.launcher",
     "productName": "BlockWay Launcher",
-    "asar": false,
+    "asar": true,
     "directories": {
       "output": "dist"
     },

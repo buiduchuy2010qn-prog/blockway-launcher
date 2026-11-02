@@ -916,7 +916,7 @@ async function loadModrinthStore(append = false) {
     'flashback': 'Quay và dựng phim 3D trong Minecraft thế hệ mới: Ghi lại toàn bộ thế giới với dung lượng siêu nhẹ và trình chỉnh sửa góc quay trực quan.',
     'ears': 'Cho phép gắn thêm tai mèo, tai cáo, sừng, đuôi, cánh và phụ kiện 3D trực tiếp lên nhân vật từ file ảnh Skin.',
     'capes': 'Hiển thị đầy đủ áo choàng (Capes) của OptiFine, LabyMod, MinecraftCapes và Mojang cho mọi người chơi trong game.',
-    'custom-skin-loader': 'Đồng bộ và hiển thị Skin HD, Áo choàng (Capes) từ nhiều nguồn máy chủ cho cả chế độ Offline/Crack lẫn Multiplayer.',
+    'custom-skin-loader': 'Đồng bộ và hiển thị Skin HD, Áo choàng (Capes) từ nhiều nguồn máy chủ cho cả chế độ Offline/local lẫn Multiplayer.',
     'customskinloader': 'Đồng bộ và hiển thị đúng Skin, Áo choàng (Capes) riêng của từng người chơi khi chơi Offline / LAN / Server.',
     '3dskinlayers': 'Biến lớp áo ngoài (tóc, mũ, áo khoác, tay áo) trên Skin từ mặt phẳng 2D thành mô hình nổi 3D sống động.',
     'skinshuffle': 'Đổi nóng bộ trang phục Skin 3D ngay giữa lúc đang chơi trong thế giới hoặc Server mà không cần thoát game.',
@@ -1781,7 +1781,7 @@ function renderFavoriteServers() {
     const c = btn.dataset.srvcat;
     if (c === 'all') btn.textContent = `Tất cả (${catCounts.all})`;
     else if (c === 'vn') btn.textContent = `⭐ Việt Nam (${catCounts.vn})`;
-    else if (c === 'crack') btn.textContent = `🔓 Quốc Tế Crack (${catCounts.crack})`;
+    else if (c === 'crack') btn.textContent = `🔓 Quốc Tế Offline (${catCounts.crack})`;
     else if (c === 'premium') btn.textContent = `👑 Bản Quyền (${catCounts.premium})`;
   });
 
@@ -1816,7 +1816,7 @@ function renderFavoriteServers() {
       : `<div class="srv-icon-img srv-icon-fallback">🌐</div>`;
     const catBadge = srv.cat === 'premium'
       ? '<span class="srv-cat-pill premium">👑 Bản quyền</span>'
-      : (srv.cat === 'crack' ? '<span class="srv-cat-pill crack">🔓 Crack Quốc Tế</span>' : '<span class="srv-cat-pill vn">⭐ Việt Nam</span>');
+      : (srv.cat === 'crack' ? '<span class="srv-cat-pill crack">🔓 Offline Quốc Tế</span>' : '<span class="srv-cat-pill vn">⭐ Việt Nam</span>');
     const safeSrvName = escapeHtml(srv.name);
     const safeSrvIp = escapeHtml(srv.ip);
     const verNote = pingInfo?.online ? serverVersionMismatchNote(pingInfo.version, state.selectedVersion) : '';
@@ -3869,7 +3869,7 @@ async function installCoopLanHelperModUI() {
       enableTeamQol
     });
     if (res?.ok && res.installed?.length) {
-      showAetherNotification(`🔓 Đã cài Mod hỗ trợ LAN (${res.installed.join(', ')}) cho MC ${state.selectedVersion} (${targetCore.toUpperCase()})! Bạn bè dùng tài khoản Offline/Crack có thể vào phòng LAN thoải mái.`, 'success', 5500);
+      showAetherNotification(`🔓 Đã cài Mod hỗ trợ LAN (${res.installed.join(', ')}) cho MC ${state.selectedVersion} (${targetCore.toUpperCase()})! Bạn bè dùng tài khoản Offline/local có thể vào phòng LAN thoải mái.`, 'success', 5500);
     } else {
       showAetherNotification(`ℹ️ Đã bật ${targetCore.toUpperCase()} cho MC ${state.selectedVersion}. Khi vào thế giới hãy bấm Esc → Open to LAN để mở phòng!`, 'info', 4500);
     }

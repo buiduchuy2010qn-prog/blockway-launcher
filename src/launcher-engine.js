@@ -84,7 +84,7 @@ const httpsKeepAliveAgent = new https.Agent({ keepAlive: true, maxSockets: 8, ke
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     const req = https
-      .get(url, { agent: httpsKeepAliveAgent, timeout: 25000, headers: { 'User-Agent': 'BlockWay-Launcher/41.2.0 (https://github.com/buiduchuy2010qn-prog/blockway-launcher)' } }, (res) => {
+      .get(url, { agent: httpsKeepAliveAgent, timeout: 25000, headers: { 'User-Agent': 'BlockWay-Launcher/41.2.1 (https://github.com/buiduchuy2010qn-prog/blockway-launcher)' } }, (res) => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           const nextUrl = res.headers.location.startsWith('http')
             ? res.headers.location
@@ -4578,7 +4578,7 @@ async function launchMinecraft(config, callbacks = {}) {
     }
   } else if (authMode === 'aether' && cloudProfile && cloudProfile.mcUsername) {
     const cleanName = (cloudProfile.mcUsername || username || 'Player').replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 16) || 'Player';
-    callbacks.onStatus?.(`Đang xác thực Tài khoản Aether Cloud (${cleanName})...`);
+    callbacks.onStatus?.(`Đang xác thực Tài khoản BlockWay Cloud (${cleanName})...`);
     authorization = buildOfflineAuthFallback(cleanName, skinModel);
     if (crackSkinSync) {
       configureCrackSkinSupport(skinRoot);
@@ -12118,7 +12118,7 @@ async function startLocalHeadlessServer({
   ];
 
   activeHeadlessServerLogs = [];
-  emitLog(`[BlockWay Server] 🚀 Khởi chạy Server MC ${mcVersion} (0% GPU • RAM ${xmxMB}MB • Cổng ${safePort} • ${onlineMode ? 'Bản quyền' : 'Cho phép Offline/Crack'})...`);
+  emitLog(`[BlockWay Server] 🚀 Khởi chạy Server MC ${mcVersion} (0% GPU • RAM ${xmxMB}MB • Cổng ${safePort} • ${onlineMode ? 'Bản quyền' : 'Cho phép Offline/LAN'})...`);
 
   const child = spawn(javaBin, jvmArgs, {
     cwd: serverRoot,

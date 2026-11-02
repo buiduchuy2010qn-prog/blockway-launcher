@@ -69,7 +69,7 @@ const {
 app.commandLine.appendSwitch('js-flags', '--expose-gc');
 try { app.setName('BlockWay Launcher'); } catch (_) {}
 if (process.platform === 'win32') {
-  try { app.setAppUserModelId('BlockWay.Launcher.Pro.v33'); } catch (_) {}
+  try { app.setAppUserModelId('BlockWay.Launcher'); } catch (_) {}
 }
 // Background throttling enabled for 0% idle CPU/GPU
 
@@ -137,9 +137,9 @@ function recordPlaytimeDelta(deltaSec, { instanceSlug = '', mcVersion = '', isFi
   return stats;
 }
 
-const DISCORD_RPC_CLIENT_ID = '450485984333660181';
+const DISCORD_RPC_CLIENT_ID = '';
 const launcherBootEpochSec = Math.floor(Date.now() / 1000);
-let discordRpcEnabled = true;
+let discordRpcEnabled = false;
 let discordSocket = null;
 let discordReady = false;
 let discordConnecting = false;
@@ -213,7 +213,7 @@ function closeDiscordIpc() {
 }
 
 function connectDiscordIpc(pipeIdx = 0) {
-  if (!discordRpcEnabled || discordSocket || (discordConnecting && pipeIdx === 0)) return;
+  if (!DISCORD_RPC_CLIENT_ID || !discordRpcEnabled || discordSocket || (discordConnecting && pipeIdx === 0)) return;
   if (pipeIdx > 9) {
     discordConnecting = false;
     return;
@@ -503,16 +503,17 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
       backgroundThrottling: true
     }
   });
 
   // Keep navigation inside local UI window
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
+    if (typeof url === 'string') {
       try {
         const parsed = new URL(url);
-        if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        if (parsed.protocol === 'https:') {
           shell.openExternal(parsed.toString());
         }
       } catch (_) {}
@@ -718,7 +719,7 @@ ipcMain.handle('sys:open-external', async (_e, url) => {
   if (typeof url !== 'string') return false;
   try {
     const parsed = new URL(url.trim());
-    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+    if (parsed.protocol === 'https:') {
       await shell.openExternal(parsed.toString());
       return true;
     }
@@ -780,6 +781,9 @@ ipcMain.handle('auth:ms-refresh', async (_e, refreshToken) => {
   }
 });
 
+ipcMain.handle('auth:offline-uuid', async (_e, username) => {
+  return generateOfflineUUID(username || 'StevePlayer');
+});
 ipcMain.handle('auth:crack-uuid', async (_e, username) => {
   return generateOfflineUUID(username || 'StevePlayer');
 });
