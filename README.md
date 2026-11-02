@@ -14,6 +14,12 @@
 
 🌐 **Trang chủ chính thức:** **[https://buiduchuy2010qn-prog.github.io/blockway-launcher/](https://buiduchuy2010qn-prog.github.io/blockway-launcher/)**
 
+### Linux (x86_64)
+
+- **AppImage** (Arch, Fedora, SteamOS, USB): tải `BlockWay.Launcher-Linux-*.AppImage`, `chmod +x` rồi chạy. Ubuntu 22.04+ / Steam Deck nếu không mở được thì cài `libfuse2`.
+- **.DEB** (Ubuntu, Debian, Mint): `sudo apt install ./BlockWay.Launcher-Linux-*.deb`.
+- Không có bản ARM. Java runtime launcher tự lo trong `~/.minecraft/runtimes`.
+
 ---
 
 ## 📦 Mới trong phiên bản `v41.3.1 PRO`
