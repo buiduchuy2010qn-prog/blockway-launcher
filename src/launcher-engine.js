@@ -680,7 +680,7 @@ async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
         version: 'Auto-Shader-Zoom',
         stable: true,
         kind: 'parity',
-        displayLabel: '🔆 Tự động đủ bộ (Shader • Zoom)'
+        displayLabel: '🔆 Ưu tiên OptiFine gốc (nếu chưa có → Fabric + Iris)'
       }
     ];
     const installedProfiles = findInstalledOptifineProfiles(gameDir || getDefaultGameDir(), mcVersion);
@@ -3748,18 +3748,19 @@ function findActiveOptifineForgeJar(modsDir, mcVersion, allowWakeDisabled = fals
 }
 
 async function resolveOptifineRuntimePlan({ rootDir, gameDirectory, mcVersion, loaderVersion }, onStatus) {
-  if (loaderVersion && loaderVersion !== 'Auto-Shader-Zoom') {
-    const standaloneProfiles = findInstalledOptifineProfiles(rootDir, mcVersion);
-    const pickedStandalone = standaloneProfiles.find((p) => p.customId === loaderVersion);
-    if (pickedStandalone) {
-      onStatus?.(`🔆 Đang mở cấu hình OptiFine gốc "${pickedStandalone.shortTag}" cho MC ${mcVersion}...`);
-      return {
-        mode: 'standalone',
-        effectiveLoader: 'vanilla',
-        effectiveLoaderVersion: '',
-        customPrep: { type: 'customJson', customId: pickedStandalone.customId }
-      };
-    }
+  const standaloneProfiles = findInstalledOptifineProfiles(rootDir, mcVersion);
+  const wantSpecific = Boolean(loaderVersion && loaderVersion !== 'Auto-Shader-Zoom');
+  const pickedStandalone = wantSpecific
+    ? standaloneProfiles.find((p) => p.customId === loaderVersion)
+    : standaloneProfiles[0];
+  if (pickedStandalone) {
+    onStatus?.(`🔆 Đang mở OptiFine gốc "${pickedStandalone.shortTag}" cho MC ${mcVersion} (không phải Fabric)...`);
+    return {
+      mode: 'standalone',
+      effectiveLoader: 'vanilla',
+      effectiveLoaderVersion: '',
+      customPrep: { type: 'customJson', customId: pickedStandalone.customId }
+    };
   }
 
   const modsDir = path.join(gameDirectory, 'mods');
@@ -3817,7 +3818,11 @@ async function resolveOptifineRuntimePlan({ rootDir, gameDirectory, mcVersion, l
   }
 
   if (effectiveLoader === 'vanilla') {
-    onStatus?.(`ℹ️ Phiên bản ${mcVersion} chưa có bản dựng Loader trên kho — đang mở trực tiếp chế độ mượt êm.`);
+    onStatus?.(`ℹ️ Phiên bản ${mcVersion} chưa có OptiFine gốc hay Fabric trên máy — đang mở Vanilla.`);
+  } else if (effectiveLoader === 'fabric' || effectiveLoader === 'quilt') {
+    onStatus?.(`🔆 OptiFine gốc chưa có cho MC ${mcVersion}. Đang mở ${effectiveLoader.toUpperCase()} + Sodium/Iris/Zoom (tương đương Shader • Zoom, không phải OptiFine.jar).`);
+  } else if (effectiveLoader === 'forge' || effectiveLoader === 'legacyfabric') {
+    onStatus?.(`🔆 OptiFine gốc chưa có cho MC ${mcVersion}. Đang mở ${effectiveLoader.toUpperCase()} kèm gói Shader • Zoom tương đương.`);
   }
 
   return {

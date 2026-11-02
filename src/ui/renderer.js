@@ -617,7 +617,7 @@ function updateSummaryUI() {
   let ldrTag = '';
   if (effectiveCore === 'optifine') {
     ldrTag = (!effectiveLdrVer || effectiveLdrVer === 'Auto-Shader-Zoom')
-      ? ' (Shader • Zoom)'
+      ? ' (ưu tiên OptiFine gốc)'
       : ` (${effectiveLdrVer.replace(new RegExp(`^${ver.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[-_ ]?`, 'i'), '')})`;
   } else if (effectiveCore !== 'vanilla' && effectiveLdrVer) {
     ldrTag = ` ${effectiveLdrVer}`;
@@ -1039,7 +1039,11 @@ async function refreshLoaderBuilds() {
     state.selectedLoaderVersion = ''; return;
   }
   const keepExisting = state.selectedLoaderVersion && res.data.some((it) => it.version === state.selectedLoaderVersion);
-  const chosenVer = keepExisting ? state.selectedLoaderVersion : res.data[0].version;
+  let chosenVer = keepExisting ? state.selectedLoaderVersion : res.data[0].version;
+  if (!keepExisting && state.selectedCore === 'optifine') {
+    const standalone = res.data.find((it) => it.kind === 'standalone');
+    if (standalone) chosenVer = standalone.version;
+  }
   loaderSelect.innerHTML = res.data.map((item) => {
     const labelText = item.displayLabel || `${item.version} ${item.stable ? '(Ổn định)' : ''}`;
     return `<option value="${item.version}" ${item.version === chosenVer ? 'selected' : ''}>${labelText}</option>`;
