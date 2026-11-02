@@ -84,7 +84,7 @@ const httpsKeepAliveAgent = new https.Agent({ keepAlive: true, maxSockets: 8, ke
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     const req = https
-      .get(url, { agent: httpsKeepAliveAgent, timeout: 25000, headers: { 'User-Agent': 'BlockWay-Launcher/41.3.0 (https://github.com/buiduchuy2010qn-prog/blockway-launcher)' } }, (res) => {
+      .get(url, { agent: httpsKeepAliveAgent, timeout: 25000, headers: { 'User-Agent': 'BlockWay-Launcher/41.3.1 (https://github.com/buiduchuy2010qn-prog/blockway-launcher)' } }, (res) => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           const nextUrl = res.headers.location.startsWith('http')
             ? res.headers.location

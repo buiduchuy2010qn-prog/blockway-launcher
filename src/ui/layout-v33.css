@@ -1087,11 +1087,7 @@ html[data-theme="prism"] .app-shell .home-play-card {
   display: none !important;
 }
 
-/* Bottom strip with the 4 mandatory utility buttons — hidden in v41.3 (IDs kept for JS) */
-#heroBanner .hbc-quick-actions.hidden,
-#heroBanner .hbc-quick-actions.v413-compact-hide {
-  display: none !important;
-}
+/* Bottom strip with the 4 banner utility buttons (v41.3.1: keep visible — padding-bottom 46px is this bar) */
 #heroBanner .hbc-quick-actions {
   position: absolute !important;
   left: 0;

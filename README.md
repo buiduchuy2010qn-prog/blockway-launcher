@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v41.3.0 PRO — Every World, One Place (`blockway-launcher`)
+# ⚡ BlockWay Launcher v41.3.1 PRO — Every World, One Place (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.3.0_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.3.1_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-7_Core_Loaders-06b6d4?style=for-the-badge" alt="Loaders" /></a>
 </p>
 
@@ -16,7 +16,12 @@
 
 ---
 
-## 📦 Mới trong phiên bản `v41.3.0 PRO`
+## 📦 Mới trong phiên bản `v41.3.1 PRO`
+
+- Trả lại thanh 4 nút dưới banner Home (Đồng bộ / Ảnh chụp / Thế giới / Kho Modrinth). Ẩn thanh đó ở 41.3.0 để lại khoảng xám trống vì banner vẫn chừa `padding-bottom`.
+- 5 thẻ shortcut dưới banner vẫn ẩn.
+
+## 📦 Có trong `v41.3.0 PRO`
 
 - Giao diện gọn hơn: mỗi tính năng một chỗ chính. Skin chỉ mở 1 panel; Home ẩn 5 thẻ shortcut trùng; PvP HUD chuyển sang tab Chơi; header Mod / Thế giới bớt nút trùng.
 - Tab Công cụ gom 4 nhóm (Tối ưu • Sửa lỗi & Console • Media F2/Replay • Migrate & dọn rác). Nút trùng tab khác **ẩn, không xóa** — JS không văng.
