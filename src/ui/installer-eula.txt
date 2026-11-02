@@ -1,0 +1,18 @@
+ĐIỀU KHOẢN CÀI ĐẶT & SỬ DỤNG — BLOCKWAY MINECRAFT LAUNCHER (v41.2.0 PRO)
+===========================================================================
+
+Trước khi tiến hành cài đặt BlockWay Launcher lên máy tính của bạn, vui lòng đọc và xác nhận đồng ý với các nội dung sau:
+
+1. MỤC ĐÍCH PHẦN MỀM:
+   - BlockWay Launcher là trình khởi chạy (Launcher) thế hệ mới dành cho Minecraft: Java Edition trên Windows & Linux.
+   - Hỗ trợ quản lý 7 Mod Loader chính thức (Vanilla, OptiFine, Fabric, Forge, NeoForge, Quilt, Legacy Fabric), tải Mod/Shader/Resource Pack chính thức từ Modrinth API và tối ưu hóa bộ nhớ RAM/CPU (Turbo Smooth Core & Generational ZGC).
+
+2. QUYỀN TRUY CẬP HỆ THỐNG:
+   - Khi bạn nhấn "Tôi đồng ý (I Agree)", trình cài đặt sẽ cài ứng dụng vào thư mục bạn chọn và tạo lối tắt (Shortcut) ngoài màn hình Desktop & Start Menu.
+   - Launcher chỉ đọc/ghi dữ liệu cấu hình bên trong thư mục `.minecraft` chuẩn của bạn và không can thiệp vào bất kỳ tệp cá nhân nào khác trên máy.
+
+3. CHẾ ĐỘ TÀI KHOẢN & BẢN QUYỀN:
+   - Hỗ trợ đăng nhập Tài khoản Bản Quyền Microsoft (OAuth2), Tài khoản Đám mây BlockWay Cloud ID 24/7 (OTP Gmail) và Chế độ Ngoại tuyến / LAN (Offline UUID v3).
+   - Mọi tài nguyên thư viện được tải trực tiếp từ máy chủ chính thức của Mojang Studios và Modrinth.
+
+Nhấn "I Agree" (Tôi Đồng Ý) để tiếp tục chọn thư mục và cài đặt, hoặc "Cancel" (Hủy) nếu bạn không đồng ý.

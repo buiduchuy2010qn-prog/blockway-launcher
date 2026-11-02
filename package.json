@@ -19,13 +19,12 @@
   "keywords": [
     "blockway-launcher",
     "blockway",
-    "aether-mine-launcher",
-    "aether-craft-launcher",
     "buiduchuy2010qn-prog",
     "minecraft",
     "minecraft-launcher",
     "minecraft-launcher-vietnam",
     "launcher",
+    "optifine",
     "modrinth",
     "fabric",
     "forge",
@@ -45,7 +44,7 @@
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId": "com.buiduchuy.aethercraft",
+    "appId": "com.blockway.launcher",
     "productName": "BlockWay Launcher",
     "asar": false,
     "directories": {
@@ -55,7 +54,7 @@
       "src/**/*",
       "package.json",
       "ota-manifest.json",
-      "LICENSE.rtf"
+      "LICENSE"
     ],
     "win": {
       "target": [
@@ -68,7 +67,7 @@
       "unicode": true,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "license": "LICENSE.rtf",
+      "license": "src/ui/installer-eula.txt",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "BlockWay Launcher",

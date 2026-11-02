@@ -84,7 +84,7 @@ const httpsKeepAliveAgent = new https.Agent({ keepAlive: true, maxSockets: 8, ke
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     const req = https
-      .get(url, { agent: httpsKeepAliveAgent, timeout: 25000, headers: { 'User-Agent': 'AetherCraft-Launcher/8.0 (https://github.com/buiduchuy2010qn-prog)' } }, (res) => {
+      .get(url, { agent: httpsKeepAliveAgent, timeout: 25000, headers: { 'User-Agent': 'BlockWay-Launcher/41.2.0 (https://github.com/buiduchuy2010qn-prog/blockway-launcher)' } }, (res) => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           const nextUrl = res.headers.location.startsWith('http')
             ? res.headers.location
@@ -590,7 +590,7 @@ function buildMultiCoreSmoothExitArgs(ramGB, cpuCores = os.cpus().length) {
     '-XX:-OmitStackTraceInFastThrow',
     '-Dfml.ignoreInvalidMinecraftCertificates=true',
     '-Dfml.ignorePatchDiscrepancies=true',
-    '-Dminecraft.launcher.brand=AetherCraft-v28'
+    '-Dminecraft.launcher.brand=BlockWay-v41.2'
   ];
 }
 function getInstalledVersions(gameDir) {
@@ -4328,7 +4328,7 @@ function buildStandardZipBuffer(entries) {
 }
 
 function detectResourcePackMeta(rootDir, mcVersion = '1.21.4') {
-  const desc = 'Aether Craft - Dong bo Skin 3D vao Game';
+  const desc = 'BlockWay Launcher - Dong bo Skin 3D vao Game';
   try {
     const jarPath = path.join(rootDir, 'versions', mcVersion, `${mcVersion}.jar`);
     if (fs.existsSync(jarPath)) {

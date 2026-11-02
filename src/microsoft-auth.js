@@ -156,7 +156,7 @@ async function authenticateMinecraftChain({ code, refreshToken, redirectUri }) {
   if (!xstsRes.ok) {
     const xstsErr = await xstsRes.json().catch(() => ({}));
     if (xstsErr.XErr === 2148916233) {
-      throw new Error(`Tài khoản Microsoft "${accountLabel}" chưa tạo hồ sơ Xbox Live và chưa sở hữu bản quyền Minecraft: Java Edition! Vui lòng chuyển sang tab "Offline (Crack)" để chơi miễn phí.`);
+      throw new Error(`Tài khoản Microsoft "${accountLabel}" chưa tạo hồ sơ Xbox Live và chưa sở hữu bản quyền Minecraft: Java Edition! Vui lòng chuyển sang chế độ "Offline / LAN" hoặc "BlockWay Cloud" để chơi miễn phí.`);
     }
     if (xstsErr.XErr === 2148916238) {
       throw new Error(`Tài khoản Microsoft "${accountLabel}" dưới 18 tuổi cần được người lớn thêm vào nhóm Gia đình (Microsoft Family) trước khi đăng nhập.`);
@@ -194,7 +194,7 @@ async function authenticateMinecraftChain({ code, refreshToken, redirectUri }) {
   });
 
   if (profileRes.status === 404) {
-    throw new Error(`Tài khoản Microsoft "${accountLabel}" CHƯA MUA bản quyền Minecraft: Java Edition trên hệ thống Mojang (minecraft.net)! Chỉ tài khoản đã mua game (hoặc có gói Xbox Game Pass PC) mới đăng nhập được mục Bản Quyền. Bạn hãy chọn tab "Offline (Crack)" bên cạnh để chơi miễn phí nhé!`);
+    throw new Error(`Tài khoản Microsoft "${accountLabel}" CHƯA MUA bản quyền Minecraft: Java Edition trên hệ thống Mojang (minecraft.net)! Chỉ tài khoản đã mua game (hoặc có gói Xbox Game Pass PC) mới đăng nhập được mục Bản Quyền. Bạn hãy chọn chế độ "Offline / LAN" hoặc "BlockWay Cloud" bên cạnh để chơi miễn phí nhé!`);
   }
   if (!profileRes.ok) {
     throw new Error(`Tài khoản Microsoft "${accountLabel}" không có hồ sơ Minecraft bản quyền hợp lệ (Mã lỗi: ${profileRes.status}).`);
@@ -221,13 +221,22 @@ async function authenticateMinecraftChain({ code, refreshToken, redirectUri }) {
   };
 }
 
+function escapeHtmlSafe(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function buildSuccessHtml(profile) {
-  const label = profile ? (profile.displayName || profile.name) : 'Tài khoản Microsoft';
+  const label = escapeHtmlSafe(profile ? (profile.displayName || profile.name) : 'Tài khoản Microsoft');
   return `<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Đã xác thực Bản Quyền — Aether Craft Launcher</title>
+  <title>Đã xác thực Bản Quyền — BlockWay Launcher</title>
   <style>
     body {
       margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -257,7 +266,7 @@ function buildSuccessHtml(profile) {
     <div class="badge">✓</div>
     <h2>Xác Thực Bản Quyền Minecraft Thành Công!</h2>
     <div class="acc">👑 ${label}</div>
-    <p style="margin-top:14px;">Đã kiểm tra giấy phép Mojang hợp lệ và đồng bộ vào <strong>Aether Craft Launcher</strong>.</p>
+    <p style="margin-top:14px;">Đã kiểm tra giấy phép Mojang hợp lệ và đồng bộ vào <strong>BlockWay Launcher</strong>.</p>
     <p style="font-size:12.5px;opacity:0.75;">Bạn có thể đóng tab trình duyệt này và quay lại Launcher.</p>
   </div>
   <script>setTimeout(() => { try { window.close(); } catch(e) {} }, 1800);</script>
@@ -266,11 +275,12 @@ function buildSuccessHtml(profile) {
 }
 
 function buildErrorHtml(errorMsg) {
+  const safeErr = escapeHtmlSafe(errorMsg);
   return `<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Chưa Có Bản Quyền Minecraft — Aether Craft Launcher</title>
+  <title>Chưa Có Bản Quyền Minecraft — BlockWay Launcher</title>
   <style>
     body {
       margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -299,8 +309,8 @@ function buildErrorHtml(errorMsg) {
   <div class="card">
     <div class="badge">✕</div>
     <h2>Tài Khoản Chưa Có Bản Quyền Minecraft!</h2>
-    <p>${errorMsg}</p>
-    <div class="hint">💡 Quay lại <strong>Aether Craft Launcher</strong> và chọn tab <strong>"Offline (Crack)"</strong> để chơi miễn phí với mọi tính năng Skin 3D & Modrinth!</div>
+    <p>${safeErr}</p>
+    <div class="hint">💡 Quay lại <strong>BlockWay Launcher</strong> và chọn chế độ <strong>"Offline / LAN"</strong> hoặc <strong>"BlockWay Cloud"</strong> để chơi miễn phí với mọi tính năng Skin 3D &amp; Modrinth!</div>
   </div>
 </body>
 </html>`;
@@ -1083,7 +1093,7 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
             if (!token) {
               document.getElementById('titleText').textContent = '⚠️ Chưa có xác thực từ hộp thư Gmail!';
               document.getElementById('titleText').style.color = '#f87171';
-              document.getElementById('subHint').textContent = 'Bạn cần bấm vào nút xác nhận bên trong bức thư gửi về Gmail (' + '${targetEmail}' + ') để mở trang này!';
+              document.getElementById('subHint').textContent = 'Bạn cần bấm vào nút xác nhận bên trong bức thư gửi về Gmail (' + ${JSON.stringify(String(targetEmail || ''))} + ') để mở trang này!';
               return;
             }
             const r = await fetch('/verify-token?access_token=' + encodeURIComponent(token));
@@ -1094,7 +1104,7 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
               const btn = document.getElementById('copyBtn');
               btn.style.display = 'inline-block';
               btn.onclick = () => { navigator.clipboard.writeText(d.otpCode); btn.textContent = '✓ Đã sao chép Mã OTP (' + d.otpCode + ')!'; };
-              document.getElementById('subHint').textContent = 'Quay lại Aether Craft Launcher và dán mã 6 số này vào ô Mã OTP 6 số để đặt mật khẩu mới!';
+              document.getElementById('subHint').textContent = 'Quay lại BlockWay Launcher và dán mã 6 số này vào ô Mã OTP 6 số để đặt mật khẩu mới!';
             } else {
               document.getElementById('titleText').textContent = '⚠️ Liên kết xác thực không hợp lệ!';
               document.getElementById('titleText').style.color = '#f87171';
@@ -1341,10 +1351,21 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
           return res.end();
         }
 
-        const action = reqUrl.searchParams.get('action');
+        let formParams = reqUrl.searchParams;
+        if (req.method === 'POST') {
+          const bodyStr = await new Promise((r) => {
+            let chunks = '';
+            req.on('data', (c) => { if (chunks.length < 32768) chunks += c.toString('utf8'); });
+            req.on('end', () => r(chunks));
+            req.on('error', () => r(''));
+          });
+          if (bodyStr) formParams = new URLSearchParams(bodyStr);
+        }
+
+        const action = formParams.get('action') || reqUrl.searchParams.get('action');
         if (!action) {
           res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-          return res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Cổng Tài Khoản Aether Cloud 24/7 — Như TLauncher</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #06b6d4;border-radius:18px;padding:32px 38px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(6,182,212,0.16);color:#22d3ee;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#22d3ee;margin:0 0 6px;font-size:21px}p{color:#94a3b8;font-size:13px;margin:0 0 18px}label{display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin:10px 0 4px}input{width:100%;box-sizing:border-box;height:40px;padding:0 12px;border-radius:9px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:14px;outline:none}input:focus{border-color:#06b6d4}.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.btn{height:42px;border-radius:10px;border:none;font-weight:800;font-size:13.5px;cursor:pointer;color:#fff}.login{background:#16a34a}.reg{background:#0284c7}</style></head><body><div class="card"><div class="badge">🛡️ AETHER CLOUD WEB PORTAL 24/7</div><h2>Đăng Nhập / Đăng Ký Trên Web</h2><p>Hệ thống tài khoản độc lập của Aether Craft Launcher (không cần Microsoft). Tự động đồng bộ vào Launcher ngay sau khi xác nhận!</p><form method="GET" action="/"><label>Email hoặc Tên đăng nhập:</label><input type="text" name="loginId" required placeholder="VD: buiduchuy2010qn@gmail.com" /><label>Mật khẩu (≥4 ký tự):</label><input type="password" name="password" required minlength="4" placeholder="Nhập mật khẩu..." /><label>Tên Nhân Vật Minecraft (Nếu đăng ký mới):</label><input type="text" name="mcUsername" maxlength="16" placeholder="VD: hi0bel (Bỏ trống nếu đã có TK)" /><div class="btns"><button class="btn login" type="submit" name="action" value="login">🔑 Đăng Nhập</button><button class="btn reg" type="submit" name="action" value="register">✨ Tạo Tài Khoản</button></div></form></div></body></html>`);
+          return res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Cổng Tài Khoản BlockWay Cloud 24/7</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #06b6d4;border-radius:18px;padding:32px 38px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(6,182,212,0.16);color:#22d3ee;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#22d3ee;margin:0 0 6px;font-size:21px}p{color:#94a3b8;font-size:13px;margin:0 0 18px}label{display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin:10px 0 4px}input{width:100%;box-sizing:border-box;height:40px;padding:0 12px;border-radius:9px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:14px;outline:none}input:focus{border-color:#06b6d4}.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.btn{height:42px;border-radius:10px;border:none;font-weight:800;font-size:13.5px;cursor:pointer;color:#fff}.login{background:#16a34a}.reg{background:#0284c7}</style></head><body><div class="card"><div class="badge">🛡️ BLOCKWAY CLOUD WEB PORTAL 24/7</div><h2>Đăng Nhập / Đăng Ký Trên Web</h2><p>Hệ thống tài khoản đám mây độc lập của BlockWay Launcher. Tự động đồng bộ vào Launcher ngay sau khi xác nhận!</p><form method="POST" action="/"><label>Email hoặc Tên đăng nhập:</label><input type="text" name="loginId" required placeholder="VD: player@gmail.com" /><label>Mật khẩu (≥4 ký tự):</label><input type="password" name="password" required minlength="4" placeholder="Nhập mật khẩu..." /><label>Tên Nhân Vật Minecraft (Nếu đăng ký mới):</label><input type="text" name="mcUsername" maxlength="16" placeholder="VD: StevePlayer (Bỏ trống nếu đã có TK)" /><div class="btns"><button class="btn login" type="submit" name="action" value="login">🔑 Đăng Nhập</button><button class="btn reg" type="submit" name="action" value="register">✨ Tạo Tài Khoản</button></div></form></div></body></html>`);
         }
 
         if (completed) {
@@ -1352,9 +1373,9 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
           return res.end('<h3>Đã đồng bộ vào Launcher.</h3>');
         }
 
-        const loginId = reqUrl.searchParams.get('loginId') || '';
-        const password = reqUrl.searchParams.get('password') || '';
-        const mcUsername = reqUrl.searchParams.get('mcUsername') || '';
+        const loginId = formParams.get('loginId') || '';
+        const password = formParams.get('password') || '';
+        const mcUsername = formParams.get('mcUsername') || '';
 
         let profile;
         if (action === 'register') {
@@ -1364,15 +1385,18 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
         }
 
         completed = true;
+        const safeMcUser = escapeHtmlSafe(profile.mcUsername);
+        const safeLoginId = escapeHtmlSafe(profile.loginId);
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Aether Cloud ID</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',sans-serif}.card{background:#111827;border:2px solid #22c55e;border-radius:16px;padding:32px 38px;text-align:center;max-width:480px;box-shadow:0 20px 50px rgba(0,0,0,0.6)}h2{color:#4ade80;margin:0 0 10px}.acc{margin:14px 0;padding:10px 16px;background:rgba(34,197,94,0.14);border-radius:10px;font-weight:800;font-size:16px}</style></head><body><div class="card"><h2>✅ Đã Đồng Bộ Tài Khoản Aether Cloud!</h2><div class="acc">👤 Nhân vật: ${profile.mcUsername} (${profile.loginId})</div><p>Đã kết nối thành công vào Aether Craft Launcher! Bạn có thể đóng tab này.</p></div><script>setTimeout(()=>{try{window.close()}catch(e){}},1500)</script></body></html>`);
+        res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>BlockWay Cloud ID</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',sans-serif}.card{background:#111827;border:2px solid #22c55e;border-radius:16px;padding:32px 38px;text-align:center;max-width:480px;box-shadow:0 20px 50px rgba(0,0,0,0.6)}h2{color:#4ade80;margin:0 0 10px}.acc{margin:14px 0;padding:10px 16px;background:rgba(34,197,94,0.14);border-radius:10px;font-weight:800;font-size:16px}</style></head><body><div class="card"><h2>✅ Đã Đồng Bộ Tài Khoản BlockWay Cloud!</h2><div class="acc">👤 Nhân vật: ${safeMcUser} (${safeLoginId})</div><p>Đã kết nối thành công vào BlockWay Launcher! Bạn có thể đóng tab này.</p></div><script>setTimeout(()=>{try{window.close()}catch(e){}},1500)</script></body></html>`);
 
         cleanup();
         focusLauncher();
         resolve(profile);
       } catch (err) {
+        const safeErr = escapeHtmlSafe(err && err.message ? err.message : 'Không thể xác thực tài khoản.');
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Lỗi Aether Cloud</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',sans-serif}.card{background:#111827;border:2px solid #ef4444;border-radius:16px;padding:32px;text-align:center;max-width:460px}a{display:inline-block;margin-top:14px;padding:9px 20px;background:#0284c7;color:#fff;text-decoration:none;border-radius:8px;font-weight:700}</style></head><body><div class="card"><h2 style="color:#f87171;">⚠️ ${err.message}</h2><a href="/">← Thử lại trên Cổng Web Aether Cloud</a></div></body></html>`);
+        res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Lỗi BlockWay Cloud</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',sans-serif}.card{background:#111827;border:2px solid #ef4444;border-radius:16px;padding:32px;text-align:center;max-width:460px}a{display:inline-block;margin-top:14px;padding:9px 20px;background:#0284c7;color:#fff;text-decoration:none;border-radius:8px;font-weight:700}</style></head><body><div class="card"><h2 style="color:#f87171;">⚠️ ${safeErr}</h2><a href="/">← Thử lại trên Cổng Web BlockWay Cloud</a></div></body></html>`);
       }
     });
 
