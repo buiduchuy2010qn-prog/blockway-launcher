@@ -455,6 +455,8 @@
       justify-content: space-between;
       gap: 13px;
       width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
       padding: 13px 18px;
       border-radius: 15px;
       text-decoration: none;
@@ -497,9 +499,11 @@
       box-shadow: 0 12px 26px rgba(37, 99, 235, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.25);
     }
     .linux-dl-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 9px;
+      width: 100%;
+      min-width: 0;
     }
     .btn-dl-card.linux {
       background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
@@ -511,6 +515,9 @@
       background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
       border-color: #0f172a;
       box-shadow: 0 12px 26px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+    .btn-dl-card.linux .btn-dl-sub {
+      white-space: normal;
     }
     .linux-install-hint {
       margin: 0 0 12px;
@@ -2177,9 +2184,6 @@
       .nav-cmd-trigger kbd {
         display: none;
       }
-      .linux-dl-row {
-        grid-template-columns: 1fr;
-      }
 
       /* Equal 2x2 Secondary Action Grid */
       .secondary-actions {
@@ -3676,7 +3680,7 @@
             if (linuxDeb && dlLinuxDeb) {
               dlLinuxDeb.href = linuxDeb.browser_download_url;
               const mb = (linuxDeb.size / (1024 * 1024)).toFixed(1);
-              if (linuxDebSub) linuxDebSub.textContent = linuxDeb.name + ' (' + mb + ' MB) • Ubuntu / Debian / Mint';
+              if (linuxDebSub) linuxDebSub.textContent = linuxDeb.name + ' (' + mb + ' MB) • apt install';
             }
 
             if (liveBadge && rel.tag_name) {
