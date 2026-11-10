@@ -1134,7 +1134,31 @@ function renderFullVersionTable(query = '') {
 }
 
 function setCore(coreName) {
+  const prevCore = state.selectedCore;
   state.selectedCore = coreName;
+  if (coreName === 'horizon' && state.selectedVersion !== '26.3') {
+    state._prevPreHorizonVer = state.selectedVersion;
+    state.selectedVersion = '26.3';
+    const vs = document.getElementById('versionSelect');
+    if (vs) {
+      if (![...vs.options].some((o) => o.value === '26.3')) {
+        const opt = document.createElement('option');
+        opt.value = '26.3';
+        opt.textContent = 'Minecraft 26.3';
+        vs.prepend(opt);
+      }
+      vs.value = '26.3';
+    }
+    renderQuickVersionGrid();
+  } else if (prevCore === 'horizon' && coreName !== 'horizon' && coreName !== 'vanilla' && state.selectedVersion === '26.3') {
+    const restoreVer = state._prevPreHorizonVer && state._prevPreHorizonVer !== '26.3' ? state._prevPreHorizonVer : '1.21.11';
+    state.selectedVersion = restoreVer;
+    const vs = document.getElementById('versionSelect');
+    if (vs && [...vs.options].some((o) => o.value === restoreVer)) {
+      vs.value = restoreVer;
+    }
+    renderQuickVersionGrid();
+  }
   document.querySelectorAll('.core-tab-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.core === coreName));
   return refreshLoaderBuilds().then(() => {
     updateSummaryUI();
@@ -2444,6 +2468,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     state.selectedVersion = e.target.value;
     renderQuickVersionGrid();
     await refreshLoaderBuilds(); updateSummaryUI(); saveCurrentConfig();
+    if (state.selectedCore === 'horizon' && state.selectedVersion !== '26.3') {
+      showAetherNotification(
+        `⚡ Bản ${state.selectedVersion} chạy chế độ Horizon Hybrid (Java + Fabric + nạp được Mod .jar). Nếu muốn chạy thuần mã máy Rust (không dùng Java, siêu nhẹ RAM), hãy chọn bản 26.3!`,
+        'info',
+        6500
+      );
+    }
   };
   document.getElementById('loaderVersionSelect').onchange = async (e) => {
     const val = e.target.value;

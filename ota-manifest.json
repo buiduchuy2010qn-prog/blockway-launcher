@@ -1,10 +1,10 @@
 {
-  "version": "41.3.5",
-  "generatedAt": "2026-11-10T11:51:59.331Z",
+  "version": "41.3.6",
+  "generatedAt": "2026-11-10T14:15:23.143Z",
   "files": [
     {
       "path": "package.json",
-      "sha256": "271fc826d82567e20c614ce8b627c545482e2a95b0339ac1c3eadaf6f13365bd",
+      "sha256": "24f1ad637f125f665249aa7cac6513a6768d3e1bc07b512cbc78c4b088cbbdf5",
       "size": 2630
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "path": "src/ui/index.html",
-      "sha256": "ddb18ea1ab724d4bc2ce9cf020eff9ac9535d08fa16c794c90a2b8259d3dbb2e",
+      "sha256": "d8531fab424a5eb9de4a3fa555c73b59a0c30ed2337e59cb73d5395e9bbb487e",
       "size": 232812
     },
     {
@@ -74,8 +74,8 @@
     },
     {
       "path": "src/ui/renderer.js",
-      "sha256": "f571650e45d03ad488200dd310ea368469ec04e38a48af009084dce10cc09009",
-      "size": 171504
+      "sha256": "a1828d68671ca8ca684be4d74c8210eb6945ededdee8c12bd2f6253066439dd9",
+      "size": 172955
     },
     {
       "path": "src/ui/seeds/badlands-gold-oasis-icon.png",
