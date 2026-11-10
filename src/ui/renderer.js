@@ -602,8 +602,8 @@ function isRustHorizonVer(mcVer) {
   if (/^([2-9]\d)\./.test(v)) return true;
   const parts = v.split('.').map((n) => parseInt(n, 10) || 0);
   if (parts[0] > 1) return true;
-  if (parts[0] === 1 && parts[1] > 21) return true;
-  if (parts[0] === 1 && parts[1] === 21 && (parts[2] || 0) >= 1) return true;
+  if (parts[0] === 1 && parts[1] > 20) return true;
+  if (parts[0] === 1 && parts[1] === 20 && (parts[2] || 0) >= 2) return true;
   return false;
 }
 
@@ -2480,7 +2480,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await refreshLoaderBuilds(); updateSummaryUI(); saveCurrentConfig();
     if (state.selectedCore === 'horizon' && !isRustHorizonVer(state.selectedVersion)) {
       showAetherNotification(
-        `⚡ Bản ${state.selectedVersion} (< 1.21.1) chạy chế độ Horizon Hybrid. Các bản từ 1.21.1 trở lên sẽ chạy trực tiếp bằng Engine Rust Horizon thuần mã máy!`,
+        `⚡ Bản ${state.selectedVersion} (< 1.20.2) chạy chế độ Horizon Hybrid. Toàn bộ 22 bản từ 1.20.2 → 1.21.11 → 26.3 chạy trực tiếp bằng Engine Rust Horizon thuần mã máy!`,
         'info',
         5500
       );

@@ -684,7 +684,7 @@ function isMcVersionRustHorizonSupported(mcVersion) {
   const v = String(mcVersion || '').trim();
   if (!v) return false;
   if (/^([2-9]\d)\./.test(v)) return true;
-  return compareMcVersions(v, '1.21.1') >= 0;
+  return compareMcVersions(v, '1.20.2') >= 0;
 }
 
 async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
@@ -13627,6 +13627,7 @@ async function launchHorizonRustClient({
   }
   env.HORIZON_HOME = gameDirectory;
   env.HORIZON_PLAYER_NAME = safeName;
+  env.HORIZON_OLDER_SERVERS = '1';
   env.HORIZON_TELEMETRY_URL = 'off';
 
   const cleanSkinKey = (authorization?.name || username || 'StevePlayer').replace(/[^a-zA-Z0-9_]/g, '') || 'StevePlayer';
@@ -13663,10 +13664,24 @@ async function launchHorizonRustClient({
       for (const ent of fs.readdirSync(savesDir, { withFileTypes: true })) {
         if (!ent.isDirectory()) continue;
         const wDir = path.join(savesDir, ent.name);
-        const hasLevelDat = fs.existsSync(path.join(wDir, 'level.dat')) || fs.existsSync(path.join(wDir, 'level.dat_old'));
+        const levelDatFile = path.join(wDir, 'level.dat');
+        const hasLevelDat = fs.existsSync(levelDatFile) || fs.existsSync(path.join(wDir, 'level.dat_old'));
         const hasRegions = fs.existsSync(path.join(wDir, 'region')) || fs.existsSync(path.join(wDir, 'dimensions'));
         if (!hasLevelDat && !hasRegions) {
           try { fs.rmSync(wDir, { recursive: true, force: true }); } catch (_) {}
+          continue;
+        }
+        // Auto-backup untouched pre-26.3 Java world once before Horizon's Rust DataFixer upgrades its chunks
+        if (fs.existsSync(levelDatFile) && fs.existsSync(path.join(wDir, 'region')) && !fs.existsSync(path.join(wDir, 'dimensions'))) {
+          try {
+            const backupsDir = path.join(gameDirectory, 'backups');
+            fs.mkdirSync(backupsDir, { recursive: true });
+            const safePrefix = ent.name.replace(/[^a-zA-Z0-9_-]/g, '_');
+            const alreadyBackedUp = fs.readdirSync(backupsDir).some((fn) => fn.startsWith(`${safePrefix}__JAVA_ORIG`));
+            if (!alreadyBackedUp) {
+              backupLocalWorld(gameDirectory, ent.name, 'JAVA_ORIG');
+            }
+          } catch (_) {}
         }
       }
     }
@@ -13674,7 +13689,9 @@ async function launchHorizonRustClient({
 
   try {
     const safeVerBytes = Buffer.from(displayMcVer.slice(0, 16), 'utf8');
-    if (safeVerBytes.length > 0 && fs.existsSync(hz.clientPath)) {
+    const verLen = safeVerBytes.length;
+    const strRva = 0x433f297; // fileOff 70509719 (inside /rustc/<sha>/)
+    if (verLen > 0 && fs.existsSync(hz.clientPath)) {
       const fd = fs.openSync(hz.clientPath, 'r+');
       try {
         // Self-heal --help banner if an earlier build overwrote 'Minecraft' at 71136069..71136077
@@ -13688,12 +13705,59 @@ async function launchHorizonRustClient({
         const rustcPfx = Buffer.alloc(7);
         fs.readSync(fd, rustcPfx, 0, 7, 70509712);
         if (sig.toString('latin1') === '\x08Horizon ' && rustcPfx.toString('ascii') === '/rustc/') {
-          // fileOff 70509719 (inside /rustc/<sha>/) -> RVA = 70508544 + (70509719 - 70504960) = 0x433f297
-          fs.writeSync(fd, safeVerBytes, 0, safeVerBytes.length, 70509719);
+          // 1. Write selected version string into .rdata slot
+          fs.writeSync(fd, safeVerBytes, 0, verLen, 70509719);
+
+          // 2. Title screen slice ("Horizon <ver> (Rust)") at 76550528
           const fatPtr = Buffer.alloc(16);
-          fatPtr.writeBigUInt64LE(0x14433f297n, 0);
-          fatPtr.writeBigUInt64LE(BigInt(safeVerBytes.length), 8);
+          fatPtr.writeBigUInt64LE(0x140000000n + BigInt(strRva), 0);
+          fatPtr.writeBigUInt64LE(BigInt(verLen), 8);
           fs.writeSync(fd, fatPtr, 0, 16, 76550528);
+
+          const writeI32 = (off, val) => {
+            const b = Buffer.alloc(4);
+            b.writeInt32LE(val, 0);
+            fs.writeSync(fd, b, 0, 4, off);
+          };
+          const checkBytes = (off, expectedHex) => {
+            const exp = Buffer.from(expectedHex, 'hex');
+            const got = Buffer.alloc(exp.length);
+            fs.readSync(fd, got, 0, exp.length, off);
+            return got.equals(exp);
+          };
+
+          // 3. F3 Debug Screen & Client Version Brand sites
+          for (const site of [
+            { off: 11869138, rva: 0xb527d2 },
+            { off: 18859336, rva: 0x11fd148 }
+          ]) {
+            if (checkBytes(site.off, '488d05') && checkBytes(site.off + 7, '488944242048c7442428')) {
+              writeI32(site.off + 3, strRva - (site.rva + 7));
+              writeI32(site.off + 17, verLen);
+            }
+          }
+
+          // 4. In-game /version command sites
+          for (const site of [
+            { off: 21184418, rva: 0x1434ba2 },
+            { off: 21184557, rva: 0x1434c2d }
+          ]) {
+            if (checkBytes(site.off, '488d15') && checkBytes(site.off + 14, '41b8')) {
+              writeI32(site.off + 3, strRva - (site.rva + 7));
+              writeI32(site.off + 16, verLen);
+            }
+          }
+
+          // 5. save.rs & world/server level.dat Version.Name writers (keeps saved map Phiên bản matching selected version!)
+          for (const site of [
+            { off: 33613928, rva: 0x200f468 },
+            { off: 58873817, rva: 0x38263d9 }
+          ]) {
+            if (checkBytes(site.off, '488d05') && checkBytes(site.off + 14, '488d05')) {
+              writeI32(site.off + 3, strRva - (site.rva + 7));
+              writeI32(site.off + 17, (strRva + verLen) - (site.rva + 21));
+            }
+          }
         }
       } finally {
         fs.closeSync(fd);

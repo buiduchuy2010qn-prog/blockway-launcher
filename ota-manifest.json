@@ -1,15 +1,15 @@
 {
-  "version": "41.3.10",
-  "releasedAt": "2026-11-10T22:18:45.794Z",
-  "notes": "v41.3.10 PRO: Dong bo toan bo cac phan he Worlds 26.x/Horizon (players/data NBT, Cuu ho Map, Tao nhanh Map khong dinh mod rac), IPC VisualBoost, va nhan phien ban Rust Horizon sach 100%.",
+  "version": "41.4.0",
+  "releasedAt": "2026-11-10T22:40:06.610Z",
+  "notes": "v41.4.0 PRO: Mo khoa toan bo 22 phien ban Rust Horizon chinh chu (1.20.2 -> 1.21.1 -> 1.21.11 -> 26.3), kich hoat HORIZON_OLDER_SERVERS=1 va dong bo save.rs giu nguyen Phien ban map khi luu.",
   "files": {
     "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "6d18c4532af978e413b1b9c20507cd6fe79e8d79520232da21ea068affdb1208",
-      "size": 591622
+      "sha256": "51307ce712872bae14c645b8e58b3c900df9eb4cdd4680402a574257bfd7c6a6",
+      "size": 594450
     },
     "src/main.js": {
       "sha256": "810a5850cedf57ac3ea52bb0aae09b0666b28610292a926a8a45145e9217132c",
@@ -40,8 +40,8 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "3e3504ed9dba1b0f7806a3ce2adce19e8ec837ddfd04ca56d9a485552d5c8099",
-      "size": 232816
+      "sha256": "dcbf98be9ba2167ae7da438004463d05c6c2efa9084652badaca61c54ac42343",
+      "size": 232830
     },
     "src/ui/layout-v33.css": {
       "sha256": "fcdfc3fae773758f97b6faa254bc42c740322a5e48843d1e1697181ab572d576",
@@ -52,8 +52,8 @@
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "12bc9cbb0865050201feb6253e055a470ba76ef06ab3d74f7756412438ee449b",
-      "size": 173702
+      "sha256": "15712fd3f008c0014d361635189943a62343548c29c2c9e2a31b80089aa47579",
+      "size": 173716
     },
     "src/ui/seeds/badlands-gold-oasis-icon.png": {
       "sha256": "86e4da30e57f18e9fae9624206b8cdf7a3c7f652f5a46e5d7fa9fc0fd80363df",
@@ -104,8 +104,8 @@
       "size": 51673
     },
     "package.json": {
-      "sha256": "e80c4230a02b4abb2c61a709b66a714a4468ce8714eed85e899a6b161a40f768",
-      "size": 2632
+      "sha256": "7ab9c23e8687eec9aaf7ef843a64597779a22e247dc14514fc73461e1d06a9fd",
+      "size": 2660
     }
   }
 }
