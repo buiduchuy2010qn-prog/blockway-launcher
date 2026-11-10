@@ -47,7 +47,8 @@ const {
   inspectLocalServerStatus, startLocalHeadlessServer, sendLocalServerCommand, stopLocalHeadlessServer,
   getVisualBoostStatus, toggleVisualBoostPack,
   exportPlayerPrefsSnapshot, importPlayerPrefsSnapshot,
-  getWorldgenBoostStatus, installWorldgenBoostPack
+  getWorldgenBoostStatus, installWorldgenBoostPack,
+  getHorizonEngineStatus, ensureHorizonEnginePrepared
 } = require('./launcher-engine');
 const {
   loginWithMicrosoftModal,
@@ -1663,6 +1664,26 @@ ipcMain.handle('packs:cf-key-set', async (_e, key) => {
     fs.writeFileSync(cfKeyPath, clean, 'utf8');
     setCurseForgeApiKey(clean);
     return { ok: true, hasKey: true, masked: `${clean.slice(0, 7)}…${clean.slice(-4)}`, ...st };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:status', async (_e, gameDir) => {
+  try {
+    return { ok: true, ...getHorizonEngineStatus(gameDir) };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:prepare', async (_e, options) => {
+  try {
+    return await ensureHorizonEnginePrepared(
+      options || {},
+      (msg) => mainWindow?.webContents.send('launch:status', msg),
+      (pct) => mainWindow?.webContents.send('launch:progress', { percent: pct })
+    );
   } catch (err) {
     return { ok: false, error: err.message };
   }

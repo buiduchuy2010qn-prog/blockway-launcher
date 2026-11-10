@@ -660,6 +660,7 @@ function isMcPre114(ver) {
 
 function resolveUnderlyingModLoaderForCore(coreName, mcVer, loaderVer = '', isPack = false) {
   const c = String(coreName || 'fabric').toLowerCase();
+  if (c === 'horizon' && !isPack) return 'vanilla';
   if (c === 'optifine' && !isPack) {
     if (loaderVer && loaderVer !== 'Auto-Shader-Zoom') return 'optifine-standalone';
     return isMcPre114(mcVer) ? 'forge' : 'fabric';
@@ -2445,7 +2446,7 @@ const PACK_SOURCE_META = {
   atlauncher: { label: 'ATLauncher', cls: 'src-atlauncher' }
 };
 
-const PACK_LOADER_LABEL = { fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge', quilt: 'Quilt', legacyfabric: 'Legacy Fabric', optifine: 'OptiFine', vanilla: 'Vanilla', datapack: 'Datapack' };
+const PACK_LOADER_LABEL = { fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge', quilt: 'Quilt', legacyfabric: 'Legacy Fabric', optifine: 'OptiFine', vanilla: 'Vanilla', horizon: 'Rust Horizon', datapack: 'Datapack' };
 
 function packSourceMeta(src) {
   if (PACK_SOURCE_META[src]) return PACK_SOURCE_META[src];
@@ -8319,7 +8320,8 @@ async function refreshLocalServerStudioModalUI() {
   // Sync version selector with current launcher version if available
   const verSel = document.getElementById('lsMcVersionSelect');
   if (verSel && !localServerRunningState) {
-    const curVer = res.meta?.mcVersion || state.selectedVersion || '1.21.4';
+    const defaultVer = state.selectedCore === 'horizon' ? '26.3-horizon' : (state.selectedVersion || '1.21.4');
+    const curVer = res.meta?.mcVersion || defaultVer;
     if (!Array.from(verSel.options).some((o) => o.value === curVer)) {
       const opt = document.createElement('option');
       opt.value = curVer;
