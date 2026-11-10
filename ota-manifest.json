@@ -1,183 +1,181 @@
 {
-  "format": "blockway-ota-manifest-v1",
-  "version": "41.3.1",
-  "generatedAt": "2026-11-02T13:10:51.536Z",
-  "filesCount": 35,
+  "version": "41.3.2",
+  "generatedAt": "2026-11-10T11:09:36.824Z",
   "files": [
     {
       "path": "package.json",
-      "size": 2524,
-      "sha256": "df3a8917c20d58f03b993aedd5fa85c44444e97c71b65a9846e9edb6f4dbd6ca"
+      "sha256": "f47ba89dd2be619a5df6a235bbc2f810f04fbb9ca78af5dc81ba0db41375316b",
+      "size": 2539
     },
     {
       "path": "src/aether-cloud-auth.js",
-      "size": 100,
-      "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4"
+      "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
+      "size": 100
     },
     {
       "path": "src/launcher-engine.js",
-      "size": 531269,
-      "sha256": "1c07487d5472711e617b690dee8815e3b27fe9fcf99b8f99f75d3e314dfbb839"
+      "sha256": "43ac4227c5827e31e3fc05f241fadd04620d2e9ea046149c82427fbe28f6e1f5",
+      "size": 568491
     },
     {
       "path": "src/main.js",
-      "size": 103381,
-      "sha256": "2a91ead1b9b3c65953e2337f9d57f9e1194cd4b983075e1cd8ec2dd760ea862c"
+      "sha256": "04015822514229ef80cbfb987bb94443dbc328f8aad9f068cc5bd28d2895055a",
+      "size": 103998
     },
     {
       "path": "src/microsoft-auth.js",
-      "size": 71932,
-      "sha256": "8efa75b3fb22599d0dadc6b1bdc1433b50fa5ec5722feae5a5357ed87abbeff0"
+      "sha256": "8efa75b3fb22599d0dadc6b1bdc1433b50fa5ec5722feae5a5357ed87abbeff0",
+      "size": 71932
     },
     {
       "path": "src/preload.js",
-      "size": 14803,
-      "sha256": "02fab7002bb5f6f2187968d959358f923c0f44dbc7dbee1b33b00e8a6ef90ee5"
+      "sha256": "5ed3cb18e6d2278678de8b98539af985a7ff7a70034686d0d16dd02992a8258d",
+      "size": 15059
     },
     {
       "path": "src/ui/app-banner-hero.png",
-      "size": 824627,
-      "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661"
+      "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
+      "size": 824627
     },
     {
       "path": "src/ui/app-banner.png",
-      "size": 830387,
-      "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37"
+      "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37",
+      "size": 830387
     },
     {
       "path": "src/ui/app-icon.ico",
-      "size": 260571,
-      "sha256": "d1904287ccae9503f991ff45381cdef0c5e990c41bd3948d9f397f0540ff5cfa"
+      "sha256": "d1904287ccae9503f991ff45381cdef0c5e990c41bd3948d9f397f0540ff5cfa",
+      "size": 260571
     },
     {
       "path": "src/ui/app-logo.png",
-      "size": 703070,
-      "sha256": "bf2f0563bb0c181565cc558bb8225240b768b9d1045f2ddf9e47c594af71c087"
+      "sha256": "bf2f0563bb0c181565cc558bb8225240b768b9d1045f2ddf9e47c594af71c087",
+      "size": 703070
     },
     {
       "path": "src/ui/index.html",
-      "size": 229018,
-      "sha256": "8fd282b03ef177cfde149c3594da4f80f082483cfcc738c311d8ce14164f4fde"
+      "sha256": "aa3c122da332c1af5102a54978810d2e9d9e15c0e84c1c36eaae4e115a8a9cea",
+      "size": 230252
     },
     {
       "path": "src/ui/installer-eula.txt",
-      "size": 1682,
-      "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c"
+      "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
+      "size": 1682
     },
     {
       "path": "src/ui/layout-v33.css",
-      "size": 249514,
-      "sha256": "7b0bef9a4a14d232619f7e427e786d2d16a8931f66150c8e018cb28039f5da4c"
+      "sha256": "9717bb278d4296d5d125d6ec8b20e1bb0c2a07dfaeb4bf33f8ab997559e4a917",
+      "size": 251135
     },
     {
       "path": "src/ui/minecraft-logo.png",
-      "size": 830387,
-      "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37"
+      "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37",
+      "size": 830387
     },
     {
       "path": "src/ui/renderer.js",
-      "size": 162677,
-      "sha256": "eac61f841a9f02e79715e49f5e1ef25c1d88b0d9f8f6a41217371512c020a524"
+      "sha256": "c9183229b27116ec97c404c969b6442aa8e825b7a83dd334d638ae1c521d54ea",
+      "size": 165826
     },
     {
       "path": "src/ui/seeds/badlands-gold-oasis-icon.png",
-      "size": 13491,
-      "sha256": "86e4da30e57f18e9fae9624206b8cdf7a3c7f652f5a46e5d7fa9fc0fd80363df"
+      "sha256": "86e4da30e57f18e9fae9624206b8cdf7a3c7f652f5a46e5d7fa9fc0fd80363df",
+      "size": 13491
     },
     {
       "path": "src/ui/seeds/badlands-gold-oasis.jpg",
-      "size": 68466,
-      "sha256": "9d6c49bc55cb44b1558eb2fa955912b3c3171c5c0934040f63b9c63675a2192c"
+      "sha256": "9d6c49bc55cb44b1558eb2fa955912b3c3171c5c0934040f63b9c63675a2192c",
+      "size": 68466
     },
     {
       "path": "src/ui/seeds/cherry-ring-mountain-icon.png",
-      "size": 13696,
-      "sha256": "8c07667c72aa440edab3219d3ed5d228328ac98080467352b0435b6a7fa8b342"
+      "sha256": "8c07667c72aa440edab3219d3ed5d228328ac98080467352b0435b6a7fa8b342",
+      "size": 13696
     },
     {
       "path": "src/ui/seeds/cherry-ring-mountain.jpg",
-      "size": 92726,
-      "sha256": "0ebcd50ab7bc7e8cde5b039305387eb5425dbe756190862cbb481bd0c3fd7ef8"
+      "sha256": "0ebcd50ab7bc7e8cde5b039305387eb5425dbe756190862cbb481bd0c3fd7ef8",
+      "size": 92726
     },
     {
       "path": "src/ui/seeds/coral-castaway-island-icon.png",
-      "size": 13520,
-      "sha256": "7b6cab8d3775c259d1907185eb4d59bb0ebcf354ba2dc2761cdc48ab2ab4de45"
+      "sha256": "7b6cab8d3775c259d1907185eb4d59bb0ebcf354ba2dc2761cdc48ab2ab4de45",
+      "size": 13520
     },
     {
       "path": "src/ui/seeds/coral-castaway-island.jpg",
-      "size": 78999,
-      "sha256": "1586a11c07b90ea4697a01a7e48f54e86b4bdffc8370dafa999b90b572a88b44"
+      "sha256": "1586a11c07b90ea4697a01a7e48f54e86b4bdffc8370dafa999b90b572a88b44",
+      "size": 78999
     },
     {
       "path": "src/ui/seeds/ice-spikes-frozen-kingdom-icon.png",
-      "size": 12866,
-      "sha256": "e48e180561c1e613ed37bc2f16f980c24e68c80a45fa881d4e81d805a1e91676"
+      "sha256": "e48e180561c1e613ed37bc2f16f980c24e68c80a45fa881d4e81d805a1e91676",
+      "size": 12866
     },
     {
       "path": "src/ui/seeds/ice-spikes-frozen-kingdom.jpg",
-      "size": 65663,
-      "sha256": "145846d66d7f0d4944aa6e4484e478f419cb55f36c83a88e83431b9e399bcafb"
+      "sha256": "145846d66d7f0d4944aa6e4484e478f419cb55f36c83a88e83431b9e399bcafb",
+      "size": 65663
     },
     {
       "path": "src/ui/seeds/lush-cave-ancient-taiga-icon.png",
-      "size": 11544,
-      "sha256": "50eb170f00e3df9407f9edd0583b07ff343dee7e690dbe2e919f4a2572144ccf"
+      "sha256": "50eb170f00e3df9407f9edd0583b07ff343dee7e690dbe2e919f4a2572144ccf",
+      "size": 11544
     },
     {
       "path": "src/ui/seeds/lush-cave-ancient-taiga.jpg",
-      "size": 52750,
-      "sha256": "b0b98d5ca192ef32065cd0fd8151555b9c45dd0359d3fd6cef81d4c65d46ef87"
+      "sha256": "b0b98d5ca192ef32065cd0fd8151555b9c45dd0359d3fd6cef81d4c65d46ef87",
+      "size": 52750
     },
     {
       "path": "src/ui/seeds/mansion-village-ancient-icon.png",
-      "size": 10399,
-      "sha256": "ce25b32b83e487f9fad905aa7d5da9ec20cfacde6cabf0b339c228e87360282b"
+      "sha256": "ce25b32b83e487f9fad905aa7d5da9ec20cfacde6cabf0b339c228e87360282b",
+      "size": 10399
     },
     {
       "path": "src/ui/seeds/mansion-village-ancient.jpg",
-      "size": 44315,
-      "sha256": "958178cf220e414cb3dc4704a9bde48e85a6a5c063facde72da32d7aece336c3"
+      "sha256": "958178cf220e414cb3dc4704a9bde48e85a6a5c063facde72da32d7aece336c3",
+      "size": 44315
     },
     {
       "path": "src/ui/seeds/mushroom-safe-island-icon.png",
-      "size": 13526,
-      "sha256": "6b1f73cf1511c56ceb8a5597935e883b630203debe339851b2cd7e889f3e8fd9"
+      "sha256": "6b1f73cf1511c56ceb8a5597935e883b630203debe339851b2cd7e889f3e8fd9",
+      "size": 13526
     },
     {
       "path": "src/ui/seeds/mushroom-safe-island.jpg",
-      "size": 66336,
-      "sha256": "50aa99d86b2f8782396bd49683b9416ab379823a7dc7ccce7c3b7ae8a3b518a5"
+      "sha256": "50aa99d86b2f8782396bd49683b9416ab379823a7dc7ccce7c3b7ae8a3b518a5",
+      "size": 66336
     },
     {
       "path": "src/ui/seeds/speedrun-bastion-fortress-icon.png",
-      "size": 13073,
-      "sha256": "82cdb456a39acb5c4059bc834ae82f171f6b2b5029c6613b39af186be60711cb"
+      "sha256": "82cdb456a39acb5c4059bc834ae82f171f6b2b5029c6613b39af186be60711cb",
+      "size": 13073
     },
     {
       "path": "src/ui/seeds/speedrun-bastion-fortress.jpg",
-      "size": 66535,
-      "sha256": "7a1edf063b183583ff2212b2c2142da2530fadd52c58c73d9a96e111f57e925e"
+      "sha256": "7a1edf063b183583ff2212b2c2142da2530fadd52c58c73d9a96e111f57e925e",
+      "size": 66535
     },
     {
       "path": "src/ui/skinview3d.bundle.js",
-      "size": 477198,
-      "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3"
+      "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",
+      "size": 477198
     },
     {
       "path": "src/ui/store-features.js",
-      "size": 463196,
-      "sha256": "2fc1571fdebf46fa0d99ae83bce8c30e3766e19e1b72cabf6932ff9b1718a8d8"
+      "sha256": "a4df290137ce22ab3af85cf2ec265eefeeea7b3a9c74732a2c6e3b32d12bf23c",
+      "size": 463362
     },
     {
       "path": "src/ui/styles.css",
-      "size": 113560,
-      "sha256": "4f1bb32acb703aa49cfb26085cb77abae482ba32c1a487a9de213fa659f57fc0"
+      "sha256": "4f1bb32acb703aa49cfb26085cb77abae482ba32c1a487a9de213fa659f57fc0",
+      "size": 113560
     },
     {
       "path": "src/world-creator.js",
-      "size": 49913,
-      "sha256": "2cb6b5b37862454bd7b3da99a031a1a05da26d61360b29cc850e98d47a84e36a"
+      "sha256": "2cb6b5b37862454bd7b3da99a031a1a05da26d61360b29cc850e98d47a84e36a",
+      "size": 49913
     }
   ]
 }
