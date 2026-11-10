@@ -1,7 +1,7 @@
 {
   "name": "blockway-launcher",
-  "version": "41.3.4",
-  "description": "BlockWay Launcher v41.3.4 PRO — Every World, One Place. Minecraft Java launcher with Microsoft login, offline/local profiles, Cloud ID, Modrinth, OptiFine, Fabric/Forge/NeoForge/Quilt & Rust Horizon.",
+  "version": "41.3.5",
+  "description": "BlockWay Launcher v41.3.5 PRO — Every World, One Place. Minecraft Java launcher with Microsoft login, offline/local profiles, Cloud ID, Modrinth, OptiFine, Fabric/Forge/NeoForge/Quilt & Rust Horizon.",
   "homepage": "https://buiduchuy2010qn-prog.github.io/blockway-launcher/",
   "repository": {
     "type": "git",

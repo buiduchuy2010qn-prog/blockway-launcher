@@ -1277,9 +1277,16 @@ function setLaunchUiState(phase, statusMsg) {
     if (btnKill) btnKill.classList.add('hidden');
     if (trackEl) trackEl.classList.add('hidden');
     if (pctEl) pctEl.classList.add('hidden');
-    if (statusEl) statusEl.textContent = statusMsg || '🟢 Trạng thái: Sẵn sàng vào game';
+    if (statusEl) {
+      const finalMsg = statusMsg || '🟢 Trạng thái: Sẵn sàng vào game';
+      statusEl.textContent = finalMsg;
+      statusEl.title = finalMsg;
+      const isErr = /^(❌|⚠️?|lỗi\b)/i.test(String(finalMsg).trim());
+      statusEl.classList.toggle('is-error', isErr);
+    }
   } else if (phase === 'starting') {
     state.isLaunching = true;
+    if (statusEl) statusEl.classList.remove('is-error');
     if (btnLaunch) {
       btnLaunch.disabled = true;
       btnLaunch.classList.add('is-starting');
@@ -1313,9 +1320,37 @@ function setLaunchUiState(phase, statusMsg) {
     }
     if (trackEl) trackEl.classList.add('hidden');
     if (pctEl) pctEl.classList.add('hidden');
-    if (statusEl) statusEl.textContent = statusMsg || '🟢 Đang chơi Minecraft — Ngủ đông 0% GPU';
+    if (statusEl) {
+      statusEl.classList.remove('is-error');
+      statusEl.textContent = statusMsg || '🟢 Đang chơi Minecraft — Ngủ đông 0% GPU';
+    }
   }
 }
+
+async function reportLaunchErrorUI(rawError, contextTitle = '') {
+  const errStr = String(rawError?.message || rawError || 'Lỗi không xác định khi khởi chạy Minecraft').trim();
+  const fullStatus = `❌ Lỗi khởi động: ${errStr}`;
+  setLaunchUiState('idle', fullStatus);
+  appendLog(fullStatus, 'error');
+  showAetherNotification(fullStatus, 'error', 7500);
+  if (typeof window.pushTopNotification === 'function') {
+    window.pushTopNotification(`❌ Lỗi khởi động${contextTitle ? ' (' + contextTitle + ')' : ''}: ${errStr}`);
+  }
+  const ask = await askUserAgreement({
+    title: `⚠️ Báo Cáo Lỗi Khởi Động Game${contextTitle ? ` — ${contextTitle}` : ''}`,
+    message:
+      `Quá trình khởi động gặp sự cố và đã dừng lại để bảo vệ dữ liệu của bạn:\n\n` +
+      `• Chi tiết lỗi: ${errStr}\n` +
+      `• Cấu hình đang chọn: Minecraft ${state.selectedVersion} (${String(state.selectedCore || 'vanilla').toUpperCase()} • ${state.ramGB} GB RAM)\n\n` +
+      `Bạn có muốn mở Bác Sĩ Chẩn Đoán & Tự Sửa Lỗi 1-Click để kiểm tra và tự động khắc phục ngay không?`,
+    agreeText: '🩺 Mở Bác Sĩ Tự Sửa Lỗi',
+    cancelText: 'Đóng'
+  });
+  if (ask?.agreed && typeof window.openCrashDoctorModal === 'function') {
+    window.openCrashDoctorModal('LAUNCH_ERR', true);
+  }
+}
+window.reportLaunchErrorUI = reportLaunchErrorUI;
 
 function appendLog(line, type = 'normal') {
   const out = document.getElementById('consoleOutput');
@@ -3362,25 +3397,28 @@ window.addEventListener('DOMContentLoaded', async () => {
       ? await convertSkinTo64x64DataUrl(rawActiveSkin)
       : rawActiveSkin;
 
-    const res = await window.aetherAPI.launchGame({
-      authMode: state.authMode, username: state.username, crackSkinSync: state.crackSkinSync,
-      msProfile: state.msProfile, cloudProfile: state.cloudProfile, mcVersion: state.selectedVersion, loaderType: state.selectedCore,
-      loaderVersion: state.selectedLoaderVersion, ramGB: state.ramGB, javaPath: state.javaPath,
-      gameDir: state.gameDir, useAikarFlags: state.aikarFlags, fastSkipHash: state.fastSkipHash,
-      hideLauncherOnPlay: state.hideLauncherOnPlay, serverIp: quickWorldFolder ? '' : (oneShotServer || state.serverIp),
-      worldFolderName: quickWorldFolder || '', autoBackupWorlds: state.autoBackupWorlds !== false,
-      autoViLang: state.autoViLang !== false, potatoGraphicsPreset: Boolean(state.potatoGraphicsPreset),
-      smartRamCoach: state.smartRamCoach !== false,
-      gentleSmoothMode: state.gentleSmoothMode !== false,
-      deepSmoothEngine: state.deepSmoothEngine !== false,
-      deepSmoothProfile: state.deepSmoothProfile || 'balanced',
-      deepSmoothLayers: Array.isArray(state.deepSmoothLayers) ? state.deepSmoothLayers : null,
-      cpuCores: state.cpuCores, skinDataUrl: finalSkinDataUrl, skinModel: state.skinModel, winResolution: state.winResolution
-    });
+    try {
+      const res = await window.aetherAPI.launchGame({
+        authMode: state.authMode, username: state.username, crackSkinSync: state.crackSkinSync,
+        msProfile: state.msProfile, cloudProfile: state.cloudProfile, mcVersion: state.selectedVersion, loaderType: state.selectedCore,
+        loaderVersion: state.selectedLoaderVersion, ramGB: state.ramGB, javaPath: state.javaPath,
+        gameDir: state.gameDir, useAikarFlags: state.aikarFlags, fastSkipHash: state.fastSkipHash,
+        hideLauncherOnPlay: state.hideLauncherOnPlay, serverIp: quickWorldFolder ? '' : (oneShotServer || state.serverIp),
+        worldFolderName: quickWorldFolder || '', autoBackupWorlds: state.autoBackupWorlds !== false,
+        autoViLang: state.autoViLang !== false, potatoGraphicsPreset: Boolean(state.potatoGraphicsPreset),
+        smartRamCoach: state.smartRamCoach !== false,
+        gentleSmoothMode: state.gentleSmoothMode !== false,
+        deepSmoothEngine: state.deepSmoothEngine !== false,
+        deepSmoothProfile: state.deepSmoothProfile || 'balanced',
+        deepSmoothLayers: Array.isArray(state.deepSmoothLayers) ? state.deepSmoothLayers : null,
+        cpuCores: state.cpuCores, skinDataUrl: finalSkinDataUrl, skinModel: state.skinModel, winResolution: state.winResolution
+      });
 
-    if (!res.ok) {
-      setLaunchUiState('idle', `Lỗi khởi động: ${res.error}`);
-      appendLog(`Lỗi khởi động: ${res.error}`, 'error');
+      if (!res?.ok) {
+        await reportLaunchErrorUI(res?.error || 'Không thể khởi động Minecraft', `MC ${state.selectedVersion}`);
+      }
+    } catch (launchErr) {
+      await reportLaunchErrorUI(launchErr, `MC ${state.selectedVersion}`);
     }
   };
 

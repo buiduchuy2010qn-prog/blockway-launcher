@@ -1,10 +1,10 @@
 {
-  "version": "41.3.4",
-  "generatedAt": "2026-11-10T11:47:43.701Z",
+  "version": "41.3.5",
+  "generatedAt": "2026-11-10T11:51:59.331Z",
   "files": [
     {
       "path": "package.json",
-      "sha256": "c1ef583cde8908dfc4c3dc8bb0d22cdbcd808e8c6837a352c8e0b0346141f8be",
+      "sha256": "271fc826d82567e20c614ce8b627c545482e2a95b0339ac1c3eadaf6f13365bd",
       "size": 2630
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "path": "src/ui/index.html",
-      "sha256": "eb5731f0ea729bf00ba70ff5f525087cd30eb0738bf47822d1c3907eb7dad4c1",
+      "sha256": "ddb18ea1ab724d4bc2ce9cf020eff9ac9535d08fa16c794c90a2b8259d3dbb2e",
       "size": 232812
     },
     {
@@ -64,8 +64,8 @@
     },
     {
       "path": "src/ui/layout-v33.css",
-      "sha256": "625c20e1427243d8b47a3d4da68b13d7446bba501f1a49627c206e0103f7f87f",
-      "size": 265490
+      "sha256": "fcdfc3fae773758f97b6faa254bc42c740322a5e48843d1e1697181ab572d576",
+      "size": 265909
     },
     {
       "path": "src/ui/minecraft-logo.png",
@@ -74,8 +74,8 @@
     },
     {
       "path": "src/ui/renderer.js",
-      "sha256": "3f570cd917d41b801147989cb84af5f91534070619f3a9f1dab26a73331b834c",
-      "size": 169552
+      "sha256": "f571650e45d03ad488200dd310ea368469ec04e38a48af009084dce10cc09009",
+      "size": 171504
     },
     {
       "path": "src/ui/seeds/badlands-gold-oasis-icon.png",
@@ -164,8 +164,8 @@
     },
     {
       "path": "src/ui/store-features.js",
-      "sha256": "3dc4fd1eac3dbb46cfa3476f5ad5d293cf8a6d5e0c1ca3a1676794cd65cfecc3",
-      "size": 472249
+      "sha256": "cdfd4a35eeb28c93d70c06020e19f8e1012e1b55b1b14090e0556b8f10c00105",
+      "size": 472463
     },
     {
       "path": "src/ui/styles.css",

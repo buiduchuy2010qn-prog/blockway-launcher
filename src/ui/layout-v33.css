@@ -10142,6 +10142,19 @@ html[data-theme="sakura"] .ds-sig-pill {
   text-overflow: ellipsis !important;
 }
 
+.home-play-card #statusText.is-error {
+  color: #dc2626 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  border: 1px solid rgba(239, 68, 68, 0.38) !important;
+  padding: 2px 9px !important;
+  border-radius: 999px !important;
+}
+
+body:not(.theme-prism):not(.theme-sakura) .home-play-card #statusText.is-error {
+  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.18) !important;
+}
+
 /* 3. Keep Version Selector Box wide & readable even when Cancel + Starting buttons are visible */
 .home-play-card .hpc-version-box {
   min-width: 195px !important;

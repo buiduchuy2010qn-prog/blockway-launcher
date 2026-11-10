@@ -3521,9 +3521,13 @@ async function launchPackInstance(inst, customServerIp = '', customWorldFolder =
   });
   if (!res?.ok) {
     packHub.launchingInstance = null;
-    setLaunchUiState('idle', `Lỗi khởi động gói: ${res?.error}`);
-    if (typeof appendLog === 'function') appendLog(`Lỗi khởi động gói ${inst.name}: ${res?.error}`, 'error');
     packShowProgress(`❌ Lỗi khởi động: ${res?.error || 'không rõ'}`, 0, true);
+    if (typeof window.reportLaunchErrorUI === 'function') {
+      await window.reportLaunchErrorUI(res?.error || 'Không thể khởi động gói Modpack', inst?.name || 'Modpack');
+    } else {
+      setLaunchUiState('idle', `❌ Lỗi khởi động gói: ${res?.error}`);
+      if (typeof appendLog === 'function') appendLog(`Lỗi khởi động gói ${inst.name}: ${res?.error}`, 'error');
+    }
   }
 }
 
