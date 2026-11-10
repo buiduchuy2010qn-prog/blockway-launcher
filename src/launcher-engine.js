@@ -680,24 +680,51 @@ async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
   if (loaderType === 'horizon') {
     const st = getHorizonEngineStatus(gameDir || getDefaultGameDir());
     const readySuffix = st.isPrepared ? ' ✓ (Đã sẵn sàng)' : ' (Tự động cài 1-Click)';
+    if (String(mcVersion || '') === '26.3') {
+      return [
+        {
+          version: 'horizon-auto',
+          stable: true,
+          kind: 'horizon',
+          displayLabel: `🦀 Rust Native 26.3 • Tự động (Vulkan / DirectX 12)${readySuffix}`
+        },
+        {
+          version: 'horizon-vulkan',
+          stable: true,
+          kind: 'horizon',
+          displayLabel: `🌋 Rust Native 26.3 • Ép xung Vulkan API (FPS cao nhất)`
+        },
+        {
+          version: 'horizon-dx12',
+          stable: true,
+          kind: 'horizon',
+          displayLabel: `💠 Rust Native 26.3 • DirectX 12 (Tương thích iGPU Intel/AMD)`
+        }
+      ];
+    }
+    const verLabel = String(mcVersion || '1.21.4');
+    const isPre114 = isMcVersionPre114(verLabel);
+    const stackDesc = isPre114
+      ? 'OptiFine Fast Render + 6 tầng mượt'
+      : 'Tự nạp Sodium + Lithium + EntityCulling + 6 tầng mượt';
     return [
       {
-        version: 'horizon-auto',
+        version: 'horizon-hybrid-turbo',
         stable: true,
-        kind: 'horizon',
-        displayLabel: `🦀 Rust Native 26.3 • Tự động (Vulkan / DirectX 12)${readySuffix}`
+        kind: 'horizon-hybrid',
+        displayLabel: `⚡ Horizon Hybrid (${verLabel}) • ${stackDesc}`
       },
       {
-        version: 'horizon-vulkan',
+        version: 'horizon-hybrid-esports',
         stable: true,
-        kind: 'horizon',
-        displayLabel: `🌋 Rust Native 26.3 • Ép xung Vulkan API (FPS cao nhất)`
+        kind: 'horizon-hybrid',
+        displayLabel: `🎯 Horizon Hybrid Esport (${verLabel}) • Khóa xung PvP FPS tối đa + Chuột thô 1:1`
       },
       {
-        version: 'horizon-dx12',
+        version: 'horizon-switch-26.3',
         stable: true,
         kind: 'horizon',
-        displayLabel: `💠 Rust Native 26.3 • DirectX 12 (Tương thích iGPU Intel/AMD)`
+        displayLabel: `🦀 Chuyển sang Rust Native 26.3 (Thuần mã máy Rust • Vulkan / DX12)${readySuffix}`
       }
     ];
   }
@@ -4690,7 +4717,8 @@ async function launchMinecraft(config, callbacks = {}) {
     }
   } catch (_) {}
 
-  if (String(loaderType || '').toLowerCase() === 'horizon') {
+  const isHorizonSelected = String(loaderType || '').toLowerCase() === 'horizon';
+  if (isHorizonSelected && (String(mcVersion || '') === '26.3' || loaderVersion === 'horizon-switch-26.3')) {
     if (!(serverIp && serverIp.trim()) && !(effectiveWorldFolder && String(effectiveWorldFolder).trim()) && autoCreateWorld && typeof autoCreateWorld === 'object') {
       const wantCreate = autoCreateWorld.force || !worldCreator.savesHasWorlds(gameDirectory);
       if (wantCreate && worldCreator.supportsQuickWorldCreation('26.3')) {
@@ -4722,7 +4750,7 @@ async function launchMinecraft(config, callbacks = {}) {
       }
     }
     return await launchHorizonRustClient({
-      config,
+      config: { ...config, mcVersion: '26.3' },
       rootDir,
       gameDirectory,
       skinRoot,
@@ -4735,7 +4763,40 @@ async function launchMinecraft(config, callbacks = {}) {
   let effectiveLoaderType = loaderType;
   let effectiveLoaderVersion = loaderVersion;
   let optifineRuntimePlan = null;
-  if (loaderType === 'optifine') {
+  if (isHorizonSelected) {
+    // Horizon Hybrid Multi-Version Mode (1.7.10 -> 1.21.11+):
+    // - 1.14+: Fabric + Auto FPS Boost Stack (Sodium + Lithium + FerriteCore + EntityCulling + ImmediatelyFast)
+    // - <= 1.13.2: OptiFine / Forge Fast Render
+    if (isMcVersionPre114(mcVersion)) {
+      optifineRuntimePlan = await resolveOptifineRuntimePlan(
+        { rootDir, gameDirectory, mcVersion, loaderVersion: '' },
+        callbacks.onStatus
+      );
+      effectiveLoaderType = optifineRuntimePlan.effectiveLoader;
+      effectiveLoaderVersion = optifineRuntimePlan.effectiveLoaderVersion;
+    } else {
+      const fabBuilds = await fetchLoaderVersions(mcVersion, 'fabric', rootDir).catch(() => []);
+      if (Array.isArray(fabBuilds) && fabBuilds.length > 0) {
+        effectiveLoaderType = 'fabric';
+        effectiveLoaderVersion = fabBuilds[0].version;
+        try {
+          const modsDir = path.join(gameDirectory, 'mods');
+          if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true });
+          const stampFile = path.join(modsDir, `.horizon-hybrid-${mcVersion}.stamp`);
+          const existingJars = fs.readdirSync(modsDir).filter((f) => f.toLowerCase().endsWith('.jar'));
+          const hasSodium = existingJars.some((f) => /sodium/i.test(f));
+          if (!fs.existsSync(stampFile) || !hasSodium) {
+            callbacks.onStatus?.(`⚡ Horizon Hybrid (${mcVersion}): Đang tự động nạp bộ lõi tăng tốc Sodium + Lithium + EntityCulling...`);
+            await installFpsBoostPack({ mcVersion, loaderType: 'fabric', gameDir: gameDirectory }, callbacks.onStatus);
+            try { fs.writeFileSync(stampFile, new Date().toISOString(), 'utf8'); } catch (_) {}
+          }
+        } catch (_) {}
+      } else {
+        effectiveLoaderType = 'vanilla';
+        effectiveLoaderVersion = '';
+      }
+    }
+  } else if (loaderType === 'optifine') {
     optifineRuntimePlan = await resolveOptifineRuntimePlan(
       { rootDir, gameDirectory, mcVersion, loaderVersion },
       callbacks.onStatus
@@ -5026,6 +5087,11 @@ async function launchMinecraft(config, callbacks = {}) {
   }
 
   const proc = await launcher.launch(launchOpts);
+  if (proc?.pid && typeof os.setPriority === 'function') {
+    try {
+      os.setPriority(proc.pid, os.constants?.priority?.PRIORITY_ABOVE_NORMAL ?? -6);
+    } catch (_) {}
+  }
   activeMcProcess = proc;
   global.__activeMcProcess = proc;
 

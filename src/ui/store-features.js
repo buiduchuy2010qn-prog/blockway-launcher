@@ -660,7 +660,10 @@ function isMcPre114(ver) {
 
 function resolveUnderlyingModLoaderForCore(coreName, mcVer, loaderVer = '', isPack = false) {
   const c = String(coreName || 'fabric').toLowerCase();
-  if (c === 'horizon' && !isPack) return 'vanilla';
+  if (c === 'horizon' && !isPack) {
+    if (String(mcVer || '') === '26.3') return 'vanilla';
+    return isMcPre114(mcVer) ? 'forge' : 'fabric';
+  }
   if (c === 'optifine' && !isPack) {
     if (loaderVer && loaderVer !== 'Auto-Shader-Zoom') return 'optifine-standalone';
     return isMcPre114(mcVer) ? 'forge' : 'fabric';

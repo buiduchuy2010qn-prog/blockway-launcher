@@ -1,10 +1,10 @@
 {
-  "version": "41.3.2",
-  "generatedAt": "2026-11-10T11:09:36.824Z",
+  "version": "41.3.3",
+  "generatedAt": "2026-11-10T11:29:00.070Z",
   "files": [
     {
       "path": "package.json",
-      "sha256": "f47ba89dd2be619a5df6a235bbc2f810f04fbb9ca78af5dc81ba0db41375316b",
+      "sha256": "cf710f970fbf2c6e7bedb6ef155bb281696e384fded97cd856d00393fa73340a",
       "size": 2539
     },
     {
@@ -14,8 +14,8 @@
     },
     {
       "path": "src/launcher-engine.js",
-      "sha256": "43ac4227c5827e31e3fc05f241fadd04620d2e9ea046149c82427fbe28f6e1f5",
-      "size": 568491
+      "sha256": "9a9c1d5fd2548587488f5f6f1f7cedb21c9db9442797f31895b4c6e0268bbcd8",
+      "size": 571697
     },
     {
       "path": "src/main.js",
@@ -54,8 +54,8 @@
     },
     {
       "path": "src/ui/index.html",
-      "sha256": "aa3c122da332c1af5102a54978810d2e9d9e15c0e84c1c36eaae4e115a8a9cea",
-      "size": 230252
+      "sha256": "3c0bb4ef581f65dbb3289afdfdb150c8fec52863a5c0c5b6cb6dcfec8a81b093",
+      "size": 230304
     },
     {
       "path": "src/ui/installer-eula.txt",
@@ -74,8 +74,8 @@
     },
     {
       "path": "src/ui/renderer.js",
-      "sha256": "c9183229b27116ec97c404c969b6442aa8e825b7a83dd334d638ae1c521d54ea",
-      "size": 165826
+      "sha256": "5a7d0a5f501739d86ae1396d4086dbe6259d7a05a26ca0ce3a12ff6ffa955ba9",
+      "size": 165993
     },
     {
       "path": "src/ui/seeds/badlands-gold-oasis-icon.png",
@@ -164,8 +164,8 @@
     },
     {
       "path": "src/ui/store-features.js",
-      "sha256": "a4df290137ce22ab3af85cf2ec265eefeeea7b3a9c74732a2c6e3b32d12bf23c",
-      "size": 463362
+      "sha256": "ccff71b324fa8f07b4201bec54e7094bd11b4c99c9bc352f2947f9ef39e54bc4",
+      "size": 463459
     },
     {
       "path": "src/ui/styles.css",
