@@ -13626,6 +13626,26 @@ async function launchHorizonRustClient({
   const displayMcVer = String(config.requestedMcVersion || hz.targetMcVersion || '26.3');
   callbacks.onStatus?.(`🦀 Đang phóng Engine Rust Horizon (MC ${displayMcVer} • ${desiredGfx.toUpperCase()} • Nhân vật: ${safeName})...`);
 
+  try {
+    const safeVerBytes = Buffer.from(displayMcVer.slice(0, 16), 'utf8');
+    if (safeVerBytes.length > 0 && fs.existsSync(hz.clientPath)) {
+      const fd = fs.openSync(hz.clientPath, 'r+');
+      try {
+        const sig = Buffer.alloc(9);
+        fs.readSync(fd, sig, 0, 9, 76550544);
+        if (sig.toString('latin1') === '\x08Horizon ') {
+          fs.writeSync(fd, safeVerBytes, 0, safeVerBytes.length, 71136070);
+          const fatPtr = Buffer.alloc(16);
+          fatPtr.writeBigUInt64LE(0x1443d8176n, 0);
+          fatPtr.writeBigUInt64LE(BigInt(safeVerBytes.length), 8);
+          fs.writeSync(fd, fatPtr, 0, 16, 76550528);
+        }
+      } finally {
+        fs.closeSync(fd);
+      }
+    }
+  } catch (_) {}
+
   const spawnStartedAt = Date.now();
   const proc = spawn(hz.clientPath, args, {
     cwd: gameDirectory,
@@ -13650,8 +13670,26 @@ async function launchHorizonRustClient({
       if (process.platform === 'win32' && proc.pid) {
         try {
           const winTitle = `Minecraft ${displayMcVer} — Rust Horizon (${desiredGfx.toUpperCase()})`.replace(/'/g, "''");
-          const psCmd = `Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public class Win32Title { [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern bool SetWindowText(IntPtr hWnd, string lpString); }'; for ($i=0; $i -lt 12; $i++) { $p = Get-Process -Id ${proc.pid} -ErrorAction SilentlyContinue; if ($p -and $p.MainWindowHandle -ne [IntPtr]::Zero) { [Win32Title]::SetWindowText($p.MainWindowHandle, '${winTitle}') | Out-Null; break }; Start-Sleep -Milliseconds 250 }`;
-          const titleHelper = spawn('powershell.exe', ['-NoProfile', '-WindowStyle', 'Hidden', '-Command', psCmd], {
+          const psScript = [
+            "Add-Type -TypeDefinition @'",
+            'using System;',
+            'using System.Runtime.InteropServices;',
+            'public class Win32Title {',
+            '  [DllImport("user32.dll", CharSet = CharSet.Unicode)]',
+            '  public static extern bool SetWindowText(IntPtr hWnd, string lpString);',
+            '}',
+            "'@",
+            `for ($i = 0; $i -lt 15; $i++) {`,
+            `  $p = Get-Process -Id ${proc.pid} -ErrorAction SilentlyContinue`,
+            `  if (!$p) { break }`,
+            `  if ($p.MainWindowHandle -ne [IntPtr]::Zero) {`,
+            `    [Win32Title]::SetWindowText($p.MainWindowHandle, '${winTitle}') | Out-Null`,
+            `  }`,
+            `  Start-Sleep -Milliseconds 220`,
+            `}`
+          ].join('\r\n');
+          const encodedCmd = Buffer.from(psScript, 'utf16le').toString('base64');
+          const titleHelper = spawn('powershell.exe', ['-NoProfile', '-WindowStyle', 'Hidden', '-EncodedCommand', encodedCmd], {
             windowsHide: true,
             detached: true,
             stdio: 'ignore'

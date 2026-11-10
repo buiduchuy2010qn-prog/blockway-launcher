@@ -1,15 +1,15 @@
 {
-  "version": "41.3.7",
-  "releasedAt": "2026-11-10T14:27:23.798Z",
-  "notes": "v41.3.7 PRO: Dich nguoc chay truc tiep tren Engine Rust Horizon thuan ma may (<1s, ~250MB RAM, Vulkan/DX12) cho moi phien ban tu 1.21.1 tro len (1.21.1 -> 1.21.11, 26.x).",
+  "version": "41.3.8",
+  "releasedAt": "2026-11-10T14:42:24.660Z",
+  "notes": "v41.3.8 PRO: Dong bo nhan phien ban truc tiep trong man hinh chinh Horizon Rust (Horizon 1.21.11 (Rust), 1.21.4, 1.21.1...) va thanh tieu de cua so game.",
   "files": {
     "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "7a729c686f8452ac60a8fb9dec713b0a70bfe2c81eb5e74d5cfca64a863886f8",
-      "size": 587632
+      "sha256": "1b61aa52d89b14810beefee43406272d6272a07390a97db5d4140c4e0db9fdf2",
+      "size": 588786
     },
     "src/main.js": {
       "sha256": "810a5850cedf57ac3ea52bb0aae09b0666b28610292a926a8a45145e9217132c",
@@ -40,7 +40,7 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "b303f7ba2003801c4a6acb55346221b0c55cc643b0d8a66184f22a29a030ec96",
+      "sha256": "18301c2d3285905fbdf56bc722de76c93573b461bec2bd717eadc168f7137dc5",
       "size": 232812
     },
     "src/ui/layout-v33.css": {
@@ -104,7 +104,7 @@
       "size": 51124
     },
     "package.json": {
-      "sha256": "11d4fc911202a4663a732e92c285ceee5a85f3a92abd55da760f13f7c86e4145",
+      "sha256": "45458f0c1dbd2c474bd272c53c0fb9f4c691301828b03387728530b4359a9499",
       "size": 2630
     }
   }
