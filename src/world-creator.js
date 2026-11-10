@@ -545,7 +545,8 @@ async function createQuickWorld({
     const info = jar.info;
 
     const loader = String(loaderType || 'vanilla').toLowerCase();
-    const modScan = loader === 'vanilla' ? { enabled: new Set(), disabled: new Set(), normalOverride: null } : scanModDataPacks(path.join(gameDir, 'mods'));
+    const isUnmoddedWorldLoader = loader === 'vanilla' || loader === 'horizon' || loader === 'optifine';
+    const modScan = isUnmoddedWorldLoader ? { enabled: new Set(), disabled: new Set(), normalOverride: null } : scanModDataPacks(path.join(gameDir, 'mods'));
     let dpNormalOverride = null;
     const validExtraZips = [];
     for (const rawZp of Array.isArray(extraDatapackZips) ? extraDatapackZips : []) {
@@ -649,7 +650,7 @@ async function createQuickWorld({
       LastPlayed: nbt.long(now),
       Time: nbt.long(0),
       DayTime: nbt.long(alwaysDay ? 1000 : 0),
-      WasModded: nbt.byte(loader === 'vanilla' ? 0 : 1),
+      WasModded: nbt.byte(isUnmoddedWorldLoader ? 0 : 1),
       WorldGenSettings: worldGenNbt(),
       DataPacks: nbt.compound({
         Enabled: nbt.list(TAG.STRING, enabledPacks.map((x) => nbt.string(x))),
@@ -825,17 +826,28 @@ function formatDimensionLabel(dimRaw) {
   return s;
 }
 
+function getPlayerDataDirs(worldDir) {
+  return [
+    path.join(worldDir, 'players', 'data'),
+    path.join(worldDir, 'playerdata')
+  ].filter((d) => fs.existsSync(d));
+}
+
 function readLatestPlayerNbtFile(worldDir) {
   try {
-    const pdDir = path.join(worldDir, 'playerdata');
-    if (!fs.existsSync(pdDir)) return null;
-    const files = fs.readdirSync(pdDir)
-      .filter((f) => /\.dat$/i.test(f))
-      .map((f) => {
+    const pdDirs = getPlayerDataDirs(worldDir);
+    if (!pdDirs.length) return null;
+    const files = [];
+    for (const pdDir of pdDirs) {
+      for (const f of fs.readdirSync(pdDir)) {
+        if (!/\.dat$/i.test(f)) continue;
         const full = path.join(pdDir, f);
-        return { full, mtimeMs: fs.statSync(full).mtimeMs || 0 };
-      })
-      .sort((a, b) => b.mtimeMs - a.mtimeMs);
+        try {
+          files.push({ full, mtimeMs: fs.statSync(full).mtimeMs || 0 });
+        } catch (_) {}
+      }
+    }
+    files.sort((a, b) => b.mtimeMs - a.mtimeMs);
     if (!files.length) return null;
     const raw = zlib.gunzipSync(fs.readFileSync(files[0].full));
     return { filePath: files[0].full, root: readNbtRoot(raw) };
@@ -1005,7 +1017,8 @@ function applyPlayerPatchesToCompound(playerObj, { gameTypeId, reviveHardcore, t
     playerObj.Health = nbt.float(20.0);
     playerObj.DeathTime = nbt.short(0);
     playerObj.HurtTime = nbt.short(0);
-    playerObj.FallDistance = nbt.float(0.0);
+    if (playerObj.fall_distance !== undefined) playerObj.fall_distance = nbt.double(0.0);
+    else playerObj.FallDistance = nbt.float(0.0);
     playerObj.Fire = nbt.short(-20);
     playerObj.Air = nbt.short(300);
     playerObj.foodLevel = nbt.int(20);
@@ -1028,7 +1041,8 @@ function applyPlayerPatchesToCompound(playerObj, { gameTypeId, reviveHardcore, t
       nbt.double(Number(teleportCoords.z) + 0.5)
     ]);
     playerObj.Motion = nbt.list(TAG.DOUBLE, [nbt.double(0), nbt.double(0), nbt.double(0)]);
-    playerObj.FallDistance = nbt.float(0.0);
+    if (playerObj.fall_distance !== undefined) playerObj.fall_distance = nbt.double(0.0);
+    else playerObj.FallDistance = nbt.float(0.0);
     playerObj.Dimension = nbt.string('minecraft:overworld');
   }
 }
@@ -1160,9 +1174,8 @@ function rescueAndPatchWorldNbt(worldDir, patches = {}) {
         fallbackSpawn: spawnCoords
       });
     }
-    // Also patch all playerdata/*.dat files so singleplayer/LAN UUID profiles stay in sync!
-    const pdDir = path.join(worldDir, 'playerdata');
-    if (fs.existsSync(pdDir)) {
+    // Also patch all playerdata/*.dat & players/data/*.dat files (1.8 -> 1.21.x -> 26.x / Rust Horizon)
+    for (const pdDir of getPlayerDataDirs(worldDir)) {
       for (const f of fs.readdirSync(pdDir)) {
         if (!/\.dat$/i.test(f)) continue;
         const pFull = path.join(pdDir, f);

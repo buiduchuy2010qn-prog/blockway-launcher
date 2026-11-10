@@ -1,15 +1,15 @@
 {
-  "version": "41.3.9",
-  "releasedAt": "2026-11-10T15:04:53.286Z",
-  "notes": "v41.3.9 PRO: Sua loi os error 145 (.datafix) khi mo map 1.21.11 trong Rust Horizon, sua RVA 0x43d8146 hien thi dung Horizon 1.21.11 (Rust) va ho tro da phien ban 1.20.2 -> 1.21.11 -> 26.3.",
+  "version": "41.3.10",
+  "releasedAt": "2026-11-10T22:18:45.794Z",
+  "notes": "v41.3.10 PRO: Dong bo toan bo cac phan he Worlds 26.x/Horizon (players/data NBT, Cuu ho Map, Tao nhanh Map khong dinh mod rac), IPC VisualBoost, va nhan phien ban Rust Horizon sach 100%.",
   "files": {
     "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "ef2ba15f5dbd67e790c26bb75881877452281422f4c4b08fc8d4a62e308159cd",
-      "size": 590232
+      "sha256": "6d18c4532af978e413b1b9c20507cd6fe79e8d79520232da21ea068affdb1208",
+      "size": 591622
     },
     "src/main.js": {
       "sha256": "810a5850cedf57ac3ea52bb0aae09b0666b28610292a926a8a45145e9217132c",
@@ -20,8 +20,8 @@
       "size": 73767
     },
     "src/preload.js": {
-      "sha256": "c363a9b9c6b2458b7200c6c698928ed67bcc8c107cc60779acf9697a517b55ca",
-      "size": 15257
+      "sha256": "484fc7f20bf7b6705267a9594b45617846c3b6e59e195422fe4e25061e6b817f",
+      "size": 15341
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -40,8 +40,8 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "b5c670aac7bb26824c62dc710e63331b78e409211ee1531ffcbc8b0f0f586eb7",
-      "size": 232812
+      "sha256": "3e3504ed9dba1b0f7806a3ce2adce19e8ec837ddfd04ca56d9a485552d5c8099",
+      "size": 232816
     },
     "src/ui/layout-v33.css": {
       "sha256": "fcdfc3fae773758f97b6faa254bc42c740322a5e48843d1e1697181ab572d576",
@@ -92,20 +92,20 @@
       "size": 479194
     },
     "src/ui/store-features.js": {
-      "sha256": "cdfd4a35eeb28c93d70c06020e19f8e1012e1b55b1b14090e0556b8f10c00105",
-      "size": 472463
+      "sha256": "b8d7e3e11c23f31aa5c9b6096690d304b9cd1b31791bc3dbd04a26a7c74b998c",
+      "size": 472565
     },
     "src/ui/styles.css": {
       "sha256": "d8b05493837dfd1ed504d85153b483388faab93400bae101821c1f836d0fb2a4",
       "size": 119072
     },
     "src/world-creator.js": {
-      "sha256": "4f13b3af1ed79369cea910c137dd2570a7e0d63d081eae2b818b7c97ffcf5a3e",
-      "size": 51124
+      "sha256": "429c69ec82ab1444c71b7fbbd461a9acddf388e96a20aeb3e1cdc04d24c18e2d",
+      "size": 51673
     },
     "package.json": {
-      "sha256": "d2ee3ca6495da799429706c29ddd0bc374e6a8f2ad67d0d4b7ae2adeae600adc",
-      "size": 2630
+      "sha256": "e80c4230a02b4abb2c61a709b66a714a4468ce8714eed85e899a6b161a40f768",
+      "size": 2632
     }
   }
 }

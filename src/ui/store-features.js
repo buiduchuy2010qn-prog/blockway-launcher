@@ -8409,10 +8409,11 @@ async function refreshVisualBoostStudioModalUI() {
     const prev = selTarget.value;
     const opts = [`<option value="">🏠 Hồ sơ chính (.minecraft — MC ${escapeHtml(state.selectedVersion || '1.21.4')})</option>`];
     try {
-      const packsRes = await window.aetherAPI.packsInstancesList(state.gameDir);
+      const packsFn = window.aetherAPI.packsInstances || window.aetherAPI.packsInstancesList;
+      const packsRes = packsFn ? await packsFn(state.gameDir) : null;
       const list = Array.isArray(packsRes?.instances) ? packsRes.instances : [];
       for (const inst of list) {
-        opts.push(`<option value="${escapeHtml(inst.dir)}">📦 ${escapeHtml(inst.name)} (MC ${escapeHtml(inst.minecraftVersion || '?')})</option>`);
+        opts.push(`<option value="${escapeHtml(inst.dir)}">📦 ${escapeHtml(inst.name)} (MC ${escapeHtml(inst.mcVersion || inst.minecraftVersion || '?')})</option>`);
       }
     } catch (_) {}
     selTarget.innerHTML = opts.join('');

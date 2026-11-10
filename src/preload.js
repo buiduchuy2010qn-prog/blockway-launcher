@@ -54,6 +54,7 @@ contextBridge.exposeInMainWorld('aetherAPI', {
   packsImportUrl: (params) => ipcRenderer.invoke('packs:import-url', params),
   packsImportFromDownloads: (params) => ipcRenderer.invoke('packs:import-from-downloads', params),
   packsInstances: (gameDir) => ipcRenderer.invoke('packs:instances', gameDir),
+  packsInstancesList: (gameDir) => ipcRenderer.invoke('packs:instances', gameDir),
   packsInstanceDelete: (params) => ipcRenderer.invoke('packs:instance-delete', params),
   packsInstanceTouch: (params) => ipcRenderer.invoke('packs:instance-touch', params),
   packsInstanceOpen: (params) => ipcRenderer.invoke('packs:instance-open', params),

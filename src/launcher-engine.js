@@ -4108,7 +4108,11 @@ function scanSavesDirEntries(savesDir, extraMeta = {}) {
   try {
     return fs
       .readdirSync(savesDir, { withFileTypes: true })
-      .filter((d) => d.isDirectory())
+      .filter((d) => {
+        if (!d.isDirectory() || d.name.startsWith('.')) return false;
+        const wp = path.join(savesDir, d.name);
+        return fs.existsSync(path.join(wp, 'level.dat')) || fs.existsSync(path.join(wp, 'level.dat_old'));
+      })
       .map((d) => {
         const wPath = path.join(savesDir, d.name);
         let lastPlayed = '';
@@ -4198,7 +4202,12 @@ function scanSavesDirEntries(savesDir, extraMeta = {}) {
         const dpDir = path.join(wPath, 'datapacks');
         if (fs.existsSync(dpDir)) {
           try {
-            datapacksCount = fs.readdirSync(dpDir).filter((x) => /\.zip$/i.test(x) && x !== 'blockway-rules.zip').length;
+            datapacksCount = fs.readdirSync(dpDir, { withFileTypes: true }).filter((ent) => {
+              if (ent.name === 'blockway-rules' || ent.name === 'blockway-rules.zip') return false;
+              if (ent.isFile() && /\.zip$/i.test(ent.name)) return true;
+              if (ent.isDirectory() && fs.existsSync(path.join(dpDir, ent.name, 'pack.mcmeta'))) return true;
+              return false;
+            }).length;
           } catch (_) {}
         }
         return {
@@ -11510,7 +11519,15 @@ async function createStandaloneQuickWorld({
   const effectiveGameDir = instanceDir && String(instanceDir).trim()
     ? assertInsideInstances(rootDir, instanceDir)
     : rootDir;
-  const targetMc = worldCreator.supportsQuickWorldCreation(mcVersion) ? mcVersion : '1.21.4';
+  let targetMc = worldCreator.supportsQuickWorldCreation(mcVersion) ? mcVersion : '1.21.4';
+  if (
+    String(loaderType || '').toLowerCase() === 'horizon' &&
+    isMcVersionRustHorizonSupported(targetMc) &&
+    !fs.existsSync(path.join(rootDir, 'versions', targetMc, `${targetMc}.jar`)) &&
+    fs.existsSync(path.join(rootDir, 'versions', '26.3', '26.3.jar'))
+  ) {
+    targetMc = '26.3';
+  }
   return await worldCreator.createQuickWorld({
     rootDir,
     gameDirectory: effectiveGameDir,
@@ -13660,13 +13677,21 @@ async function launchHorizonRustClient({
     if (safeVerBytes.length > 0 && fs.existsSync(hz.clientPath)) {
       const fd = fs.openSync(hz.clientPath, 'r+');
       try {
+        // Self-heal --help banner if an earlier build overwrote 'Minecraft' at 71136069..71136077
+        const helpChk = Buffer.alloc(9);
+        fs.readSync(fd, helpChk, 0, 9, 71136069);
+        if (helpChk[0] === 0x4d && helpChk[8] === 0x74 && helpChk.toString('ascii') !== 'Minecraft') {
+          fs.writeSync(fd, Buffer.from('inecraf', 'ascii'), 0, 7, 71136070);
+        }
         const sig = Buffer.alloc(9);
         fs.readSync(fd, sig, 0, 9, 76550544);
-        if (sig.toString('latin1') === '\x08Horizon ') {
-          // fileOff 71136070 -> RVA = 70508544 + (71136070 - 70504960) = 0x43d8146
-          fs.writeSync(fd, safeVerBytes, 0, safeVerBytes.length, 71136070);
+        const rustcPfx = Buffer.alloc(7);
+        fs.readSync(fd, rustcPfx, 0, 7, 70509712);
+        if (sig.toString('latin1') === '\x08Horizon ' && rustcPfx.toString('ascii') === '/rustc/') {
+          // fileOff 70509719 (inside /rustc/<sha>/) -> RVA = 70508544 + (70509719 - 70504960) = 0x433f297
+          fs.writeSync(fd, safeVerBytes, 0, safeVerBytes.length, 70509719);
           const fatPtr = Buffer.alloc(16);
-          fatPtr.writeBigUInt64LE(0x1443d8146n, 0);
+          fatPtr.writeBigUInt64LE(0x14433f297n, 0);
           fatPtr.writeBigUInt64LE(BigInt(safeVerBytes.length), 8);
           fs.writeSync(fd, fatPtr, 0, 16, 76550528);
         }
