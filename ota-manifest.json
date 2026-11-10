@@ -1,15 +1,15 @@
 {
-  "version": "41.4.0",
-  "releasedAt": "2026-11-10T22:40:06.610Z",
-  "notes": "v41.4.0 PRO: Mo khoa toan bo 22 phien ban Rust Horizon chinh chu (1.20.2 -> 1.21.1 -> 1.21.11 -> 26.3), kich hoat HORIZON_OLDER_SERVERS=1 va dong bo save.rs giu nguyen Phien ban map khi luu.",
+  "version": "41.4.1",
+  "releasedAt": "2026-11-10T22:55:57.846Z",
+  "notes": "v41.4.1 PRO: Dong bo DataVersion Id & kich hoat la chan chong lech phien ban (downgraded_from + BackupBeforeUpgrade) cho Rust Horizon da phien ban (1.20.2 -> 26.3), bao ve map 26.3 khong bi vao nham tu phien ban thap hon.",
   "files": {
     "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "51307ce712872bae14c645b8e58b3c900df9eb4cdd4680402a574257bfd7c6a6",
-      "size": 594450
+      "sha256": "e2ebdf12220fb51813c7a7cd146fb0800f8b083fc17d78749d71c92ebfde1c4e",
+      "size": 596009
     },
     "src/main.js": {
       "sha256": "810a5850cedf57ac3ea52bb0aae09b0666b28610292a926a8a45145e9217132c",
@@ -40,7 +40,7 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "dcbf98be9ba2167ae7da438004463d05c6c2efa9084652badaca61c54ac42343",
+      "sha256": "0e88d48e82bbb4046adb0beb455ca0dd0e745409c6699c9f0189fc5853025a51",
       "size": 232830
     },
     "src/ui/layout-v33.css": {
@@ -100,11 +100,11 @@
       "size": 119072
     },
     "src/world-creator.js": {
-      "sha256": "429c69ec82ab1444c71b7fbbd461a9acddf388e96a20aeb3e1cdc04d24c18e2d",
-      "size": 51673
+      "sha256": "cc92428d7107c040d1dd61f8953c93fd57bab290a335307ea06cc68939612aac",
+      "size": 53533
     },
     "package.json": {
-      "sha256": "7ab9c23e8687eec9aaf7ef843a64597779a22e247dc14514fc73461e1d06a9fd",
+      "sha256": "74cadc41afbbf916f0b3abbead97fe23d806680d39338583c9c0224859c59a7d",
       "size": 2660
     }
   }

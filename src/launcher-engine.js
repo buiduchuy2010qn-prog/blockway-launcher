@@ -4763,7 +4763,8 @@ async function launchMinecraft(config, callbacks = {}) {
             rootDir,
             gameDirectory,
             mcVersion: '26.3',
-            loaderType: 'vanilla',
+            displayMcVersion: loaderVersion === 'horizon-switch-26.3' ? '26.3' : String(mcVersion || '26.3'),
+            loaderType: 'horizon',
             levelName: autoCreateWorld.levelName || config.packName || 'Thế giới mới',
             gameMode: autoCreateWorld.gameMode,
             difficulty: autoCreateWorld.difficulty,
@@ -11532,6 +11533,7 @@ async function createStandaloneQuickWorld({
     rootDir,
     gameDirectory: effectiveGameDir,
     mcVersion: targetMc,
+    displayMcVersion: worldCreator.supportsQuickWorldCreation(mcVersion) ? String(mcVersion) : targetMc,
     loaderType,
     levelName,
     gameMode,
@@ -13605,12 +13607,27 @@ async function launchHorizonRustClient({
     }
   }
 
+  const displayMcVer = String(config.requestedMcVersion || hz.targetMcVersion || '26.3');
+  const targetDataVerId = worldCreator.getMcDataVersionId(displayMcVer, 5023);
+
   if (serverIp && String(serverIp).trim()) {
     args.push('--quickPlayMultiplayer', String(serverIp).trim());
   } else if (effectiveWorldFolder && String(effectiveWorldFolder).trim()) {
     const cleanWorld = path.basename(String(effectiveWorldFolder).trim());
-    if (cleanWorld && fs.existsSync(path.join(gameDirectory, 'saves', cleanWorld))) {
-      args.push('--quickPlaySingleplayer', cleanWorld);
+    const targetWorldPath = path.join(gameDirectory, 'saves', cleanWorld);
+    if (cleanWorld && fs.existsSync(targetWorldPath)) {
+      let blockedDowngrade = false;
+      try {
+        const wInfo = worldCreator.inspectWorldNbt(targetWorldPath);
+        if (wInfo && Number(wInfo.versionId) > targetDataVerId) {
+          blockedDowngrade = true;
+          try { backupLocalWorld(gameDirectory, cleanWorld, 'DOWNGRADE_GUARD'); } catch (_) {}
+          callbacks.onStatus?.(`⚠️ Thế giới "${wInfo.levelName || cleanWorld}" thuộc bản mới hơn (${wInfo.mcVersion || 'mới hơn'} > ${displayMcVer}) — Mở danh sách thế giới để bảo vệ dữ liệu!`);
+        }
+      } catch (_) {}
+      if (!blockedDowngrade) {
+        args.push('--quickPlaySingleplayer', cleanWorld);
+      }
     }
   }
 
@@ -13641,7 +13658,6 @@ async function launchHorizonRustClient({
     env.HORIZON_OFFLINE_CAPE = localCapeFile;
   }
 
-  const displayMcVer = String(config.requestedMcVersion || hz.targetMcVersion || '26.3');
   callbacks.onStatus?.(`🦀 Đang phóng Engine Rust Horizon (MC ${displayMcVer} • ${desiredGfx.toUpperCase()} • Nhân vật: ${safeName})...`);
 
   // Clean up any leftover .datafix staging folders (prevents os error 145 on world upgrade) & empty ghost world folders
@@ -13756,6 +13772,19 @@ async function launchHorizonRustClient({
             if (checkBytes(site.off, '488d05') && checkBytes(site.off + 14, '488d05')) {
               writeI32(site.off + 3, strRva - (site.rva + 7));
               writeI32(site.off + 17, (strRva + verLen) - (site.rva + 21));
+            }
+          }
+
+          // 6. save.rs & world/server level.dat Version.Id writers + save.rs::downgraded_from version-mismatch guard
+          if (checkBytes(33614136, 'c785640a0000')) {
+            writeI32(33614142, targetDataVerId);
+          }
+          if (checkBytes(58874020, 'c78584010000')) {
+            writeI32(58874026, targetDataVerId);
+          }
+          for (const cmpImmOff of [34787880, 34787987, 34788001, 34788051, 34788096]) {
+            if (checkBytes(cmpImmOff - 2, '483d')) {
+              writeI32(cmpImmOff, targetDataVerId + 1);
             }
           }
         }

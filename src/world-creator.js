@@ -512,6 +512,59 @@ function writeRulesDatapack(worldDir, info, rules) {
 const GAME_MODES = { survival: 0, creative: 1, adventure: 2, spectator: 3 };
 const DIFFICULTIES = { peaceful: 0, easy: 1, normal: 2, hard: 3 };
 
+const MC_DATA_VERSION_TABLE = {
+  '1.20': 3463,
+  '1.20.1': 3465,
+  '1.20.2': 3578,
+  '1.20.3': 3698,
+  '1.20.4': 3700,
+  '1.20.5': 3837,
+  '1.20.6': 3839,
+  '1.21': 3953,
+  '1.21.0': 3953,
+  '1.21.1': 3955,
+  '1.21.2': 4080,
+  '1.21.3': 4082,
+  '1.21.4': 4189,
+  '1.21.5': 4325,
+  '1.21.6': 4435,
+  '1.21.7': 4438,
+  '1.21.8': 4440,
+  '1.21.9': 4554,
+  '1.21.10': 4556,
+  '1.21.11': 4671,
+  '26.1': 4786,
+  '26.1.0': 4786,
+  '26.1.1': 4788,
+  '26.1.2': 4790,
+  '26.2': 4900,
+  '26.2.0': 4900,
+  '26.3': 5023,
+  '26.3.0': 5023
+};
+
+function getMcDataVersionId(mcVersion, fallback = 5023) {
+  const raw = String(mcVersion || '').trim();
+  if (!raw) return fallback;
+  if (MC_DATA_VERSION_TABLE[raw]) return MC_DATA_VERSION_TABLE[raw];
+  const m = raw.match(/^(\d+)\.(\d+)(?:\.(\d+))?/);
+  if (m) {
+    const maj = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const pat = m[3] !== undefined ? parseInt(m[3], 10) : 0;
+    const exactKey = pat === 0 ? `${maj}.${min}` : `${maj}.${min}.${pat}`;
+    if (MC_DATA_VERSION_TABLE[exactKey]) return MC_DATA_VERSION_TABLE[exactKey];
+    if (maj >= 26) {
+      if (min >= 3) return 5023 + pat;
+      if (min === 2) return 4900 + pat;
+      if (min === 1) return 4786 + pat * 2;
+    }
+    if (maj === 1 && min === 21) return 4671;
+    if (maj === 1 && min === 20) return 3839;
+  }
+  return fallback;
+}
+
 /**
  * Tạo sẵn một thế giới chơi đơn mới trong <gameDirectory>/saves.
  * @returns {Promise<{ok:boolean, folderName?:string, levelName?:string, worldType?:string, seed?:string, error?:string}>}
@@ -520,6 +573,7 @@ async function createQuickWorld({
   rootDir,
   gameDirectory,
   mcVersion,
+  displayMcVersion = '',
   loaderType = 'vanilla',
   levelName = '',
   gameMode = 'survival',
@@ -615,6 +669,10 @@ async function createQuickWorld({
     const dimensionsNbt = jsonToNbt(preset.dimensions);
     const now = Date.now();
     const dataVersion = Number(info.world_version);
+    const effectiveVersionLabel = String(displayMcVersion || '').trim() || String(info.name || info.id || mcVersion);
+    const effectiveVersionId = displayMcVersion && String(displayMcVersion).trim()
+      ? getMcDataVersionId(displayMcVersion, dataVersion)
+      : dataVersion;
     const difficultyName = Object.keys(DIFFICULTIES).find((k) => DIFFICULTIES[k] === difficultyId) || 'normal';
     const worldGenNbt = () => nbt.compound({
       seed: nbt.long(seedBig),
@@ -630,8 +688,8 @@ async function createQuickWorld({
       DataVersion: nbt.int(dataVersion),
       version: nbt.int(19133),
       Version: nbt.compound({
-        Id: nbt.int(dataVersion),
-        Name: nbt.string(info.name || info.id || mcVersion),
+        Id: nbt.int(effectiveVersionId),
+        Name: nbt.string(effectiveVersionLabel),
         Series: nbt.string(info.series_id || 'main'),
         Snapshot: nbt.byte(info.stable === false ? 1 : 0)
       }),
@@ -675,7 +733,7 @@ async function createQuickWorld({
       fs.writeFileSync(path.join(worldDir, 'blockway-world.json'), JSON.stringify({
         createdBy: 'BlockWay Launcher',
         createdAt: now,
-        mcVersion,
+        mcVersion: effectiveVersionLabel,
         loader,
         worldType,
         gameMode: isHardcore ? 'hardcore' : gameMode,
@@ -894,6 +952,7 @@ function inspectWorldNbt(worldDir) {
   const levelName = String(dataObj.LevelName?.v || path.basename(worldDir));
   const mcVersion = String(dataObj.Version?.v?.Name?.v || '');
   const dataVersion = Number(dataObj.DataVersion?.v || dataObj.Version?.v?.Id?.v || 0);
+  const versionId = Number(dataObj.Version?.v?.Id?.v || dataObj.DataVersion?.v || 0);
 
   // Extract Seed across MC 1.8 -> 1.21.x -> 26.x
   let seedBig = null;
@@ -981,6 +1040,7 @@ function inspectWorldNbt(worldDir) {
     levelName,
     mcVersion,
     dataVersion,
+    versionId,
     seed,
     gameMode,
     gameModeLabel: hardcore && gameMode === 'spectator' ? '💀 Đã tử trận (Hardcore)' : (hardcore ? '💀 Sinh tồn Khốc liệt (Hardcore)' : MODE_KEY_TO_LABEL[gameMode]),
@@ -1213,6 +1273,7 @@ function rescueAndPatchWorldNbt(worldDir, patches = {}) {
 module.exports = {
   createQuickWorld,
   supportsQuickWorldCreation,
+  getMcDataVersionId,
   savesHasWorlds,
   resolveSeed,
   javaStringHashCode,
