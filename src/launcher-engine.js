@@ -674,6 +674,12 @@ function findInstalledOptifineProfiles(gameDir, mcVersion) {
   return out.sort((a, b) => b.mtime - a.mtime);
 }
 
+function isMcVersionPre114(mcVersion) {
+  const v = String(mcVersion || '').trim();
+  if (!v || /^([2-9]\d)\./.test(v)) return false;
+  return compareMcVersions(v, '1.14') < 0;
+}
+
 async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
   if (loaderType === 'vanilla') return [];
 

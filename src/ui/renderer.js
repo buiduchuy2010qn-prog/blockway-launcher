@@ -708,7 +708,8 @@ function updateSummaryUI() {
   }
   if (!state.isLaunching && (!state.launchPhase || state.launchPhase === 'idle')) {
     const stEl = document.getElementById('statusText');
-    if (stEl) stEl.textContent = `🟢 Sẵn sàng: Minecraft ${ver} (${coreUpper} • ${ram})`;
+    const stCoreLabel = effectiveCore === 'horizon' ? (isNativeHorizon263 ? 'Rust Horizon' : 'Horizon') : coreUpper;
+    if (stEl) stEl.textContent = `🟢 Sẵn sàng • MC ${ver} (${stCoreLabel} • ${ram})`;
   }
   const bannerPill = document.getElementById('bannerActivePill');
   if (bannerPill) {
@@ -1284,11 +1285,11 @@ function setLaunchUiState(phase, statusMsg) {
       btnLaunch.classList.add('is-starting');
       btnLaunch.classList.remove('is-playing');
     }
-    if (launchBtnText) launchBtnText.textContent = '⏳ ĐANG KHỞI ĐỘNG...';
+    if (launchBtnText) launchBtnText.textContent = '⏳ ĐANG MỞ GAME...';
     if (btnKill) {
       btnKill.classList.remove('hidden');
       const sp = btnKill.querySelector('span');
-      if (sp) sp.textContent = '✕ HỦY KHỞI ĐỘNG';
+      if (sp) sp.textContent = '✕ HỦY MỞ';
     }
     if (trackEl) trackEl.classList.remove('hidden');
     if (pctEl) {
@@ -1304,11 +1305,11 @@ function setLaunchUiState(phase, statusMsg) {
       btnLaunch.classList.remove('is-starting');
       btnLaunch.classList.add('is-playing');
     }
-    if (launchBtnText) launchBtnText.textContent = '🎮 ĐANG TRONG GAME';
+    if (launchBtnText) launchBtnText.textContent = '🎮 ĐANG CHƠI';
     if (btnKill) {
       btnKill.classList.remove('hidden');
       const sp = btnKill.querySelector('span');
-      if (sp) sp.textContent = '⏹ DỪNG GAME NGAY';
+      if (sp) sp.textContent = '⏹ DỪNG GAME';
     }
     if (trackEl) trackEl.classList.add('hidden');
     if (pctEl) pctEl.classList.add('hidden');

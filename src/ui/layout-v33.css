@@ -10102,6 +10102,146 @@ html[data-theme="sakura"] .ds-sig-pill {
   }
 }
 
+/* ============================================================================
+   v41.3.4 PRO — ZERO-ELLIPSIS ANTI-TRUNCATION & 1280x800 VIEWPORT BALANCE
+   ============================================================================ */
+
+/* 1. Balance Mod Loader (4x2 grid) & RAM Option cards equally so RAM card has +42px breathing room */
+@media (min-width: 1181px) {
+  .app-shell .home-controls-2col {
+    grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.02fr) !important;
+    gap: 10px !important;
+  }
+}
+
+/* 2. Remove legacy v30 #statusText max-width (215px/310px) cap so status line never truncates early */
+.home-play-card .hpc-header {
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+.home-play-card .hpc-title {
+  flex: 0 0 auto !important;
+}
+
+.home-play-card .hpc-status-wrap {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  justify-content: flex-end !important;
+}
+
+.home-play-card #statusText {
+  max-width: 100% !important;
+  width: auto !important;
+  font-size: 12.2px !important;
+  font-weight: 700 !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 3. Keep Version Selector Box wide & readable even when Cancel + Starting buttons are visible */
+.home-play-card .hpc-version-box {
+  min-width: 195px !important;
+  flex: 1 1 210px !important;
+}
+
+.home-play-card .btn-instant-kill {
+  padding: 0 11px !important;
+  font-size: 11.5px !important;
+  flex: 0 0 auto !important;
+}
+
+.home-play-card .btn-mc-official-play.is-starting,
+.home-play-card .btn-mc-official-play.is-playing {
+  min-width: 158px !important;
+  padding: 0 13px !important;
+  gap: 8px !important;
+}
+
+.home-play-card .btn-mc-official-play.is-starting .mc-play-main,
+.home-play-card .btn-mc-official-play.is-playing .mc-play-main {
+  font-size: 13.8px !important;
+  letter-spacing: 0.2px !important;
+}
+
+/* 4. Fix 3 bottom RAM Booster pills ("Đa nhân G1GC", "Ngủ đông 0%", "Vào nhanh <1s") — zero ellipsis */
+#tab-home .home-controls-2col .booster-pills-row,
+.home-controls-2col .booster-pills-row {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+}
+
+#tab-home .home-controls-2col .booster-check-pill,
+.home-controls-2col .booster-check-pill {
+  padding: 0 5px !important;
+  gap: 4px !important;
+  height: 30px !important;
+  min-width: 0 !important;
+  justify-content: center !important;
+  overflow: visible !important;
+}
+
+#tab-home .home-controls-2col .booster-check-pill input[type="checkbox"],
+.home-controls-2col .booster-check-pill input[type="checkbox"] {
+  width: 13px !important;
+  height: 13px !important;
+  min-width: 13px !important;
+  flex: 0 0 13px !important;
+  margin: 0 !important;
+}
+
+#tab-home .home-controls-2col .booster-check-pill span,
+.home-controls-2col .booster-check-pill span {
+  font-size: 11.2px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.2px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+/* 5. Fit "🔆 Cài .jar / OptiFine" cleanly inside Mod Loader card header without clipping */
+.home-controls-2col .lpc-head {
+  gap: 6px !important;
+  flex-wrap: nowrap !important;
+}
+
+.home-controls-2col .lpc-optifine-link {
+  font-size: 11.2px !important;
+  font-weight: 700 !important;
+  padding: 0 8px !important;
+  height: 23px !important;
+  flex: 0 0 auto !important;
+}
+
+/* 6. Fit all 4 System Telemetry rows (RAM, CPU, GPU, Ổ đĩa) inside 1280x800 viewport */
+@media (max-height: 860px) {
+  #tab-home .skin-studio-card .webgl-stage-wrap {
+    height: 206px !important;
+    min-height: 206px !important;
+  }
+  #tab-home .skin-studio-card {
+    padding: 11px 13px !important;
+    gap: 8px !important;
+  }
+  #tab-home .ms-account-card {
+    padding: 11px 13px !important;
+    gap: 8px !important;
+  }
+  #tab-home .sys-telemetry-card {
+    padding: 11px 13px !important;
+    gap: 8px !important;
+  }
+  #tab-home .sys-telemetry-card .sys-metrics-list {
+    gap: 7px !important;
+  }
+}
+
+
 
 
 
