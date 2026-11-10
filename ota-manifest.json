@@ -1,36 +1,36 @@
 {
-  "version": "41.3.3",
-  "generatedAt": "2026-11-10T11:29:00.070Z",
+  "version": "41.3.4",
+  "generatedAt": "2026-11-10T11:47:43.701Z",
   "files": [
     {
       "path": "package.json",
-      "sha256": "cf710f970fbf2c6e7bedb6ef155bb281696e384fded97cd856d00393fa73340a",
-      "size": 2539
+      "sha256": "c1ef583cde8908dfc4c3dc8bb0d22cdbcd808e8c6837a352c8e0b0346141f8be",
+      "size": 2630
     },
     {
       "path": "src/aether-cloud-auth.js",
-      "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
-      "size": 100
+      "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
+      "size": 104
     },
     {
       "path": "src/launcher-engine.js",
-      "sha256": "9a9c1d5fd2548587488f5f6f1f7cedb21c9db9442797f31895b4c6e0268bbcd8",
-      "size": 571697
+      "sha256": "fe015c223a27db65518602c9ccc507f5f1635ff30bd2385c15c0487dbc6c697c",
+      "size": 585713
     },
     {
       "path": "src/main.js",
-      "sha256": "04015822514229ef80cbfb987bb94443dbc328f8aad9f068cc5bd28d2895055a",
-      "size": 103998
+      "sha256": "810a5850cedf57ac3ea52bb0aae09b0666b28610292a926a8a45145e9217132c",
+      "size": 106824
     },
     {
       "path": "src/microsoft-auth.js",
-      "sha256": "8efa75b3fb22599d0dadc6b1bdc1433b50fa5ec5722feae5a5357ed87abbeff0",
-      "size": 71932
+      "sha256": "5e5f01aaf586a6bad099dcb4961256a935165c31aaa9608fae0e8c19c3165673",
+      "size": 73767
     },
     {
       "path": "src/preload.js",
-      "sha256": "5ed3cb18e6d2278678de8b98539af985a7ff7a70034686d0d16dd02992a8258d",
-      "size": 15059
+      "sha256": "c363a9b9c6b2458b7200c6c698928ed67bcc8c107cc60779acf9697a517b55ca",
+      "size": 15257
     },
     {
       "path": "src/ui/app-banner-hero.png",
@@ -54,18 +54,18 @@
     },
     {
       "path": "src/ui/index.html",
-      "sha256": "3c0bb4ef581f65dbb3289afdfdb150c8fec52863a5c0c5b6cb6dcfec8a81b093",
-      "size": 230304
+      "sha256": "eb5731f0ea729bf00ba70ff5f525087cd30eb0738bf47822d1c3907eb7dad4c1",
+      "size": 232812
     },
     {
       "path": "src/ui/installer-eula.txt",
-      "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
-      "size": 1682
+      "sha256": "b58a7a3604dcb1f2ade5c99b228d2868e1da70eaa0a92ee7409b1edd2822b82f",
+      "size": 1700
     },
     {
       "path": "src/ui/layout-v33.css",
-      "sha256": "9717bb278d4296d5d125d6ec8b20e1bb0c2a07dfaeb4bf33f8ab997559e4a917",
-      "size": 251135
+      "sha256": "625c20e1427243d8b47a3d4da68b13d7446bba501f1a49627c206e0103f7f87f",
+      "size": 265490
     },
     {
       "path": "src/ui/minecraft-logo.png",
@@ -74,8 +74,8 @@
     },
     {
       "path": "src/ui/renderer.js",
-      "sha256": "5a7d0a5f501739d86ae1396d4086dbe6259d7a05a26ca0ce3a12ff6ffa955ba9",
-      "size": 165993
+      "sha256": "3f570cd917d41b801147989cb84af5f91534070619f3a9f1dab26a73331b834c",
+      "size": 169552
     },
     {
       "path": "src/ui/seeds/badlands-gold-oasis-icon.png",
@@ -159,23 +159,23 @@
     },
     {
       "path": "src/ui/skinview3d.bundle.js",
-      "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",
-      "size": 477198
+      "sha256": "0e7591e4dc81003fcfa20d82873b7c2f78131726430a3e24d6a3bb755c508abe",
+      "size": 479194
     },
     {
       "path": "src/ui/store-features.js",
-      "sha256": "ccff71b324fa8f07b4201bec54e7094bd11b4c99c9bc352f2947f9ef39e54bc4",
-      "size": 463459
+      "sha256": "3dc4fd1eac3dbb46cfa3476f5ad5d293cf8a6d5e0c1ca3a1676794cd65cfecc3",
+      "size": 472249
     },
     {
       "path": "src/ui/styles.css",
-      "sha256": "4f1bb32acb703aa49cfb26085cb77abae482ba32c1a487a9de213fa659f57fc0",
-      "size": 113560
+      "sha256": "d8b05493837dfd1ed504d85153b483388faab93400bae101821c1f836d0fb2a4",
+      "size": 119072
     },
     {
       "path": "src/world-creator.js",
-      "sha256": "2cb6b5b37862454bd7b3da99a031a1a05da26d61360b29cc850e98d47a84e36a",
-      "size": 49913
+      "sha256": "4f13b3af1ed79369cea910c137dd2570a7e0d63d081eae2b818b7c97ffcf5a3e",
+      "size": 51124
     }
   ]
 }
