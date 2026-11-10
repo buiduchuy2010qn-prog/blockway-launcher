@@ -680,35 +680,51 @@ function isMcVersionPre114(mcVersion) {
   return compareMcVersions(v, '1.14') < 0;
 }
 
+function isMcVersionRustHorizonSupported(mcVersion) {
+  const v = String(mcVersion || '').trim();
+  if (!v) return false;
+  if (/^([2-9]\d)\./.test(v)) return true;
+  return compareMcVersions(v, '1.21.1') >= 0;
+}
+
 async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
   if (loaderType === 'vanilla') return [];
 
   if (loaderType === 'horizon') {
     const st = getHorizonEngineStatus(gameDir || getDefaultGameDir());
     const readySuffix = st.isPrepared ? ' ✓ (Đã sẵn sàng)' : ' (Tự động cài 1-Click)';
-    if (String(mcVersion || '') === '26.3') {
-      return [
+    const verLabel = String(mcVersion || '1.21.4');
+    if (isMcVersionRustHorizonSupported(verLabel)) {
+      const rustList = [
         {
           version: 'horizon-auto',
           stable: true,
           kind: 'horizon',
-          displayLabel: `🦀 Rust Native 26.3 • Tự động (Vulkan / DirectX 12)${readySuffix}`
+          displayLabel: `🦀 Rust Native (${verLabel}) • Tự động (Vulkan / DirectX 12)${readySuffix}`
         },
         {
           version: 'horizon-vulkan',
           stable: true,
           kind: 'horizon',
-          displayLabel: `🌋 Rust Native 26.3 • Ép xung Vulkan API (FPS cao nhất)`
+          displayLabel: `🌋 Rust Native (${verLabel}) • Ép xung Vulkan API (FPS cao nhất)`
         },
         {
           version: 'horizon-dx12',
           stable: true,
           kind: 'horizon',
-          displayLabel: `💠 Rust Native 26.3 • DirectX 12 (Tương thích iGPU Intel/AMD)`
+          displayLabel: `💠 Rust Native (${verLabel}) • DirectX 12 (Tương thích iGPU Intel/AMD)`
         }
       ];
+      if (verLabel !== '26.3') {
+        rustList.push({
+          version: 'horizon-hybrid-java',
+          stable: true,
+          kind: 'horizon-hybrid',
+          displayLabel: `☕ Chế độ Hybrid Java (${verLabel}) • Dùng khi muốn nạp Mod .jar Fabric`
+        });
+      }
+      return rustList;
     }
-    const verLabel = String(mcVersion || '1.21.4');
     const isPre114 = isMcVersionPre114(verLabel);
     const stackDesc = isPre114
       ? 'OptiFine Fast Render + 6 tầng mượt'
@@ -4724,7 +4740,11 @@ async function launchMinecraft(config, callbacks = {}) {
   } catch (_) {}
 
   const isHorizonSelected = String(loaderType || '').toLowerCase() === 'horizon';
-  if (isHorizonSelected && (String(mcVersion || '') === '26.3' || loaderVersion === 'horizon-switch-26.3')) {
+  const isRustHorizonLaunch = isHorizonSelected && (
+    (isMcVersionRustHorizonSupported(mcVersion) && !['horizon-hybrid-java', 'horizon-hybrid-turbo', 'horizon-hybrid-esports'].includes(String(loaderVersion || '')))
+    || loaderVersion === 'horizon-switch-26.3'
+  );
+  if (isRustHorizonLaunch) {
     if (!(serverIp && serverIp.trim()) && !(effectiveWorldFolder && String(effectiveWorldFolder).trim()) && autoCreateWorld && typeof autoCreateWorld === 'object') {
       const wantCreate = autoCreateWorld.force || !worldCreator.savesHasWorlds(gameDirectory);
       if (wantCreate && worldCreator.supportsQuickWorldCreation('26.3')) {
@@ -4756,7 +4776,7 @@ async function launchMinecraft(config, callbacks = {}) {
       }
     }
     return await launchHorizonRustClient({
-      config: { ...config, mcVersion: '26.3' },
+      config: { ...config, mcVersion: '26.3', requestedMcVersion: String(mcVersion || '26.3') },
       rootDir,
       gameDirectory,
       skinRoot,
@@ -13603,7 +13623,8 @@ async function launchHorizonRustClient({
     env.HORIZON_OFFLINE_CAPE = localCapeFile;
   }
 
-  callbacks.onStatus?.(`🦀 Đang phóng Engine Rust Horizon (MC ${hz.targetMcVersion} • ${desiredGfx.toUpperCase()} • Nhân vật: ${safeName})...`);
+  const displayMcVer = String(config.requestedMcVersion || hz.targetMcVersion || '26.3');
+  callbacks.onStatus?.(`🦀 Đang phóng Engine Rust Horizon (MC ${displayMcVer} • ${desiredGfx.toUpperCase()} • Nhân vật: ${safeName})...`);
 
   const spawnStartedAt = Date.now();
   const proc = spawn(hz.clientPath, args, {
@@ -13626,6 +13647,18 @@ async function launchHorizonRustClient({
     if (!gameWindowNotified) {
       gameWindowNotified = true;
       callbacks.onGameWindowReady?.();
+      if (process.platform === 'win32' && proc.pid) {
+        try {
+          const winTitle = `Minecraft ${displayMcVer} — Rust Horizon (${desiredGfx.toUpperCase()})`.replace(/'/g, "''");
+          const psCmd = `Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public class Win32Title { [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern bool SetWindowText(IntPtr hWnd, string lpString); }'; for ($i=0; $i -lt 12; $i++) { $p = Get-Process -Id ${proc.pid} -ErrorAction SilentlyContinue; if ($p -and $p.MainWindowHandle -ne [IntPtr]::Zero) { [Win32Title]::SetWindowText($p.MainWindowHandle, '${winTitle}') | Out-Null; break }; Start-Sleep -Milliseconds 250 }`;
+          const titleHelper = spawn('powershell.exe', ['-NoProfile', '-WindowStyle', 'Hidden', '-Command', psCmd], {
+            windowsHide: true,
+            detached: true,
+            stdio: 'ignore'
+          });
+          titleHelper.unref?.();
+        } catch (_) {}
+      }
     }
   };
   const readyFallbackTimer = setTimeout(notifyReadyOnce, 1800);

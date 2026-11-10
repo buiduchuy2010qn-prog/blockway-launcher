@@ -1,181 +1,111 @@
 {
-  "version": "41.3.6",
-  "generatedAt": "2026-11-10T14:15:23.143Z",
-  "files": [
-    {
-      "path": "package.json",
-      "sha256": "24f1ad637f125f665249aa7cac6513a6768d3e1bc07b512cbc78c4b088cbbdf5",
-      "size": 2630
-    },
-    {
-      "path": "src/aether-cloud-auth.js",
+  "version": "41.3.7",
+  "releasedAt": "2026-11-10T14:27:23.798Z",
+  "notes": "v41.3.7 PRO: Dich nguoc chay truc tiep tren Engine Rust Horizon thuan ma may (<1s, ~250MB RAM, Vulkan/DX12) cho moi phien ban tu 1.21.1 tro len (1.21.1 -> 1.21.11, 26.x).",
+  "files": {
+    "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
-    {
-      "path": "src/launcher-engine.js",
-      "sha256": "fe015c223a27db65518602c9ccc507f5f1635ff30bd2385c15c0487dbc6c697c",
-      "size": 585713
+    "src/launcher-engine.js": {
+      "sha256": "7a729c686f8452ac60a8fb9dec713b0a70bfe2c81eb5e74d5cfca64a863886f8",
+      "size": 587632
     },
-    {
-      "path": "src/main.js",
+    "src/main.js": {
       "sha256": "810a5850cedf57ac3ea52bb0aae09b0666b28610292a926a8a45145e9217132c",
       "size": 106824
     },
-    {
-      "path": "src/microsoft-auth.js",
+    "src/microsoft-auth.js": {
       "sha256": "5e5f01aaf586a6bad099dcb4961256a935165c31aaa9608fae0e8c19c3165673",
       "size": 73767
     },
-    {
-      "path": "src/preload.js",
+    "src/preload.js": {
       "sha256": "c363a9b9c6b2458b7200c6c698928ed67bcc8c107cc60779acf9697a517b55ca",
       "size": 15257
     },
-    {
-      "path": "src/ui/app-banner-hero.png",
+    "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
       "size": 824627
     },
-    {
-      "path": "src/ui/app-banner.png",
+    "src/ui/app-banner.png": {
       "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37",
       "size": 830387
     },
-    {
-      "path": "src/ui/app-icon.ico",
+    "src/ui/app-icon.ico": {
       "sha256": "d1904287ccae9503f991ff45381cdef0c5e990c41bd3948d9f397f0540ff5cfa",
       "size": 260571
     },
-    {
-      "path": "src/ui/app-logo.png",
+    "src/ui/app-logo.png": {
       "sha256": "bf2f0563bb0c181565cc558bb8225240b768b9d1045f2ddf9e47c594af71c087",
       "size": 703070
     },
-    {
-      "path": "src/ui/index.html",
-      "sha256": "d8531fab424a5eb9de4a3fa555c73b59a0c30ed2337e59cb73d5395e9bbb487e",
+    "src/ui/index.html": {
+      "sha256": "b303f7ba2003801c4a6acb55346221b0c55cc643b0d8a66184f22a29a030ec96",
       "size": 232812
     },
-    {
-      "path": "src/ui/installer-eula.txt",
-      "sha256": "b58a7a3604dcb1f2ade5c99b228d2868e1da70eaa0a92ee7409b1edd2822b82f",
-      "size": 1700
-    },
-    {
-      "path": "src/ui/layout-v33.css",
+    "src/ui/layout-v33.css": {
       "sha256": "fcdfc3fae773758f97b6faa254bc42c740322a5e48843d1e1697181ab572d576",
       "size": 265909
     },
-    {
-      "path": "src/ui/minecraft-logo.png",
+    "src/ui/minecraft-logo.png": {
       "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37",
       "size": 830387
     },
-    {
-      "path": "src/ui/renderer.js",
-      "sha256": "a1828d68671ca8ca684be4d74c8210eb6945ededdee8c12bd2f6253066439dd9",
-      "size": 172955
+    "src/ui/renderer.js": {
+      "sha256": "12bc9cbb0865050201feb6253e055a470ba76ef06ab3d74f7756412438ee449b",
+      "size": 173702
     },
-    {
-      "path": "src/ui/seeds/badlands-gold-oasis-icon.png",
+    "src/ui/seeds/badlands-gold-oasis-icon.png": {
       "sha256": "86e4da30e57f18e9fae9624206b8cdf7a3c7f652f5a46e5d7fa9fc0fd80363df",
       "size": 13491
     },
-    {
-      "path": "src/ui/seeds/badlands-gold-oasis.jpg",
-      "sha256": "9d6c49bc55cb44b1558eb2fa955912b3c3171c5c0934040f63b9c63675a2192c",
-      "size": 68466
-    },
-    {
-      "path": "src/ui/seeds/cherry-ring-mountain-icon.png",
+    "src/ui/seeds/cherry-ring-mountain-icon.png": {
       "sha256": "8c07667c72aa440edab3219d3ed5d228328ac98080467352b0435b6a7fa8b342",
       "size": 13696
     },
-    {
-      "path": "src/ui/seeds/cherry-ring-mountain.jpg",
-      "sha256": "0ebcd50ab7bc7e8cde5b039305387eb5425dbe756190862cbb481bd0c3fd7ef8",
-      "size": 92726
-    },
-    {
-      "path": "src/ui/seeds/coral-castaway-island-icon.png",
+    "src/ui/seeds/coral-castaway-island-icon.png": {
       "sha256": "7b6cab8d3775c259d1907185eb4d59bb0ebcf354ba2dc2761cdc48ab2ab4de45",
       "size": 13520
     },
-    {
-      "path": "src/ui/seeds/coral-castaway-island.jpg",
-      "sha256": "1586a11c07b90ea4697a01a7e48f54e86b4bdffc8370dafa999b90b572a88b44",
-      "size": 78999
-    },
-    {
-      "path": "src/ui/seeds/ice-spikes-frozen-kingdom-icon.png",
+    "src/ui/seeds/ice-spikes-frozen-kingdom-icon.png": {
       "sha256": "e48e180561c1e613ed37bc2f16f980c24e68c80a45fa881d4e81d805a1e91676",
       "size": 12866
     },
-    {
-      "path": "src/ui/seeds/ice-spikes-frozen-kingdom.jpg",
-      "sha256": "145846d66d7f0d4944aa6e4484e478f419cb55f36c83a88e83431b9e399bcafb",
-      "size": 65663
-    },
-    {
-      "path": "src/ui/seeds/lush-cave-ancient-taiga-icon.png",
+    "src/ui/seeds/lush-cave-ancient-taiga-icon.png": {
       "sha256": "50eb170f00e3df9407f9edd0583b07ff343dee7e690dbe2e919f4a2572144ccf",
       "size": 11544
     },
-    {
-      "path": "src/ui/seeds/lush-cave-ancient-taiga.jpg",
-      "sha256": "b0b98d5ca192ef32065cd0fd8151555b9c45dd0359d3fd6cef81d4c65d46ef87",
-      "size": 52750
-    },
-    {
-      "path": "src/ui/seeds/mansion-village-ancient-icon.png",
+    "src/ui/seeds/mansion-village-ancient-icon.png": {
       "sha256": "ce25b32b83e487f9fad905aa7d5da9ec20cfacde6cabf0b339c228e87360282b",
       "size": 10399
     },
-    {
-      "path": "src/ui/seeds/mansion-village-ancient.jpg",
-      "sha256": "958178cf220e414cb3dc4704a9bde48e85a6a5c063facde72da32d7aece336c3",
-      "size": 44315
-    },
-    {
-      "path": "src/ui/seeds/mushroom-safe-island-icon.png",
+    "src/ui/seeds/mushroom-safe-island-icon.png": {
       "sha256": "6b1f73cf1511c56ceb8a5597935e883b630203debe339851b2cd7e889f3e8fd9",
       "size": 13526
     },
-    {
-      "path": "src/ui/seeds/mushroom-safe-island.jpg",
-      "sha256": "50aa99d86b2f8782396bd49683b9416ab379823a7dc7ccce7c3b7ae8a3b518a5",
-      "size": 66336
-    },
-    {
-      "path": "src/ui/seeds/speedrun-bastion-fortress-icon.png",
+    "src/ui/seeds/speedrun-bastion-fortress-icon.png": {
       "sha256": "82cdb456a39acb5c4059bc834ae82f171f6b2b5029c6613b39af186be60711cb",
       "size": 13073
     },
-    {
-      "path": "src/ui/seeds/speedrun-bastion-fortress.jpg",
-      "sha256": "7a1edf063b183583ff2212b2c2142da2530fadd52c58c73d9a96e111f57e925e",
-      "size": 66535
-    },
-    {
-      "path": "src/ui/skinview3d.bundle.js",
+    "src/ui/skinview3d.bundle.js": {
       "sha256": "0e7591e4dc81003fcfa20d82873b7c2f78131726430a3e24d6a3bb755c508abe",
       "size": 479194
     },
-    {
-      "path": "src/ui/store-features.js",
+    "src/ui/store-features.js": {
       "sha256": "cdfd4a35eeb28c93d70c06020e19f8e1012e1b55b1b14090e0556b8f10c00105",
       "size": 472463
     },
-    {
-      "path": "src/ui/styles.css",
+    "src/ui/styles.css": {
       "sha256": "d8b05493837dfd1ed504d85153b483388faab93400bae101821c1f836d0fb2a4",
       "size": 119072
     },
-    {
-      "path": "src/world-creator.js",
+    "src/world-creator.js": {
       "sha256": "4f13b3af1ed79369cea910c137dd2570a7e0d63d081eae2b818b7c97ffcf5a3e",
       "size": 51124
+    },
+    "package.json": {
+      "sha256": "11d4fc911202a4663a732e92c285ceee5a85f3a92abd55da760f13f7c86e4145",
+      "size": 2630
     }
-  ]
+  }
 }
