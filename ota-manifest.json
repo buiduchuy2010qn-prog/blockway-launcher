@@ -1,15 +1,15 @@
 {
-  "version": "41.3.8",
-  "releasedAt": "2026-11-10T14:42:24.660Z",
-  "notes": "v41.3.8 PRO: Dong bo nhan phien ban truc tiep trong man hinh chinh Horizon Rust (Horizon 1.21.11 (Rust), 1.21.4, 1.21.1...) va thanh tieu de cua so game.",
+  "version": "41.3.9",
+  "releasedAt": "2026-11-10T15:04:53.286Z",
+  "notes": "v41.3.9 PRO: Sua loi os error 145 (.datafix) khi mo map 1.21.11 trong Rust Horizon, sua RVA 0x43d8146 hien thi dung Horizon 1.21.11 (Rust) va ho tro da phien ban 1.20.2 -> 1.21.11 -> 26.3.",
   "files": {
     "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "1b61aa52d89b14810beefee43406272d6272a07390a97db5d4140c4e0db9fdf2",
-      "size": 588786
+      "sha256": "ef2ba15f5dbd67e790c26bb75881877452281422f4c4b08fc8d4a62e308159cd",
+      "size": 590232
     },
     "src/main.js": {
       "sha256": "810a5850cedf57ac3ea52bb0aae09b0666b28610292a926a8a45145e9217132c",
@@ -40,7 +40,7 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "18301c2d3285905fbdf56bc722de76c93573b461bec2bd717eadc168f7137dc5",
+      "sha256": "b5c670aac7bb26824c62dc710e63331b78e409211ee1531ffcbc8b0f0f586eb7",
       "size": 232812
     },
     "src/ui/layout-v33.css": {
@@ -104,7 +104,7 @@
       "size": 51124
     },
     "package.json": {
-      "sha256": "45458f0c1dbd2c474bd272c53c0fb9f4c691301828b03387728530b4359a9499",
+      "sha256": "d2ee3ca6495da799429706c29ddd0bc374e6a8f2ad67d0d4b7ae2adeae600adc",
       "size": 2630
     }
   }

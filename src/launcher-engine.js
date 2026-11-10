@@ -13626,6 +13626,35 @@ async function launchHorizonRustClient({
   const displayMcVer = String(config.requestedMcVersion || hz.targetMcVersion || '26.3');
   callbacks.onStatus?.(`🦀 Đang phóng Engine Rust Horizon (MC ${displayMcVer} • ${desiredGfx.toUpperCase()} • Nhân vật: ${safeName})...`);
 
+  // Clean up any leftover .datafix staging folders (prevents os error 145 on world upgrade) & empty ghost world folders
+  try {
+    const savesDir = path.join(gameDirectory, 'saves');
+    if (fs.existsSync(savesDir)) {
+      const cleanDatafixDirs = (dir, depth = 0) => {
+        if (depth > 5 || !fs.existsSync(dir)) return;
+        for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+          if (!ent.isDirectory()) continue;
+          const full = path.join(dir, ent.name);
+          if (ent.name === '.datafix') {
+            try { fs.rmSync(full, { recursive: true, force: true }); } catch (_) {}
+          } else {
+            cleanDatafixDirs(full, depth + 1);
+          }
+        }
+      };
+      cleanDatafixDirs(savesDir, 0);
+      for (const ent of fs.readdirSync(savesDir, { withFileTypes: true })) {
+        if (!ent.isDirectory()) continue;
+        const wDir = path.join(savesDir, ent.name);
+        const hasLevelDat = fs.existsSync(path.join(wDir, 'level.dat')) || fs.existsSync(path.join(wDir, 'level.dat_old'));
+        const hasRegions = fs.existsSync(path.join(wDir, 'region')) || fs.existsSync(path.join(wDir, 'dimensions'));
+        if (!hasLevelDat && !hasRegions) {
+          try { fs.rmSync(wDir, { recursive: true, force: true }); } catch (_) {}
+        }
+      }
+    }
+  } catch (_) {}
+
   try {
     const safeVerBytes = Buffer.from(displayMcVer.slice(0, 16), 'utf8');
     if (safeVerBytes.length > 0 && fs.existsSync(hz.clientPath)) {
@@ -13634,9 +13663,10 @@ async function launchHorizonRustClient({
         const sig = Buffer.alloc(9);
         fs.readSync(fd, sig, 0, 9, 76550544);
         if (sig.toString('latin1') === '\x08Horizon ') {
+          // fileOff 71136070 -> RVA = 70508544 + (71136070 - 70504960) = 0x43d8146
           fs.writeSync(fd, safeVerBytes, 0, safeVerBytes.length, 71136070);
           const fatPtr = Buffer.alloc(16);
-          fatPtr.writeBigUInt64LE(0x1443d8176n, 0);
+          fatPtr.writeBigUInt64LE(0x1443d8146n, 0);
           fatPtr.writeBigUInt64LE(BigInt(safeVerBytes.length), 8);
           fs.writeSync(fd, fatPtr, 0, 16, 76550528);
         }
