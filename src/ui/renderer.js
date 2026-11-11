@@ -144,6 +144,7 @@ window.applyUiScaleToUI = applyUiScaleToUI;
     const snap = JSON.parse(raw);
     if (!snap || typeof snap !== 'object') return;
     Object.assign(state, snap);
+    if (state.selectedCore === 'blockway-rust') state.selectedCore = 'horizon';
     state.activeLaunchContext = null;
     state.isLaunching = false;
     state.pendingQuickWorldFolder = '';
@@ -601,30 +602,22 @@ function isRustCoreName(coreName) {
   return c === 'horizon' || c === 'blockway-rust';
 }
 
-function isRustHorizonVer(mcVer, coreName = '') {
+function isRustHorizonVer(mcVer) {
   const v = String(mcVer || '').trim();
   if (!v) return false;
   if (/^([2-9]\d)\./.test(v)) return true;
   const parts = v.split('.').map((n) => parseInt(n, 10) || 0);
   if (parts[0] > 1) return true;
-  if (String(coreName || '').toLowerCase().trim() === 'blockway-rust') {
-    if (parts[0] === 1 && parts[1] > 16) return true;
-    if (parts[0] === 1 && parts[1] === 16 && (parts[2] || 0) >= 5) return true;
-    return false;
-  }
-  if (parts[0] === 1 && parts[1] > 20) return true;
-  if (parts[0] === 1 && parts[1] === 20 && (parts[2] || 0) >= 2) return true;
+  if (parts[0] === 1 && parts[1] > 16) return true;
+  if (parts[0] === 1 && parts[1] === 16 && (parts[2] || 0) >= 5) return true;
   return false;
 }
 
 function getRecommendedJavaBadge(mcVer) {
-  if (state.selectedCore === 'blockway-rust') {
-    return `🦀 Nhân BlockWay Rust GitHub (${mcVer || '1.21.11'} • Thuần mã nguồn Rust • Vulkan / DX12)`;
-  }
-  if (state.selectedCore === 'horizon') {
-    return (isRustHorizonVer(mcVer, 'horizon') && state.selectedLoaderVersion !== 'horizon-hybrid-java')
-      ? `🦀 Engine Rust Horizon (${mcVer || '1.21.11'} • Vulkan / DirectX 12 • X6 FPS)`
-      : `⚡ Horizon Hybrid (${mcVer || '1.20.4'} • Tự nạp Sodium + Lithium + 6 tầng mượt)`;
+  if (isRustCoreName(state.selectedCore)) {
+    return (isRustHorizonVer(mcVer) && state.selectedLoaderVersion !== 'horizon-hybrid-java')
+      ? `🦀 Horizon Custom Rust (${mcVer || '1.21.11'} • GitHub Đa Bản • Vulkan / DX12)`
+      : `⚡ Horizon Hybrid (${mcVer || '1.12.2'} • Tự nạp Sodium + Lithium / OptiFine + 6 tầng mượt)`;
   }
   if (!mcVer) return '☕ Dùng Java 21 khi vào Game';
   const parts = String(mcVer).split('.').map((n) => parseInt(n, 10));
@@ -637,22 +630,20 @@ function getRecommendedJavaBadge(mcVer) {
 
 function updateSummaryUI() {
   const ctx = state.activeLaunchContext;
-  const effectiveCore = (ctx?.core || state.selectedCore || 'vanilla').toLowerCase();
+  const rawCore = (ctx?.core || state.selectedCore || 'vanilla').toLowerCase();
+  const effectiveCore = rawCore === 'blockway-rust' ? 'horizon' : rawCore;
   const ver = ctx?.mcVersion || state.selectedVersion;
   const effectiveLdrVer = ctx ? (ctx.loaderVersion || '') : state.selectedLoaderVersion;
-  const isBlockWayRust = effectiveCore === 'blockway-rust';
-  const isNativeHorizon263 = isRustCoreName(effectiveCore)
-    && isRustHorizonVer(ver, effectiveCore)
+  const isNativeHorizon263 = effectiveCore === 'horizon'
+    && isRustHorizonVer(ver)
     && effectiveLdrVer !== 'horizon-hybrid-java';
-  const coreUpper = isBlockWayRust
-    ? 'BLOCKWAY RUST'
-    : (effectiveCore === 'horizon'
-      ? (isNativeHorizon263 ? 'RUST HORIZON' : 'HORIZON HYBRID')
-      : effectiveCore.toUpperCase());
+  const coreUpper = effectiveCore === 'horizon'
+    ? (isNativeHorizon263 ? 'RUST HORIZON' : 'HORIZON HYBRID')
+    : effectiveCore.toUpperCase();
   const ramNum = ctx?.ramGB || state.ramGB;
   const ram = `${ramNum} GB`;
   let ldrTag = '';
-  if (isRustCoreName(effectiveCore)) {
+  if (effectiveCore === 'horizon') {
     if (isNativeHorizon263) {
       ldrTag = effectiveLdrVer === 'horizon-dx12'
         ? ' (DirectX 12)'
@@ -1535,6 +1526,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const hadSavedGameDir = Boolean(saved?.gameDir);
   if (saved) {
     Object.assign(state, saved);
+    if (state.selectedCore === 'blockway-rust') state.selectedCore = 'horizon';
     if (!saved.uiV33ThemeMigrated) state.theme = 'lunar';
     state.uiV33ThemeMigrated = true;
     if (!Array.isArray(state.savedAccounts) || !state.savedAccounts.length) state.savedAccounts = [state.username || 'StevePlayer'];
@@ -2498,9 +2490,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     state.selectedVersion = e.target.value;
     renderQuickVersionGrid();
     await refreshLoaderBuilds(); updateSummaryUI(); saveCurrentConfig();
-    if (state.selectedCore === 'horizon' && !isRustHorizonVer(state.selectedVersion, 'horizon')) {
+    if (isRustCoreName(state.selectedCore) && !isRustHorizonVer(state.selectedVersion)) {
       showAetherNotification(
-        `⚡ Bản ${state.selectedVersion} (< 1.20.2) trên Horizon chạy chế độ Hybrid. Muốn chạy thuần Rust từ 1.16.5 → 26.3 hãy chọn Core "BlockWay Rust"!`,
+        `⚡ Bản ${state.selectedVersion} (< 1.16.5) chạy chế độ Horizon Hybrid. Toàn bộ 29 bản từ 1.16.5 → 1.21.11 → 26.3 chạy trực tiếp bằng Nhân Horizon Rust đã tuỳ biến trên GitHub của chúng ta!`,
         'info',
         5500
       );
@@ -3426,8 +3418,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (state.authMode === 'aether' && !state.cloudProfile) {
       document.getElementById('statusText').textContent = '⚠ Vui lòng Đăng nhập hoặc Tạo tài khoản BlockWay Cloud trước!'; return;
     }
-    const isBlockWayRust = state.selectedCore === 'blockway-rust';
-    const isHorizon = isRustCoreName(state.selectedCore);
+    if (state.selectedCore === 'blockway-rust') state.selectedCore = 'horizon';
+    const isHorizon = state.selectedCore === 'horizon';
     if (isHorizon && (state.selectedLoaderVersion === 'horizon-switch-26.3' || state.selectedLoaderVersion === 'horizon-switch-1.21.11')) {
       const targetSw = state.selectedLoaderVersion === 'horizon-switch-1.21.11' ? '1.21.11' : '26.3';
       state.selectedVersion = targetSw;
@@ -3437,29 +3429,27 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (state.selectedLoaderVersion === 'horizon-upgrade-core') {
       state.selectedLoaderVersion = 'horizon-auto';
     }
-    const isNativeHorizon263 = isHorizon && isRustHorizonVer(state.selectedVersion, state.selectedCore) && state.selectedLoaderVersion !== 'horizon-hybrid-java';
+    const isNativeHorizon263 = isHorizon && isRustHorizonVer(state.selectedVersion) && state.selectedLoaderVersion !== 'horizon-hybrid-java';
     const isInstalled = isVersionInstalledOnDisk(state.selectedVersion);
     if (!isInstalled || (!state.skipLaunchConfirm && !quickWorldFolder)) {
-      const coreDisplay = isBlockWayRust
-        ? '🦀 BLOCKWAY RUST ENGINE (GitHub Multi-Version • Vulkan / DX12)'
-        : (isNativeHorizon263
-          ? '🦀 RUST HORIZON ENGINE (Vulkan / DirectX 12)'
-          : (isHorizon ? `⚡ HORIZON HYBRID TURBO (${state.selectedVersion})` : state.selectedCore.toUpperCase()));
+      const coreDisplay = isNativeHorizon263
+        ? '🦀 HORIZON CUSTOM RUST ENGINE (GitHub Đa Bản • Vulkan / DX12)'
+        : (isHorizon ? `⚡ HORIZON HYBRID TURBO (${state.selectedVersion})` : state.selectedCore.toUpperCase());
       const ask = await askUserAgreement({
         title: isNativeHorizon263
-          ? `🦀 Xác Nhận Khởi Chạy Minecraft ${state.selectedVersion} (${isBlockWayRust ? 'Nhân BlockWay Rust' : 'Engine Rust Horizon'})`
+          ? `🦀 Xác Nhận Khởi Chạy Minecraft ${state.selectedVersion} (Horizon Custom Rust)`
           : (isHorizon
             ? `⚡ Xác Nhận Khởi Chạy Minecraft ${state.selectedVersion} (Horizon Hybrid Turbo)`
             : (isInstalled ? '🚀 Xác Nhận Khởi Chạy Minecraft (Java)' : '📥 Xác Nhận Tải & Khởi Chạy Minecraft')),
         message: isNativeHorizon263
-          ? `Bạn có đồng ý khởi chạy Minecraft ${state.selectedVersion} bằng ${coreDisplay} (100% mã nguồn Rust biên dịch từ GitHub • Mở dưới 1 giây • ~250 MB RAM • Lọc đúng kho đồ & lệnh theo từng phiên bản • Tự nâng cấp OTA từ GitHub) ngay bây giờ không?`
+          ? `Bạn có đồng ý khởi chạy Minecraft ${state.selectedVersion} bằng ${coreDisplay} (100% mã nguồn Rust tuỳ biến biên dịch từ GitHub riêng • Mở dưới 1 giây • ~250 MB RAM • Lọc đúng kho đồ & lệnh theo từng phiên bản • Tự nâng cấp OTA từ GitHub) ngay bây giờ không?`
           : (isHorizon
             ? `Bạn có đồng ý khởi chạy Minecraft ${state.selectedVersion} bằng ${coreDisplay} (Tự động nạp bộ lõi tăng tốc Sodium + Lithium + EntityCulling / OptiFine + 6 tầng mượt Deep Smooth) ngay bây giờ không?`
             : (isInstalled
               ? `Bạn có đồng ý khởi chạy Minecraft ${state.selectedVersion} (${coreDisplay}) với ${state.ramGB} GB RAM ngay bây giờ không?`
               : `Phiên bản Minecraft ${state.selectedVersion} (${coreDisplay}) chưa có trên máy. Bạn có đồng ý tải về và khởi chạy${quickWorldTitle ? ` để vào thẳng thế giới “${quickWorldTitle}”` : ''} không?`)),
         showDontAsk: isInstalled,
-        agreeText: isNativeHorizon263 ? '🦀 Chạy Nhân Rust Ngay' : (isHorizon ? '⚡ Chạy Horizon Hybrid Ngay' : '✓ Đồng Ý Chạy Game'),
+        agreeText: isNativeHorizon263 ? '🦀 Chạy Horizon Rust Ngay' : (isHorizon ? '⚡ Chạy Horizon Hybrid Ngay' : '✓ Đồng Ý Chạy Game'),
         cancelText: '✕ Hủy bỏ'
       });
       if (!ask.agreed) return;
@@ -3480,7 +3470,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     setLaunchUiState(
       'starting',
       isNativeHorizon263
-        ? `🦀 Đang khởi tạo ${isBlockWayRust ? 'Nhân BlockWay Rust' : 'Engine Rust Horizon'} (MC ${state.selectedVersion} • Vulkan / DirectX 12)...`
+        ? `🦀 Đang khởi tạo Engine Horizon Rust (MC ${state.selectedVersion} • Vulkan / DirectX 12)...`
         : (isHorizon
           ? `⚡ Đang khởi tạo Horizon Hybrid Turbo (MC ${state.selectedVersion})...`
           : (quickWorldFolder

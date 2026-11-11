@@ -685,98 +685,40 @@ function isMcVersionPre114(mcVersion) {
   return compareMcVersions(v, '1.14') < 0;
 }
 
-function isMcVersionRustHorizonSupported(mcVersion, loaderType = '') {
+function isMcVersionRustHorizonSupported(mcVersion) {
   const v = String(mcVersion || '').trim();
   if (!v) return false;
   if (/^([2-9]\d)\./.test(v)) return true;
-  const minVer = String(loaderType || '').toLowerCase().trim() === 'blockway-rust' ? '1.16.5' : '1.20.2';
-  return compareMcVersions(v, minVer) >= 0;
+  return compareMcVersions(v, '1.16.5') >= 0;
 }
 
 async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
   if (loaderType === 'vanilla') return [];
 
-  if (loaderType === 'blockway-rust') {
+  if (isRustCoreType(loaderType)) {
     const st = getHorizonEngineStatus(gameDir || getDefaultGameDir());
     const commitBadge = st.buildCommit ? ` • GitHub #${st.buildCommit.slice(0, 7)}` : '';
-    const readySuffix = st.isPrepared
-      ? ` ✓ (Đã sẵn sàng${commitBadge})`
-      : ' (Tự tải từ GitHub BlockWay)';
+    const readySuffix = st.isPrepared ? ` ✓ (Đã sẵn sàng${commitBadge})` : ' (Tự tải từ GitHub riêng)';
     const verLabel = String(mcVersion || '1.21.11');
-    if (isMcVersionRustHorizonSupported(verLabel, 'blockway-rust')) {
-      return [
-        {
-          version: 'horizon-auto',
-          stable: true,
-          kind: 'blockway-rust',
-          displayLabel: `🦀 BlockWay Rust (${verLabel}) • Tự động (Vulkan / DirectX 12)${readySuffix}`
-        },
-        {
-          version: 'horizon-vulkan',
-          stable: true,
-          kind: 'blockway-rust',
-          displayLabel: `🌋 BlockWay Rust (${verLabel}) • Ép xung Vulkan API (FPS cao nhất)`
-        },
-        {
-          version: 'horizon-dx12',
-          stable: true,
-          kind: 'blockway-rust',
-          displayLabel: `💠 BlockWay Rust (${verLabel}) • DirectX 12 (Tương thích iGPU Intel/AMD)`
-        },
-        {
-          version: 'horizon-upgrade-core',
-          stable: true,
-          kind: 'blockway-rust-upgrade',
-          displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Rust mới nhất từ GitHub${commitBadge}`
-        }
-      ];
-    }
-    return [
-      {
-        version: 'horizon-switch-1.21.11',
-        stable: true,
-        kind: 'blockway-rust',
-        displayLabel: `🦀 Chuyển sang Minecraft 1.21.11 (Thuần mã nguồn BlockWay Rust)${readySuffix}`
-      },
-      {
-        version: 'horizon-switch-26.3',
-        stable: true,
-        kind: 'blockway-rust',
-        displayLabel: `🦀 Chuyển sang Minecraft 26.3 (Thuần mã nguồn BlockWay Rust)${readySuffix}`
-      },
-      {
-        version: 'horizon-upgrade-core',
-        stable: true,
-        kind: 'blockway-rust-upgrade',
-        displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Rust mới nhất từ GitHub${commitBadge}`
-      }
-    ];
-  }
-
-  if (loaderType === 'horizon') {
-    const st = getHorizonEngineStatus(gameDir || getDefaultGameDir());
-    const commitBadge = st.buildCommit ? ` • GitHub #${st.buildCommit.slice(0, 7)}` : '';
-    const readySuffix = st.isPrepared ? ` ✓ (Đã sẵn sàng${commitBadge})` : ' (Tự động cài 1-Click)';
-    const verLabel = String(mcVersion || '1.21.4');
-    if (isMcVersionRustHorizonSupported(verLabel, 'horizon')) {
+    if (isMcVersionRustHorizonSupported(verLabel)) {
       const rustList = [
         {
           version: 'horizon-auto',
           stable: true,
           kind: 'horizon',
-          displayLabel: `🦀 Rust Native (${verLabel}) • Tự động (Vulkan / DirectX 12)${readySuffix}`
+          displayLabel: `🦀 Horizon Rust (${verLabel}) • Tự động (Vulkan / DirectX 12)${readySuffix}`
         },
         {
           version: 'horizon-vulkan',
           stable: true,
           kind: 'horizon',
-          displayLabel: `🌋 Rust Native (${verLabel}) • Ép xung Vulkan API (FPS cao nhất)`
+          displayLabel: `🌋 Horizon Rust (${verLabel}) • Ép xung Vulkan API (FPS cao nhất)`
         },
         {
           version: 'horizon-dx12',
           stable: true,
           kind: 'horizon',
-          displayLabel: `💠 Rust Native (${verLabel}) • DirectX 12 (Tương thích iGPU Intel/AMD)`
+          displayLabel: `💠 Horizon Rust (${verLabel}) • DirectX 12 (Tương thích iGPU Intel/AMD)`
         }
       ];
       if (verLabel !== '26.3') {
@@ -791,7 +733,7 @@ async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
         version: 'horizon-upgrade-core',
         stable: true,
         kind: 'blockway-rust-upgrade',
-        displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Rust mới nhất từ GitHub${commitBadge}`
+        displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Horizon Rust mới nhất từ GitHub${commitBadge}`
       });
       return rustList;
     }
@@ -813,16 +755,22 @@ async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
         displayLabel: `🎯 Horizon Hybrid Esport (${verLabel}) • Khóa xung PvP FPS tối đa + Chuột thô 1:1`
       },
       {
+        version: 'horizon-switch-1.21.11',
+        stable: true,
+        kind: 'horizon',
+        displayLabel: `🦀 Chuyển sang Horizon Rust 1.21.11 (Thuần mã máy Rust)${readySuffix}`
+      },
+      {
         version: 'horizon-switch-26.3',
         stable: true,
         kind: 'horizon',
-        displayLabel: `🦀 Chuyển sang Rust Native 26.3 (Thuần mã máy Rust • Vulkan / DX12)${readySuffix}`
+        displayLabel: `🦀 Chuyển sang Horizon Rust 26.3 (Thuần mã máy Rust)${readySuffix}`
       },
       {
         version: 'horizon-upgrade-core',
         stable: true,
         kind: 'blockway-rust-upgrade',
-        displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Rust mới nhất từ GitHub${commitBadge}`
+        displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Horizon Rust mới nhất từ GitHub${commitBadge}`
       }
     ];
   }
@@ -13445,11 +13393,12 @@ async function ensureHorizonEnginePrepared({ rootDir, callbacks = {}, autoUpgrad
   if (!st.engineInstalled) {
     fs.mkdirSync(st.baseHorizonDir, { recursive: true });
     const archivePath = path.join(st.baseHorizonDir, spec.assetName);
-    const candidateUrls = [
-      `https://github.com/${BLOCKWAY_RUST_REPO}/releases/download/latest/${spec.assetName}`,
-      `https://github.com/horizon-rust/horizon/releases/download/nightly/${spec.assetName}`,
-      `https://github.com/horizon-rust/horizon/releases/download/v0.2.97/${spec.assetName}`
-    ];
+    const candidateUrls = (process.platform === 'win32' && process.arch === 'x64')
+      ? [`https://github.com/${BLOCKWAY_RUST_REPO}/releases/download/latest/${spec.assetName}`]
+      : [
+          `https://github.com/${BLOCKWAY_RUST_REPO}/releases/download/latest/${spec.assetName}`,
+          `https://github.com/horizon-rust/horizon/releases/download/nightly/${spec.assetName}`
+        ];
 
     callbacks.onStatus?.('🦀 Đang tải gói Nhân BlockWay Rust đa phiên bản từ GitHub (Vulkan / DirectX 12)...');
     let downloadedOk = false;
