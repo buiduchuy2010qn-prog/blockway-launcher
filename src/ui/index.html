@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>BlockWay Launcher v41.7.1 PRO — Every World, One Place</title>
+  <title>BlockWay Launcher v41.8.0 PRO — Every World, One Place</title>
   <link rel="icon" href="app-icon.ico" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="layout-v33.css" />
@@ -23,7 +23,7 @@
         </div>
         <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
           <span>🔄 Kiểm tra cập nhật</span>
-          <strong id="titlebarUpdateVer">v41.7.1</strong>
+          <strong id="titlebarUpdateVer">v41.8.0</strong>
         </button>
       </div>
 
@@ -467,13 +467,13 @@
                           <input type="checkbox" id="homeAikarCheck" checked />
                           <span>Đa nhân G1GC</span>
                         </label>
-                        <label class="booster-check-pill" title="Tự động ẩn Launcher về 0% GPU khi đang chơi">
+                        <label class="booster-check-pill" title="Tự thu nhỏ cửa sổ và tạm dừng 3D WebGL khi đang trong game">
                           <input type="checkbox" id="homeHibernateCheck" checked />
-                          <span>Ngủ đông 0%</span>
+                          <span>Thu nhỏ khi chơi</span>
                         </label>
-                        <label class="booster-check-pill" title="Bỏ qua quét lại file đã có sẵn để vào game dưới 1 giây">
+                        <label class="booster-check-pill" title="Bỏ qua kiểm tra lại mã băm tệp đã có sẵn để khởi chạy nhanh hơn">
                           <input type="checkbox" id="homeFastSkipCheck" checked />
-                          <span>Vào nhanh &lt;1s</span>
+                          <span>Bỏ quét băm</span>
                         </label>
                       </div>
                     </div>
@@ -1398,17 +1398,17 @@
             </div>
           </div>
 
-          <!-- v41.2.0 PRO: MỤC RIÊNG — TRẠM SERVER NGẦM TRÊN MÁY (0% GPU • KÈM KHUYẾN CÁO CẤU HÌNH) -->
+          <!-- v41.2.0 PRO: MỤC RIÊNG — TRẠM SERVER NGẦM TRÊN MÁY (NOGUI • KÈM KHUYẾN CÁO CẤU HÌNH) -->
           <div class="bento-card ls-dedicated-section-card" id="localServerDedicatedCard">
             <div class="ls-sec-left">
               <div class="ls-sec-title-row">
-                <span class="ls-sec-pill">🖥️ MỤC RIÊNG • 0% GPU</span>
+                <span class="ls-sec-pill">🖥️ MỤC RIÊNG • NOGUI</span>
                 <strong>Trạm Server Ngầm Trên Máy (Dành Cho Máy Làm Chủ)</strong>
                 <span class="installed-count-tag" id="lsCardStateBadge">⚪ Đang nghỉ</span>
                 <span class="ls-sec-hw-tag" id="lsCardHwBadge">🔍 Tự kiểm tra RAM &amp; CPU</span>
               </div>
               <p class="ls-sec-desc" id="lsCardAdviceText">
-                Tự tải <code>server.jar</code> chính thức và chạy ngầm không tốn GPU. <strong>Lưu ý:</strong> Máy mở Server gánh tính toán cho cả nhóm (khuyên dùng trên máy <strong>8 GB – 16 GB+ RAM</strong>; máy yếu nên dùng <em>Mở Qua Internet e4mc</em> ở trên).
+                Tự tải <code>server.jar</code> chính thức và chạy ở chế độ dòng lệnh <code>nogui</code> (không mở cửa sổ đồ họa). <strong>Lưu ý:</strong> Máy mở Server gánh tính toán cho cả nhóm (khuyên dùng trên máy <strong>8 GB – 16 GB+ RAM</strong>; máy yếu nên dùng <em>Mở Qua Internet e4mc</em> ở trên).
               </p>
             </div>
             <div class="ls-sec-actions">
@@ -1642,10 +1642,10 @@
                 </div>
                 <span class="installed-count-tag" id="toolsPowerSuiteBadge">5 Tiện ích 1-Click</span>
               </div>
-              <p class="settings-card-desc">Tất cả đều hoạt động độc lập theo nhu cầu: Trạm Server Ngầm (có khuyến cáo cấu hình máy), Làm Đẹp 0% Lag, Tăng Tốc Tải Chunk &amp; Sao Lưu Phím Tắt.</p>
+              <p class="settings-card-desc">Tất cả đều hoạt động độc lập theo nhu cầu: Trạm Server Ngầm (có khuyến cáo cấu hình máy), Gói Đồ Họa Nhẹ, Tăng Tốc Tải Chunk &amp; Sao Lưu Phím Tắt.</p>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn-fps-boost-1click" id="btnToolsOpenLocalServer">🖥️ Trạm Server Ngầm (0% GPU)</button>
-                <button class="btn-sync-skin is-ok" id="btnToolsOpenVisualBoost">🎨 Kho Làm Đẹp 0% Lag</button>
+                <button class="btn-fps-boost-1click" id="btnToolsOpenLocalServer">🖥️ Trạm Server Ngầm (nogui)</button>
+                <button class="btn-sync-skin is-ok" id="btnToolsOpenVisualBoost">🎨 Kho Làm Đẹp Nhẹ Máy</button>
                 <button class="btn-sync-skin" id="btnToolsWorldgenBoost">🚀 Tăng Tốc Tải Chunk Đa Nhân</button>
                 <button class="btn-sync-skin" id="btnToolsBackupPrefs">☁️ Sao Lưu Phím Tắt &amp; Server</button>
                 <button class="btn-sync-skin" id="btnToolsRestorePrefs">♻️ Khôi Phục Phím Tắt</button>
@@ -1809,7 +1809,7 @@
               </div>
             </div>
             <div class="console-terminal" id="consoleOutput">
-              <div class="log-entry info">[BlockWay Launcher v41.7.1 PRO] Sẵn sàng khởi chạy.</div>
+              <div class="log-entry info">[BlockWay Launcher v41.8.0 PRO] Sẵn sàng khởi chạy.</div>
             </div>
           </div>
         </section>
@@ -1831,7 +1831,7 @@
                 📦 GitHub Repo
               </button>
               <button class="btn-sync-skin" id="btnCheckUpdate">
-                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v41.7.1</span>)
+                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v41.8.0</span>)
               </button>
             </div>
           </div>
@@ -1992,8 +1992,8 @@
                 <label class="settings-opt-item">
                   <input type="checkbox" id="hideLauncherCheck" checked />
                   <div class="soi-body">
-                    <strong>Ngủ đông Launcher khi chơi (0% GPU) &amp; Tắt nhanh (&lt;0.2s)</strong>
-                    <span>Tạm dừng 3D WebGL khi vào game và giải phóng tiến trình ngay khi đóng.</span>
+                    <strong>Tự thu nhỏ Launcher khi đang chơi game</strong>
+                    <span>Tạm dừng khung hình 3D WebGL khi vào game và giải phóng tiến trình ngay khi đóng.</span>
                   </div>
                 </label>
                 <label class="settings-opt-item">
@@ -2305,15 +2305,15 @@
                 <strong>Mượt Êm Chuẩn</strong>
                 <em class="dsp-rec">Khuyên dùng</em>
               </div>
-              <p>Giữ 100% nét đẹp gốc, khóa FPS êm máy, chống đơ ổ cứng 0.5s &amp; giảm 40% RAM.</p>
+              <p>Giữ nét đẹp gốc, đồng bộ FPS theo màn hình, ghi chunk bất đồng bộ &amp; tối ưu bộ nhớ.</p>
             </button>
             <button type="button" class="ds-profile-card" data-dsprofile="esports">
               <div class="dsp-top">
                 <span class="dsp-icon">⚡</span>
-                <strong>Siêu Mượt PvP</strong>
-                <em>260 FPS • 0ms</em>
+                <strong>Ưu Tiên Phản Hồi PvP</strong>
+                <em>Raw Input • Giảm trễ</em>
               </div>
-              <p>Tắt VSync, mở trần 260 FPS, chuột nhạy 1:1, giảm trễ khung hình &amp; mây nhanh.</p>
+              <p>Tắt VSync, nâng giới hạn FPS, bật chuột thô 1:1, giảm hàng đợi khung hình &amp; mây nhanh.</p>
             </button>
             <button type="button" class="ds-profile-card" data-dsprofile="ultra_low">
               <div class="dsp-top">
@@ -2416,12 +2416,12 @@
       </div>
     </div>
 
-    <!-- v41.2.0 PRO OPT-IN MODAL #1: TRẠM SERVER NGẦM 0% GPU (HEADLESS SERVER STUDIO + KHUYẾN CÁO CẤU HÌNH) -->
+    <!-- v41.2.0 PRO OPT-IN MODAL #1: TRẠM SERVER NGẦM NOGUI (HEADLESS SERVER STUDIO + KHUYẾN CÁO CẤU HÌNH) -->
     <div class="modal-backdrop hidden" id="localServerStudioModal">
-      <div class="modal-dialog-card ds-studio-card ls-studio-card" role="dialog" aria-label="Trạm Server Ngầm 0% GPU">
+      <div class="modal-dialog-card ds-studio-card ls-studio-card" role="dialog" aria-label="Trạm Server Ngầm nogui">
         <div class="modal-head ds-studio-head">
           <div class="ds-head-title">
-            <span class="ds-sig-pill">TRẠM SERVER • 0% GPU</span>
+            <span class="ds-sig-pill">TRẠM SERVER • NOGUI</span>
             <h3>🖥️ Trạm Server Ngầm Trên Máy (Headless Server Studio)</h3>
             <span class="ds-live-badge" id="lsStateBadge">⚪ Đang nghỉ</span>
           </div>
@@ -2510,7 +2510,7 @@
           <!-- UNIFIED TERMINAL CONSOLE PANEL -->
           <div class="ls-terminal-card">
             <div class="ls-terminal-head">
-              <span>🖥️ Bảng điều khiển &amp; Nhật ký Server trực tiếp (<code>nogui • 0% GPU</code>)</span>
+              <span>🖥️ Bảng điều khiển &amp; Nhật ký Server trực tiếp (<code>nogui</code>)</span>
               <button type="button" class="ls-clear-btn" id="btnLsClearConsole">🧹 Xóa nhật ký</button>
             </div>
             <pre class="ls-console-box" id="lsConsoleOutput">[Trạm Server Ngầm] Sẵn sàng. Chọn cấu hình bên trên rồi bấm "🚀 Khởi Động Server Ngầm" khi cần mở máy chủ.</pre>

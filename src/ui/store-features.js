@@ -8960,7 +8960,7 @@ async function populateDeepSmoothTargetSelect(selectEl, preferredDir = '') {
     }
   } catch (_) {}
 
-  const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s) => String(s ?? '');
+  const esc = escapeHtml;
   const mcLbl = `${state.selectedVersion || '1.21.4'} • ${String(state.selectedCore || 'fabric').toUpperCase()}`;
   let html = `<option value="">🏠 Thư mục chính (MC ${esc(mcLbl)})</option>`;
   for (const inst of instances) {
@@ -9040,7 +9040,7 @@ async function openDeepSmoothStudioModal(preferredInstanceDir = null) {
     const ofDesc = document.getElementById('dsLayerDescOptifine');
     if (ofDesc) {
       if (st.shaderGuardActive && st.activeShader) {
-        const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s) => String(s ?? '');
+        const esc = escapeHtml;
         ofDesc.innerHTML = `🛡️ Đang bật Shader <strong>${esc(st.activeShader)}</strong>: tự giữ Fast Render tắt để chống đen hình &amp; tối ưu hoạt ảnh.`;
       } else {
         ofDesc.textContent = 'Mở kết xuất vùng nhanh, hoạt ảnh thông minh & tự khóa Fast Render nếu bật Shader.';
@@ -9054,7 +9054,7 @@ async function openDeepSmoothStudioModal(preferredInstanceDir = null) {
 
     const fb = document.getElementById('dsFeedbackBanner');
     if (fb) {
-      const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s) => String(s ?? '');
+      const esc = escapeHtml;
       if (st.isOptimized && Array.isArray(st.touchedFiles) && st.touchedFiles.length) {
         fb.classList.add('is-tuned');
         const shortFiles = st.touchedFiles.map((f) => `<span class="ds-file-chip">${esc(f.replace(/^config\//, ''))}</span>`).join(' ');

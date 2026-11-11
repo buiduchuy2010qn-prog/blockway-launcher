@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v41.3.1 PRO — Every World, One Place (`blockway-launcher`)
+# ⚡ BlockWay Launcher v41.8.0 PRO — Every World, One Place (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,140 +6,88 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.3.1_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-7_Core_Loaders-06b6d4?style=for-the-badge" alt="Loaders" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.8.0_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-8_Core_Loaders_+_Horizon_Rust-f97316?style=for-the-badge" alt="8 Core Loaders" /></a>
 </p>
 
-**BlockWay Launcher** (*Every World, One Place* — phát triển bởi **buiduchuy2010qn-prog**) là trình khởi chạy Minecraft thế hệ mới sở hữu **🖥️ Trạm Server Ngầm `0% GPU` kèm Tư Vấn Cấu Hình Thông Minh**, **🎨 Kho Làm Đẹp Không Tụt FPS 1-Click**, **📸 Studio Ảnh Chụp 2.0 (Copy Kèm Khung Thông Tin)**, **☁️ Sao Lưu & Khôi Phục Phím Tắt + Danh Sách Server**, **🚀 Tăng Tốc Nạp Thế Giới Đa Nhân**, **⚡ Turbo Smooth Core™ — Can Thiệp Sâu 6 Tầng Tệp Cấu Hình Game & Hoàn Tác 1-Click**, hỗ trợ **Tài khoản Microsoft**, **chế độ Offline / tên nhân vật local** và **Tài khoản Đám mây 24/7** (OTP gửi về email). Cần bản quyền Minecraft: Java Edition để chơi online trên máy chủ chính thức.
+**BlockWay Launcher** (*Every World, One Place* — phát triển bởi **buiduchuy2010qn-prog**) là trình khởi chạy Minecraft đa nền tảng (**Windows & Linux**) kết hợp đầy đủ **7 Mod Loader Java truyền thống** (`Vanilla`, `OptiFine`, `Fabric`, `Forge`, `NeoForge`, `Quilt`, `Legacy Fabric`) cùng nhân thứ 8 **🦀 Horizon Rust** (client & server viết bằng Rust chạy trên Vulkan / DirectX 12). Hỗ trợ **Tài khoản Microsoft** (kiểm tra quyền sở hữu Minecraft: Java Edition chính thức), **Tài khoản Cloud 24/7** và **Chế độ Offline** để chơi đơn / LAN.
 
 🌐 **Trang chủ chính thức:** **[https://buiduchuy2010qn-prog.github.io/blockway-launcher/](https://buiduchuy2010qn-prog.github.io/blockway-launcher/)**
 
-### Linux (x86_64)
+---
 
-- **AppImage** (Arch, Fedora, SteamOS, USB): tải `BlockWay.Launcher-Linux-*.AppImage`, `chmod +x` rồi chạy. Ubuntu 22.04+ / Steam Deck nếu không mở được thì cài `libfuse2`.
-- **.DEB** (Ubuntu, Debian, Mint): `sudo apt install ./BlockWay.Launcher-Linux-*.deb`.
-- Không có bản ARM. Java runtime launcher tự lo trong `~/.minecraft/runtimes`.
+## ✨ Điểm mới trong `v41.8.0 PRO` (Bảo mật • Độ ổn định • Giao diện • Kiểm thử tự động)
+
+1. **🔒 Gia cố Bảo mật toàn diện (`P0 Security Hardening`):**
+   - **Khóa nguồn gọi IPC (`assertTrustedIpcSender`):** Mọi kênh `ipcMain.handle` và `ipcMain.on` xác thực chặt `event.sender === mainWindow.webContents`, từ chối subframe và nguồn không phải `file://`.
+   - **Kiểm tra đường dẫn & giải nén an toàn (`openDirectorySafely` + `extractZipSafely`):** Chặn đường dẫn mạng UNC (ngăn rò rỉ NTLM trên Windows), xác minh `isDirectory()` trước khi gọi `shell.openPath` để không bao giờ kích hoạt nhầm tệp thực thi, và chặn triệt để lỗ hổng `Zip-Slip` (`../`) khi giải nén.
+   - **Mã hóa khóa tài khoản trên ổ cứng (`Electron safeStorage`):** Tự động mã hóa `accessToken` / `refreshToken` (Microsoft & Cloud) trong `aether-config-v5.json` và khóa API CurseForge thông qua cơ chế bảo mật gốc của hệ điều hành (Windows DPAPI / Linux Secret Service).
+   - **Xác thực CSRF/State OAuth2 & Làm sạch `innerHTML`:** Bổ sung tham số `state` ngẫu nhiên 128-bit kiểm tra hằng thời gian (`crypto.timingSafeEqual`) cho luồng đăng nhập Microsoft loopback & cổng Web Cloud nội bộ; chuẩn hóa `escapeHtml` trên toàn bộ giao diện.
+   - **Cập nhật OTA kiểm định SHA-256 chặt chẽ (`Fail-Closed`):** Đồng bộ bộ đọc bảng băm `ota-manifest.json` (bao gồm cả `package.json` và toàn bộ `src/**/*`), hủy cập nhật kèm cơ chế khôi phục nguyên tử (atomic rollback) nếu bất kỳ tệp nào lệch mã băm SHA-256.
+2. **🦀 Nhân Horizon Rust & Kiểm định Mod trung thực 100% (`v41.7.x` → `v41.8.0`):**
+   - Tích hợp trực tiếp kho gói **`.hmod`** và Shader WGSL **`.hshader`** chính thức của Horizon Rust (kiểm tra SHA-256), đi kèm **5 tiện ích Rust gốc** (*Minimap, Zoom, Tọa độ, Keystrokes, FPS*) và trình biên dịch `horizon-port-jar.exe` chuyển khối vuông, vật phẩm, công thức & Datapack sang gói chạy thật trên nhân Rust.
+   - **Chặn 100% cài giả:** Mọi Mod từ Modrinth được kiểm định trước khi mở nút cài; các Mod thuần mã máy Java Mixin được phân loại rõ ràng và gợi ý chuyển sang Core `Fabric` thay vì cài nhầm vào nhân Rust.
+3. **🎨 Tinh chỉnh Phân cấp Thị giác & Studio Giao diện (`P3 UI Polish`):**
+   - Cân chỉnh lại độ tương phản và bề mặt nút phụ trên chủ đề **Sakura (Trắng Hồng)** để làm nổi bật rõ nút hành động chính **`▶ CHƠI NGAY`**, giảm nhiễu viền hồng đậm khi mở nhiều khu vực cùng lúc và bổ sung viền `:focus-visible` chuẩn trợ năng bàn phím.
+   - Hỗ trợ **7 chủ đề màu** (*Lunar Dark, Mojang, Modrinth, Feather, Cherry, Prism Sáng, Sakura Hồng, Rust Obsidian*), tùy chọn màu nhấn, mật độ hiển thị (*Gọn / Chuẩn / Thoáng*), thanh bên thu gọn và độ bo góc.
+4. **🧪 Quy trình Build tái lập & Kiểm thử tự động (`P4 Reproducible CI`):**
+   - Bổ sung `package-lock.json`, chuyển GitHub Actions sang `npm ci` và chạy bộ kiểm thử tự động `npm test` (`node:test`) kiểm tra cú pháp toàn bộ mã nguồn, đối chiếu mã băm SHA-256 của `ota-manifest.json`, kiểm tra CSP/IPC/Zip-Slip và logic phân loại Mod Rust trước khi đóng gói `.exe` / `.AppImage` / `.deb`.
 
 ---
 
-## 📦 Mới trong phiên bản `v41.3.1 PRO`
+## 🧩 Tính năng cốt lõi
 
-- Trả lại thanh 4 nút dưới banner Home (Đồng bộ / Ảnh chụp / Thế giới / Kho Modrinth). Ẩn thanh đó ở 41.3.0 để lại khoảng xám trống vì banner vẫn chừa `padding-bottom`.
-- 5 thẻ shortcut dưới banner vẫn ẩn.
-
-## 📦 Có trong `v41.3.0 PRO`
-
-- Giao diện gọn hơn: mỗi tính năng một chỗ chính. Skin chỉ mở 1 panel; Home ẩn 5 thẻ shortcut trùng; PvP HUD chuyển sang tab Chơi; header Mod / Thế giới bớt nút trùng.
-- Tab Công cụ gom 4 nhóm (Tối ưu • Sửa lỗi & Console • Media F2/Replay • Migrate & dọn rác). Nút trùng tab khác **ẩn, không xóa** — JS không văng.
-- Giữ Kho Bản Đồ (`#worldStorePanel`), `asar: false` (OTA delta), Discord RPC mặc định tắt.
-- OTA SHA-256 vẫn hash Git LF + chấp nhận CRLF trên Windows.
-
-## 📦 Có trong `v41.2.3 PRO`
-
-- OTA SHA-256: hash theo nội dung Git (LF) và chấp nhận CRLF trên Windows — bản cập nhật in-app không còn fail `package.json`.
-- Core OptiFine: ưu tiên profile OptiFine gốc / Forge jar trước khi fallback Fabric + Iris (Auto-Shader-Zoom).
-- Đồng bộ phiên bản, giấy phép MIT, `appId` BlockWay, Electron `sandbox`.
-- Tài khoản Cloud: scrypt (cục bộ) + SHA-256 tương thích RPC cũ; mật khẩu tối thiểu 8 ký tự; cổng web POST (không đưa mật khẩu lên URL); OTP không hiện trên trình duyệt.
-
-## 📦 Có sẵn từ `v41.2.0 PRO`
-
-1. **🖥️ Trạm Server Ngầm `0% GPU` & Tư Vấn Cấu Hình Máy Chủ Thông Minh (MỚI `v41.2.0 PRO`):**
-   - **Tư vấn cấu hình tự động trước khi mở Server:** Tự động đo dung lượng RAM & số luồng CPU của máy chủ để đưa ra khuyến cáo rõ ràng (máy `< 8 GB RAM` được khuyên dùng **Chơi Chung LAN `e4mc`** để không quá tải khi vừa mở Server vừa bật game 3D; máy `8–16 GB+ RAM` được tự động gợi ý mức RAM Server tối ưu).
-   - **Chạy `server.jar` chính chủ ở chế độ `nogui` (`0% GPU`):** Tự tải `server.jar` Mojang, tự điền `eula=true`, cho phép bật hỗ trợ bạn bè Offline/LAN (`online-mode=false`), copy map từ Chơi Đơn sang Server và tích hợp sẵn các nút lệnh Admin 1-Click (`👑 Cấp OP`, `☀️ Trời sáng`, `🌤️ Tạnh mưa`, `🛡️ Giữ đồ khi chết`, `💾 Lưu Map`).
-2. **🎨 Kho Làm Đẹp Không Tụt FPS 1-Click (MỚI `v41.2.0 PRO`):**
-   - Tích hợp sẵn 4 gói làm đẹp nhẹ máy, ai cần mục nào chỉ việc bấm bật mục đó: **🔥 Lửa Thấp PvP & Bỏ Mờ Bí Ngô** (tạo trực tiếp gói Resource Pack nội bộ trong `< 15 ms`), **💎 Viền Quặng Phát Sáng** (dễ nhìn Kim Cương & Khoáng sản trong hang tối không cần Shader), **🐾 Cử Động Sinh Vật Sống Động (Fresh Animations + EMF/ETF)** và **🔊 Âm Thanh Vòm Hang Động & Tiếng Bước Chân**.
-3. **📸 Studio Ảnh Chụp 2.0 — Copy Kèm Khung Thông Tin 1-Click (MỚI `v41.2.0 PRO`):**
-   - Bổ sung nút **🏷️ Khung** trên từng ảnh chụp `F2` và trong chế độ phóng to để tự động đóng khung thông tin phía dưới ảnh (`BlockWay Launcher • Phiên bản MC • Tên người chơi • Ngày chụp`) và copy thẳng vào Clipboard để `Ctrl+V` dán ngay lên Zalo, Discord, Messenger.
-4. **☁️ Sao Lưu & Khôi Phục Phím Tắt + Danh Sách Server 1-Click (MỚI `v41.2.0 PRO`):**
-   - Xuất và nạp lại toàn bộ phím điều khiển (`key_*`), độ nhạy chuột, âm lượng, góc nhìn `FOV` và danh sách máy chủ `servers.dat` khi chuyển sang phiên bản Minecraft mới hoặc cài lại máy.
-5. **🚀 Tăng Tốc Nạp Thế Giới Đa Nhân & Tinh Chỉnh Giao Diện Dễ Đọc (MỚI `v41.2.0 PRO`):**
-   - Cài đặt 1-Click bộ Mod nạp Chunk đa luồng (`C2ME`, `Noisium`, `Faster Random`, `ScalableLux`) giúp bay Elytra mượt mà; đồng thời tinh gọn câu chữ và độ đậm nhạt phông chữ trên toàn giao diện để nhìn thoáng mắt, rõ ràng trong mọi chủ đề sáng/tối.
-6. **⚡ Tính Năng Đặc Biệt: Turbo Smooth Core™ — Can Thiệp Sâu 6 Tầng Tệp Cấu Hình Game & Hoàn Tác 1-Click (`v41.1.0 PRO`):**
-   - **Can thiệp trực tiếp vào tệp cấu hình thực của Minecraft & Modpack:** Không chỉ chỉnh tham số khởi chạy bên ngoài, BlockWay đi sâu tối ưu đồng bộ 6 tầng tệp bên trong `.minecraft` hoặc từng gói Modpack riêng:
-     1. **`options.txt` (Async Disk I/O & Raw Input 1:1):** Ghi `syncChunkWrites:false` triệt tiêu hiện tượng khựng 0.5s khi lưu chunk trên ổ cứng Windows, tắt phím đọc `Ctrl+B` (`narrator:0`), bật `rawMouseInput:true` và cân chỉnh khung hình.
-     2. **`optionsof.txt` + Khóa Bảo Vệ Shader Tự Động:** Bật `ofSmartAnimations`, `ofRenderRegions`, `ofFastMath`, `ofSmoothFps`; đặc biệt **tự động phát hiện gói Shader đang bật** (`iris.properties` / `optionsshaders.txt` / `oculus.properties`) để giữ `ofFastRender:false`, ngăn lỗi đen màn hình hoặc văng game.
-     3. **`config/sodium-options.json` & `embeddium-options.json`:** Kích hoạt hoãn dựng chunk đa luồng (`always_defer_chunk_updates`), chỉ vẽ hoạt ảnh trong tầm mắt và hạ hàng đợi `cpu_render_ahead_limit` giảm độ trễ chuột.
-     4. **`config/modernfix-mixins.properties`:** Bật `dynamic_resources=true` & `faster_item_rendering=true` giúp giảm **35–50% lượng RAM tiêu thụ** và rút ngắn một nửa thời gian nạp Modpack lớn.
-     5. **`config/immediatelyfast.json` & `entityculling.json`:** Gom hàng trăm lệnh vẽ thanh máu/chữ HUD thành 1 lần gọi GPU (`hud_batching`) và ngừng tính toán thực thể khuất sau tường (`tickCulling`).
-     6. **Khóa Khựng JVM Safepoint & Ưu Tiên Mạng IPv4:** Chặn Mod gọi `System.gc()` đột ngột, tắt ghi nháp `hsperfdata` ra ổ cứng và ưu tiên kết nối máy chủ qua IPv4.
-   - **3 Chế Độ Độ Mượt & Khôi Phục Nguyên Bản 1-Click Không Mất Cài Đặt Cá Nhân:** Chọn nhanh **🍃 Mượt Êm Chuẩn**, **⚡ Siêu Mượt PvP (0ms • 260 FPS)** hoặc **🚀 Cứu Máy Yếu (iGPU • RAM 4–8GB)**. Hệ thống lưu bản gốc theo từng khóa trước khi can thiệp — bấm **↩️ Khôi Phục Nguyên Bản (1-Click)** bất kỳ lúc nào để trả lại 100% file gốc mà vẫn giữ nguyên mọi Phím tắt, Âm lượng hay Góc nhìn FOV người chơi vừa chỉnh trong game!
-7. **👤 Menu Nhanh Tài Khoản, Ảnh Avatar Hồ Sơ Riêng & Nhận Diện Khuôn Mặt Skin Thông Minh (`v40.9.6 PRO`):**
-   - **Menu nhanh ngay tại góc trên thanh bên (`#sidebarProfileCard`):** Bấm vào thẻ hồ sơ để mở trực tiếp bảng chuyển nhanh giữa **☁ Cloud • 👤 Offline • 👑 Microsoft**, đổi qua lại các tài khoản đã lưu 1-Click, thêm nhanh tên nhân vật mới hoặc đăng xuất ngay tại chỗ mà không bị nhảy trang.
-   - **Tải ảnh Avatar hồ sơ riêng (`.PNG` / `.JPG` / `.WEBP`):** Tự do chọn bất kỳ ảnh đại diện cá nhân sắc nét cho hồ sơ Launcher (tách biệt hoàn toàn với trang phục 3D trong game), kèm nút **🔄 Dùng mặt Skin 3D** và **✨ Khôi phục Skin chuẩn** 1-Click.
-   - **Nhận diện khuôn mặt UV thông minh & Lọc sạch Kho Skin 3D:** Tự động phát hiện đúng vùng khuôn mặt trên các mẫu Skin phá cách (vẽ mặt ở thân áo) để không bao giờ hiển thị lệch hình, tự lưu giữ Skin đang mặc vào Tủ đồ trước khi thay mới và lọc sạch các mẫu vô danh trong Kho Skin Trực Tuyến.
-8. **🔆 Trợ Lý OptiFine Đa Nền Tảng, Tùy Chọn Từng Tính Năng & Hỗ Trợ `OptiFine_*.jar` Mọi Bản MC (`v40.9.5 PRO`):**
-   - **Chọn tự do Đích cài đặt, Phiên bản MC & Mod Loader:** Không khóa cứng vào một cấu hình cố định — người chơi chọn ngay **Thư mục chính (`.minecraft`) hoặc bất kỳ gói Modpack đã cài**, chọn **mọi phiên bản Minecraft (`1.7.10 → 26.3`)** và chọn tự do nền tảng **`Core OptiFine`**, **`Fabric`**, **`Forge`**, **`NeoForge`** hoặc **`Quilt`**.
-   - **Tích chọn từng tính năng lẻ & chọn Mod Zoom ưa thích:** Tự do bật/tắt riêng từng nhóm (*Tăng FPS êm máy, Chạy mọi gói Shader, Phím Zoom ống nhòm, Đuốc cầm tay phát sáng, Kính & Block nối liền, Fresh Animations & Custom Pack*) và chọn Mod Zoom yêu thích (*Zoomify, Logical Zoom, Zume, WI Zoom / Ok Zoomer*).
-   - **Hỗ trợ `OptiFine_*.jar` gốc cho mọi phiên bản MC (Vanilla Độc Lập & Forge):** Tự động chuẩn bị sẵn tệp nền Minecraft để cài **Profile OptiFine Độc Lập** chạy trực tiếp như Vanilla cho mọi phiên bản (`1.7.10` → mới nhất), hoặc gắn thẳng vào `mods/` của **Core OptiFine / Forge** và tự cất gọn Mod trùng render.
-9. **🖼️ Ảnh Bản Đồ 16:9 Cho Kho Hạt Giống (Seed Đẹp) & Kho Bản Đồ / Datapack (`v40.9.4+ PRO`):**
-   - Toàn bộ 8 hạt giống tuyển chọn trong **🌱 Kho Hạt Giống (Seed Đẹp)** đều hiển thị **ảnh phong cảnh 16:9 sắc nét**, tọa độ nổi bật, tiêu đề đầy đủ dễ đọc và hỗ trợ **🔍 Phóng to xem chi tiết**.
-   - Cửa sổ **+ Tạo Thế Giới Mới** tích hợp đầy đủ 8 thẻ chọn nhanh Seed kèm **khung xem trước ảnh bản đồ trực tiếp**, đồng thời **tự động gắn ảnh đại diện (`icon.png` + ảnh bìa rộng 16:9)** vào thư mục `.minecraft/saves` ngay khi tạo thế giới mới.
-   - **🗺️ Kho Bản Đồ Xây Sẵn & Datapack** và nhánh **Bản đồ (Map)** trong Kho Modpack đồng bộ hiển thị ảnh chụp màn hình 16:9 từ Modrinth & CurseForge.
-10. **📦 Đóng Gói & Gửi Bộ Mod Cho Bạn Bè 2.0 (`v40.9.2+ PRO`):**
-    - Nút **📦 Đóng gói gửi bạn** hiển thị rõ ràng ngay đầu tab **Mod & Pack** và trên từng gói **Modpack đã cài**.
-    - Cửa sổ đóng gói trực quan cho phép đặt tên bộ Mod, tùy chọn gửi kèm **Mod**, **Shader & Resource Pack**, **Cấu hình tinh chỉnh Mod (`config/`)**, **Phím tắt** và mặc định **tắt `servers.dat`** để giữ riêng tư IP máy chủ cá nhân.
-    - Đóng gói xong tự mở sẵn thư mục và bôi đậm tệp `.mrpack` để kéo gửi thẳng qua Zalo / Discord — bạn bè chỉ cần kéo-thả vào cửa sổ BlockWay là tự cài khớp phiên bản MC + Loader + Mod!
-11. **🔆 Core `OptiFine` Trực Tiếp 1-Click & Nhận Diện `OptiFine_*.jar` Thông Minh (`v40.9.2+ PRO`):**
-    - **Chọn thẳng thẻ `OptiFine (Shader • Zoom)` tại Trang chủ:** Tự động kích hoạt cấu hình `OptiFine` `.jar` gốc (nếu đã cài) hoặc tự trang bị trọn bộ tính năng quen thuộc (*Tăng FPS êm máy, chạy mọi gói Shader, phím Zoom ống nhòm mượt, Đuốc cầm tay phát sáng, Kính nối liền không viền, hỗ trợ Fresh Animations & Custom Resource Pack*).
-    - **Trợ lý `OptiFine_*.jar` thông minh:** Khi kéo-thả hoặc chọn tệp `OptiFine_*.jar` tải từ `optifine.net`, Launcher tự động đọc phiên bản MC bên trong tệp — nếu dùng Forge sẽ chép thẳng vào `mods/` và tự động cất gọn các Mod trùng render; nếu đang ở Vanilla / Fabric / NeoForge sẽ mở hộp thoại gợi ý chuyển sang Forge 1-Click hoặc chạy trình cài đặt Java gốc.
-12. **📚 Kho Modpack Thông Minh 2.0 (`#tab-packs`, `v40.9.2+ PRO`):**
-    - Bổ sung bộ lọc sắp xếp **🔥 Đề xuất (Bản mới & Hot)**, **⬇ Lượt tải cao nhất**, **🆕 Phiên bản MC mới nhất**, **🕒 Mới cập nhật** — tự động ưu tiên các gói `1.20.x` / `1.21+` chất lượng cao lên hàng đầu thay vì gói `1.6.4` / `1.7.10` cũ.
-    - Dịch mô tả Tiếng Việt theo lô êm ái (không nghẽn mạng), phân trang chuẩn theo từng nguồn kèm nút **⬇ Xem thêm gói Modpack** hiển thị rõ tổng số gói, và báo rõ trạng thái `CurseForge: chưa gắn Key` thay vì báo lỗi.
+- **8 Core Mod Loaders (`1.7.10` → `26.3`):** `Vanilla`, `OptiFine` (hỗ trợ cả profile độc lập lẫn chế độ nạp Mod), `Fabric`, `Forge`, `NeoForge`, `Quilt`, `Legacy Fabric` và `Horizon Rust` (Vulkan / DirectX 12).
+- **Kho Mod, Shader, Resource Pack & Modpack:** Tìm kiếm và cài đặt trực tiếp từ Modrinth & CurseForge, tự động tải thư viện phụ thuộc, quản lý từng hồ sơ Modpack độc lập (`instances/`), đóng gói `.mrpack` chia sẻ cho bạn bè.
+- **Quản lý Thế giới, Hạt giống (Seed 16:9) & Cứu hộ NBT:** Tự động sao lưu thế giới sau mỗi phiên chơi, khôi phục 1 chạm, tạo nhanh thế giới từ kho hạt giống tuyển chọn và kiểm tra thông tin `level.dat`.
+- **Trạm Server dòng lệnh (`nogui`) & Chơi chung LAN / `e4mc`:** Tự động phân tích dung lượng RAM & số luồng CPU để khuyến cáo cấu hình phù hợp trước khi mở máy chủ `server.jar` ở chế độ dòng lệnh không giao diện đồ họa, hoặc mở thế giới đơn qua mạng LAN / `e4mc`.
+- **Tối ưu cấu hình thực tế & Khôi phục nguyên bản 1 chạm:** Tinh chỉnh có sao lưu các tệp cấu hình (`options.txt`, `optionsof.txt`, `sodium-options.json`, `modernfix-mixins.properties`, `entityculling.json`), tự động tắt `ofFastRender` khi phát hiện gói Shader đang bật để tránh lỗi đen hình, cho phép hoàn tác về trạng thái gốc bất kỳ lúc nào.
 
 ---
 
-## 🍃 Tính năng nổi bật trong `v40.8.0 PRO` & `v40.7.0 PRO`
+## 💻 Cài đặt & Phát triển từ mã nguồn
 
-1. **🍃 Chế Độ "Mượt Êm — Không Ép Máy" (bật sẵn, MỚI `v40.8.0 PRO`):**
-   - Tự giới hạn FPS theo **tần số quét màn hình** (60–144Hz), chỉnh tầm nhìn / khoảng cách mô phỏng hợp lý và nạp RAM nhẹ nhàng — khung hình đều, **không vắt kiệt CPU/GPU**, máy mát và êm quạt hơn khi chơi lâu. Thêm **ModernFix** vào gói tăng FPS giúp vào game nhanh và nhẹ RAM. Tắt 1-Click là trả lại nguyên cài đặt cũ.
-2. **🌐 Servers 2.0 (MỚI `v40.8.0 PRO`):**
-   - Ping trực tiếp như màn hình Multiplayer trong game: **độ trễ thật (ms)**, **MOTD**, **logo server**, **phiên bản + cảnh báo lệch bản**, danh sách người đang chơi; **⚡ Vào Thẳng** 1-Click, **📌 Ghim** server yêu thích và **🔄 đồng bộ 2 chiều** với danh sách server trong Minecraft.
-3. **📥 Kéo-Thả Cài Mọi Thứ (MỚI `v40.8.0 PRO`):**
-   - Thả file **Mod `.jar`**, **Shader / Resource Pack `.zip`**, **Map `.zip`** hoặc **Modpack `.mrpack`** vào cửa sổ Launcher — tự nhận diện, cài đúng thư mục và bật sẵn (Shader tự chuyển sang Fabric nếu cần).
-4. **🧺 Tủ Đồ Skin & 🦸 Áo Choàng Riêng (MỚI `v40.8.0 PRO`):**
-   - Tự lưu **12 skin gần nhất** để mặc lại 1-Click; tải **áo choàng `.png`** của riêng bạn — bạn bè chơi Offline / LAN cũng nhìn thấy.
-5. **📤 Chia Sẻ Log Lỗi 1-Click & 🖼️ Thư Viện Ảnh Chụp Mới:**
-   - Bác Sĩ Crash tạo **link nhật ký (mclo.gs)** đã tự che tên máy & IP để gửi nhóm hỗ trợ; thư viện ảnh chụp có **xem toàn màn hình ←/→**, ghi rõ ảnh thuộc Modpack nào và **đặt làm hình nền** được lưu lại.
-6. **🛠️ Sửa lỗi & tối ưu:** Mod đã tắt không còn tự bật lại, sửa thẻ Kho Seed / Kho Map, skin bạn bè hiển thị cả trong Modpack, hồi sinh Hardcore giữ nguyên ngày trong game & tự đưa về điểm hồi sinh nếu rơi Void, giao diện Sáng / Trắng Hồng rõ chữ hơn, bản Portable tự cập nhật đúng bản Portable.
+### Người dùng cuối
+- **Windows (x64):** Tải bản cài đặt `BlockWay.Launcher-Setup-*.exe` hoặc bản chạy ngay `BlockWay.Launcher-Portable-*.exe` tại mục **[Releases](https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest)**.
+- **Linux (x86_64):**
+  - **AppImage** (Arch, Fedora, SteamOS): `chmod +x BlockWay.Launcher-Linux-*.AppImage` rồi khởi chạy (trên Ubuntu 22.04+ cần gói `libfuse2`).
+  - **Debian / Ubuntu / Mint (`.deb`):** `sudo apt install ./BlockWay.Launcher-Linux-*.deb`.
 
----
+### Nhà phát triển (Build & Kiểm thử cục bộ)
+Yêu cầu **Node.js 20+** (khuyến nghị Node.js 22 LTS):
 
-## 🔥 Tính năng nổi bật trong phiên bản `v40.7.0 PRO`
+```bash
+git clone https://github.com/buiduchuy2010qn-prog/blockway-launcher.git
+cd blockway-launcher
 
-1. **👕 Kho Skin Trực Tuyến Theo Chủ Đề & Đồng Bộ Thấy Đúng Skin Nhau (MỚI `v40.7.0 PRO`):**
-   - **Kho Skin 3D trực tuyến 1-Click:** Duyệt và tìm kiếm hàng ngàn mẫu Skin theo chủ đề (*Anime, Ngầu, Dễ thương, Hiệp sĩ, YouTuber*) hoặc theo tên người chơi bất kỳ, xem trước mô hình và bấm **👕 Mặc Ngay** thẳng lên nhân vật 3D.
-   - **Đồng bộ thấy đúng Skin nhau khi chơi chung Offline / LAN:** Trang bị 1-Click bộ **CustomSkinLoader + Lớp Áo Nổi 3D + Áo Choàng** và tự động chia sẻ ảnh Skin tùy chỉnh qua Phòng chơi chung để cả nhóm luôn nhìn thấy đúng trang phục riêng của nhau (không bị trùng Steve/Alex).
+# Cài đặt phụ thuộc chuẩn xác theo lockfile
+npm ci
 
-2. **⚔️ Chế Độ Chiến Đấu PvP / BedWars 1-Click Phong Cách Lunar Client (MỚI `v40.7.0 PRO`):**
-   - Bấm 1 nút duy nhất để trang bị trọn bộ **Bảng phím bấm Keystrokes + tốc độ nhấp CPS, Tự chạy nhanh (`ToggleSprint`), Thanh độ bền Giáp & Hiệu ứng Thuốc, Tâm ngắm động, Phóng to / Góc nhìn 360° (`Freelook`) và Gói Lửa Thấp (`Low Fire`) không che màn hình**; tắt 1-Click là trả lại nguyên vẹn bộ Mod sinh tồn!
+# Chạy bộ kiểm thử cú pháp, bảo mật & toàn vẹn SHA-256
+npm test
 
-3. **🛠️ Trình Cứu Hộ Thế Giới Đang Chơi & Kho Hạt Giống Tuyển Chọn (MỚI `v40.7.0 PRO`):**
-   - **Cứu hộ Thế giới & Hồi sinh Hardcore 1-Click:** Đọc trực tiếp mã **Seed**, **tọa độ nhân vật hiện tại (`X, Y, Z`)**, số ngày sinh tồn, lượng máu/kinh nghiệm; hỗ trợ **💖 Hồi sinh khỏi Hardcore khi lỡ tử trận**, **🔓 Mở khóa dùng lệnh**, **🎒 Bật giữ đồ khi chết (`KeepInventory`)** và **🏠 Cứu kẹt đưa nhân vật về Điểm xuất hiện**.
-   - **🌱 Kho Hạt Giống (Seed) Đẹp Nhất:** Tuyển chọn sẵn các hạt giống cảnh quan kỳ vĩ (*Thung lũng Anh đào núi tuyết, Đảo Nấm không quái, Biệt thự + Thành cổ, Đảo San hô, Speedrun*) để tạo Map mới 1-Click.
+# Khởi chạy ở chế độ phát triển
+npm start
 
-4. **🎬 Studio Quay Lại Trận Đấu 3D & Xuất Video MP4 Tự Động (MỚI `v40.7.0 PRO`):**
-   - Trang bị 1-Click trình ghi hình 3D siêu nhẹ (**Flashback / ReplayMod**) + **Camera bay tự do (`Freecam`)** kèm bộ kết xuất Video `.MP4` tự động — chơi mượt không tụt FPS, chơi xong mới xoay góc máy điện ảnh làm clip đăng TikTok / YouTube!
-
-5. **🌍 Hệ Sinh Thái Tự Động Hóa Toàn Diện:**
-   - **Gỡ trùng phím tắt Modpack & Sáng hang động Fullbright 1-Click**, **Kho Bản đồ xây sẵn & Datapack**, **Combo Đàm thoại Voice Chat & Tổ đội**, **Cố vấn RAM Generational ZGC**, **Tự động Đảo Void OneBlock / SkyBlock**, **7 Core Loaders** (`1.7.10` đến `26.3`) và **Bác Sĩ Crash Tiếng Việt**.
+# Đóng gói bộ cài Windows hoặc Linux
+npm run dist:win
+npm run dist:linux
+```
 
 ---
 
-## 🛡️ Kiến Trúc Kỹ Thuật & Cơ Chế Delta Hot-Patch OTA (`ota-manifest.json`)
+## 🛡️ Kiến trúc Bảo mật
 
-- **Cập nhật Delta OTA siêu tốc (`asar: false` có chủ đích):** Bộ cài đặt sử dụng cấu trúc mở (`resources/app` với `asar: false`) kết hợp tệp chỉ mục `ota-manifest.json` chứa mã băm **SHA-256** của từng tệp nguồn. Khi có bản vá mới, Launcher chỉ tải đúng các tệp thay đổi (`~50–500 KB`) trong 1–2 giây, kiểm tra toàn vẹn SHA-256 trong bộ nhớ và ghi nguyên tử kèm cơ chế tự hoàn tác (atomic rollback) thay vì bắt người dùng tải lại toàn bộ bộ cài `83 MB`.
-- **Cô lập ngữ cảnh bảo mật Electron:** Giao diện người dùng chạy với `contextIsolation: true` và `nodeIntegration: false`, giao tiếp qua cầu nối `preload.js` được kiểm soát chặt chẽ, mã hóa dữ liệu nhạy cảm trên máy bằng **Windows DPAPI / OS SafeStorage** và xác thực nguồn tải Mojang / Modrinth / GitHub qua HTTPS.
+| Thành phần | Cơ chế bảo vệ |
+| :--- | :--- |
+| **Electron Process Isolation** | `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, chặn cấp quyền thiết bị ngoài ý muốn (`setPermissionRequestHandler`). |
+| **Content Security Policy** | Giới hạn `default-src 'self'`, `object-src 'none'`, không sử dụng `'unsafe-eval'`. |
+| **IPC & Hệ thống tệp** | Cầu nối tường minh qua `src/preload.js`, xác thực `mainWindow.webContents` ở mọi IPC, chặn đường dẫn UNC, kiểm tra `isDirectory()` và chống `Zip-Slip`. |
+| **Lưu trữ thông tin đăng nhập** | Mã hóa token bằng `Electron safeStorage` (DPAPI / Keyring) với quyền tệp `0600`; tự ẩn thông tin nhạy cảm (`<hidden>`, `<ip>`, `<user>`) khi chia sẻ log lỗi lên `mclo.gs`. |
+| **Cập nhật OTA** | Đối chiếu mã băm SHA-256 bắt buộc từ `ota-manifest.json` cho từng tệp và tự động hoàn tác (rollback) nếu quá trình ghi gặp sự cố. |
 
 ---
 
-### 🔍 Từ khóa tìm kiếm (SEO Keywords)
-`blockway-launcher`, `blockway launcher`, `tải minecraft launcher tiếng việt`, `minecraft microsoft offline lan`, `chơi chung minecraft lan e4mc`, `trạm server ngầm minecraft`, `optifine launcher`, `modrinth launcher`, `neoforge launcher`, `fabric launcher`, `buiduchuy2010qn-prog`, `minecraft launcher vietnam`
+## 📄 Giấy phép
 
----
-
-## ⚖️ Tuyên bố Pháp lý & Bản quyền (Legal & Trademark Disclaimer)
-
-> **NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.**
->
-> - **Minecraft** là nhãn hiệu đã đăng ký của **Mojang Synergies AB** và **Microsoft Corporation**. Dự án này là công cụ độc lập của cộng đồng, không liên kết, không được tài trợ hay phê duyệt bởi Mojang hoặc Microsoft.
-> - Trình khởi chạy không phân phối lại các tệp trò chơi có bản quyền của Mojang. Người dùng cần sở hữu tài khoản **Minecraft: Java Edition** hợp lệ theo [Minecraft EULA](https://www.minecraft.net/en-us/eula) (chế độ Local/Offline chỉ phục vụ kiểm thử phát triển cục bộ hoặc sử dụng ngoại tuyến cho người dùng đã sở hữu bản quyền).
+Phát hành theo giấy phép **[MIT License](LICENSE)** — © **buiduchuy2010qn-prog**.

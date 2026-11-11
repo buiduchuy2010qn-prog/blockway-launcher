@@ -402,6 +402,32 @@ function getAdoptiumTargetPlatformAndArch() {
   return { osName, archName, archiveExt };
 }
 
+function extractZipSafely(archivePathOrZip, destDir) {
+  const root = path.resolve(String(destDir || ''));
+  if (!root) throw new Error('Thiếu thư mục đích để giải nén.');
+  fs.mkdirSync(root, { recursive: true });
+  const zip = typeof archivePathOrZip === 'string'
+    ? new (typeof PackZip === 'function' ? PackZip : require('adm-zip'))(archivePathOrZip)
+    : archivePathOrZip;
+  for (const entry of zip.getEntries()) {
+    const rawEntryName = String(entry.entryName || '').replace(/\\/g, '/');
+    if (!rawEntryName || rawEntryName.includes('\0')) continue;
+    const cleanRel = rawEntryName.replace(/^\/+/, '');
+    const resolvedTarget = path.resolve(root, cleanRel);
+    const relCheck = path.relative(root, resolvedTarget);
+    if (relCheck.startsWith('..') || path.isAbsolute(relCheck)) {
+      throw new Error(`Chặn tệp nén chứa đường dẫn vượt quyền (Zip-Slip): ${rawEntryName}`);
+    }
+    if (entry.isDirectory || rawEntryName.endsWith('/')) {
+      fs.mkdirSync(resolvedTarget, { recursive: true });
+    } else {
+      fs.mkdirSync(path.dirname(resolvedTarget), { recursive: true });
+      fs.writeFileSync(resolvedTarget, entry.getData());
+    }
+  }
+  return root;
+}
+
 async function downloadPortableJava(gameDir, major, onStatus) {
   const jreRoot = path.join(gameDir || getDefaultGameDir(), 'runtimes', `jre-${major}`);
   const existing = findJavawInDir(jreRoot, 4).find((p) => getJavaMajorVersion(p) === major);
@@ -419,12 +445,19 @@ async function downloadPortableJava(gameDir, major, onStatus) {
   let extracted = false;
   if (archiveExt === 'zip') {
     try {
-      const Zip = require('adm-zip');
-      new Zip(archivePath).extractAllTo(jreRoot, true);
+      extractZipSafely(archivePath, jreRoot);
       extracted = true;
-    } catch (_) {}
+    } catch (zipErr) {
+      if (/Zip-Slip/i.test(String(zipErr?.message || ''))) throw zipErr;
+    }
     if (!extracted && process.platform === 'win32') {
-      execSync(`powershell -NoProfile -Command "Expand-Archive -Path '${archivePath}' -DestinationPath '${jreRoot}' -Force"`, { stdio: 'ignore' });
+      const safeSrc = archivePath.replace(/'/g, "''");
+      const safeDst = jreRoot.replace(/'/g, "''");
+      require('child_process').execFileSync(
+        'powershell.exe',
+        ['-NoProfile', '-Command', `Expand-Archive -LiteralPath '${safeSrc}' -DestinationPath '${safeDst}' -Force`],
+        { stdio: 'ignore' }
+      );
       extracted = true;
     }
   } else {
@@ -14267,9 +14300,7 @@ async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } =
   }
 
   callbacks.onStatus?.('🦀 Đang cập nhật mã máy BlockWay Rust (giữ nguyên tài nguyên game đã chuẩn bị)...');
-  const AdmZip = PackZip || require('adm-zip');
-  const zip = new AdmZip(archivePath);
-  zip.extractAllTo(st.baseHorizonDir, true);
+  extractZipSafely(archivePath, st.baseHorizonDir);
   try { fs.unlinkSync(archivePath); } catch (_) {}
 
   _horizonLaunchApiCache.clear();
@@ -15046,11 +15077,9 @@ async function ensureHorizonEnginePrepared({ rootDir, callbacks = {}, autoUpgrad
 
     callbacks.onStatus?.('🦀 Đang giải nén Nhân BlockWay Rust (Vulkan / DirectX 12)...');
     if (spec.isTarGz) {
-      execSync(`tar -xzf "${archivePath}" -C "${st.baseHorizonDir}"`, { stdio: 'ignore' });
+      require('child_process').execFileSync('tar', ['-xzf', archivePath, '-C', st.baseHorizonDir], { stdio: 'ignore' });
     } else {
-      const AdmZip = PackZip || require('adm-zip');
-      const zip = new AdmZip(archivePath);
-      zip.extractAllTo(st.baseHorizonDir, true);
+      extractZipSafely(archivePath, st.baseHorizonDir);
     }
     try { fs.unlinkSync(archivePath); } catch (_) {}
     _horizonLaunchApiCache.clear();
@@ -15850,5 +15879,8 @@ module.exports = {
   exportPlayerPrefsSnapshot,
   importPlayerPrefsSnapshot,
   getWorldgenBoostStatus,
-  installWorldgenBoostPack
+  installWorldgenBoostPack,
+  extractZipSafely,
+  isGenuineHorizonPortResult,
+  pickBestHorizonModrinthVersion
 };

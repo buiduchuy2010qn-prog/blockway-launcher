@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, nativeImage, clipboard, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, nativeImage, clipboard, screen, safeStorage, session } = require('electron');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
@@ -368,14 +368,35 @@ function otaBufferToCrlf(buf) {
 
 const OTA_TEXT_PATH = /\.(js|json|html|css|txt|md|yml|yaml|bat|svg|xml|map)$/i;
 
-/** GitHub raw is LF; Windows checkout is often CRLF. Accept both for text files only. */
+/** GitHub raw is LF; Windows checkout is often CRLF. Accept both for text files only. Fail closed if hash missing. */
 function sha256MatchesExpected(buf, expectedSha, relPath) {
-  if (!expectedSha || !/^[a-f0-9]{64}$/.test(expectedSha)) return true;
-  if (sha256Hex(buf) === expectedSha) return true;
+  const cleanSha = String(expectedSha || '').trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(cleanSha)) return false;
+  if (sha256Hex(buf) === cleanSha) return true;
   if (relPath && !OTA_TEXT_PATH.test(relPath)) return false;
-  if (sha256Hex(otaBufferToLf(buf)) === expectedSha) return true;
-  if (sha256Hex(otaBufferToCrlf(buf)) === expectedSha) return true;
+  if (sha256Hex(otaBufferToLf(buf)) === cleanSha) return true;
+  if (sha256Hex(otaBufferToCrlf(buf)) === cleanSha) return true;
   return false;
+}
+
+function parseOtaManifestEntries(manJson) {
+  if (!manJson || typeof manJson !== 'object' || !manJson.files) return [];
+  const allowedPathRx = /^(package\.json|src\/[A-Za-z0-9._/-]+)$/;
+  const rawList = Array.isArray(manJson.files)
+    ? manJson.files
+    : Object.entries(manJson.files).map(([relPath, meta]) => ({
+        path: relPath,
+        sha256: typeof meta === 'string' ? meta : meta?.sha256,
+        size: typeof meta === 'object' && meta ? Number(meta.size) || 0 : 0
+      }));
+  return rawList.filter((e) =>
+    e &&
+    typeof e.path === 'string' &&
+    allowedPathRx.test(e.path) &&
+    !e.path.includes('..') &&
+    typeof e.sha256 === 'string' &&
+    /^[a-f0-9]{64}$/i.test(e.sha256.trim())
+  );
 }
 
 function fetchBinaryBuffer(url, redirects = 3) {
@@ -597,6 +618,9 @@ function createWindow() {
 
 if (gotSingleInstanceLock) {
   app.whenReady().then(() => {
+    try {
+      session.defaultSession.setPermissionRequestHandler((_wc, _perm, callback) => callback(false));
+    } catch (_) {}
     createWindow();
     if (discordRpcEnabled) {
       setTimeout(() => setDiscordLobbyPresence(), 1200);
@@ -616,6 +640,115 @@ app.on('window-all-closed', () => {
   cleanupJavaTempAndTrimRam();
   if (process.platform !== 'darwin') app.quit();
 });
+
+/* ============================================================================
+   v41.8.0 PRO — P0 SECURITY HARDENING:
+   1. Trusted IPC Sender Guard (mainWindow mainFrame + local file:// origin only)
+   2. Safe Directory & File Path Validation (blocks UNC leaks & file execution)
+   3. OS-Native Credential Encryption at Rest (Electron safeStorage / DPAPI / Keyring)
+   ============================================================================ */
+function assertTrustedIpcSender(event, channel = '') {
+  if (!event || !mainWindow || mainWindow.isDestroyed()) {
+    throw new Error(`IPC rejected (${channel}): window unavailable.`);
+  }
+  if (event.sender !== mainWindow.webContents) {
+    throw new Error(`IPC rejected (${channel}): untrusted sender webContents.`);
+  }
+  if (event.senderFrame && mainWindow.webContents.mainFrame && event.senderFrame !== mainWindow.webContents.mainFrame) {
+    throw new Error(`IPC rejected (${channel}): subframe access denied.`);
+  }
+  const senderUrl = String(event.senderFrame?.url || event.sender?.getURL?.() || '');
+  if (senderUrl && !senderUrl.startsWith('file://')) {
+    throw new Error(`IPC rejected (${channel}): non-local origin.`);
+  }
+}
+
+const _origIpcHandle = ipcMain.handle.bind(ipcMain);
+ipcMain.handle = (channel, listener) => _origIpcHandle(channel, async (event, ...args) => {
+  assertTrustedIpcSender(event, channel);
+  return listener(event, ...args);
+});
+
+const _origIpcOn = ipcMain.on.bind(ipcMain);
+ipcMain.on = (channel, listener) => _origIpcOn(channel, (event, ...args) => {
+  try {
+    assertTrustedIpcSender(event, channel);
+  } catch (_) {
+    return;
+  }
+  return listener(event, ...args);
+});
+
+function isUncNetworkPath(p) {
+  return /^(\\\\|\/\/)/.test(String(p || '').trim());
+}
+
+async function openDirectorySafely(dirPath, { createIfMissing = true } = {}) {
+  const raw = String(dirPath || '').trim();
+  if (!raw || isUncNetworkPath(raw)) {
+    throw new Error('Đường dẫn thư mục không hợp lệ.');
+  }
+  const resolved = path.resolve(raw);
+  if (isUncNetworkPath(resolved)) {
+    throw new Error('Không hỗ trợ mở đường dẫn mạng UNC.');
+  }
+  if (fs.existsSync(resolved)) {
+    const st = fs.lstatSync(resolved);
+    if (!st.isDirectory() || st.isSymbolicLink()) {
+      throw new Error('Đường dẫn chỉ định không phải là thư mục hợp lệ.');
+    }
+  } else if (createIfMissing) {
+    fs.mkdirSync(resolved, { recursive: true });
+  } else {
+    throw new Error('Thư mục không tồn tại.');
+  }
+  const errMsg = await shell.openPath(resolved);
+  if (errMsg) throw new Error(errMsg);
+  return resolved;
+}
+
+const SAFE_ENC_PREFIX = '__bw_safe_v1:';
+const SENSITIVE_PROFILE_KEYS = ['accessToken', 'refreshToken', 'mcAccessToken', 'msRefreshToken', 'sessionToken', 'authToken', 'token', 'passwordHash'];
+
+function encryptSecretForDisk(plain) {
+  if (typeof plain !== 'string' || !plain) return plain;
+  if (plain.startsWith(SAFE_ENC_PREFIX)) return plain;
+  try {
+    if (safeStorage && typeof safeStorage.isEncryptionAvailable === 'function' && safeStorage.isEncryptionAvailable()) {
+      return `${SAFE_ENC_PREFIX}${safeStorage.encryptString(plain).toString('base64')}`;
+    }
+  } catch (_) {}
+  return plain;
+}
+
+function decryptSecretFromDisk(stored) {
+  if (typeof stored !== 'string' || !stored) return stored;
+  if (!stored.startsWith(SAFE_ENC_PREFIX)) return stored;
+  const b64 = stored.slice(SAFE_ENC_PREFIX.length);
+  try {
+    if (safeStorage && typeof safeStorage.decryptString === 'function') {
+      return safeStorage.decryptString(Buffer.from(b64, 'base64'));
+    }
+  } catch (_) {}
+  return '';
+}
+
+function transformConfigSecrets(cfg, transformFn) {
+  if (!cfg || typeof cfg !== 'object') return cfg;
+  const out = { ...cfg };
+  for (const profileField of ['msProfile', 'cloudProfile']) {
+    if (out[profileField] && typeof out[profileField] === 'object') {
+      const copy = { ...out[profileField] };
+      for (const k of SENSITIVE_PROFILE_KEYS) {
+        if (typeof copy[k] === 'string' && copy[k]) {
+          copy[k] = transformFn(copy[k]);
+        }
+      }
+      out[profileField] = copy;
+    }
+  }
+  return out;
+}
 
 ipcMain.on('win:minimize', () => mainWindow?.minimize());
 ipcMain.on('win:maximize', () => {
@@ -694,7 +827,8 @@ ipcMain.handle('sys:trim-ram', async () => {
 ipcMain.handle('cfg:load', async () => {
   try {
     if (fs.existsSync(configPath)) {
-      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      const parsed = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      return transformConfigSecrets(parsed, decryptSecretFromDisk);
     }
   } catch (_) {}
   return null;
@@ -702,6 +836,7 @@ ipcMain.handle('cfg:load', async () => {
 
 ipcMain.handle('cfg:save', async (_e, cfg) => {
   try {
+    if (!cfg || typeof cfg !== 'object') return false;
     if (typeof cfg?.hideLauncherOnPlay === 'boolean') {
       hideOnLaunchSetting = cfg.hideLauncherOnPlay;
     }
@@ -719,7 +854,8 @@ ipcMain.handle('cfg:save', async (_e, cfg) => {
         setDiscordLobbyPresence();
       }
     }
-    fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2), 'utf8');
+    const diskReady = transformConfigSecrets(cfg, encryptSecretForDisk);
+    fs.writeFileSync(configPath, JSON.stringify(diskReady, null, 2), { encoding: 'utf8', mode: 0o600 });
     return true;
   } catch (_) {
     return false;
@@ -974,23 +1110,20 @@ ipcMain.handle('worlds:list', async (_e, gameDir) => {
 });
 
 ipcMain.handle('mc:open-dir', async (_e, dirPath) => {
-  const target = path.resolve(dirPath && String(dirPath).trim() ? String(dirPath).trim() : getDefaultGameDir());
-  if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });
-  shell.openPath(target);
-  return target;
+  const target = dirPath && String(dirPath).trim() ? String(dirPath).trim() : getDefaultGameDir();
+  return openDirectorySafely(target, { createIfMissing: true });
 });
 
 ipcMain.handle('mc:open-subfolder', async (_e, gameDir, subFolder) => {
   const root = path.resolve(gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir());
+  if (isUncNetworkPath(root)) throw new Error('Đường dẫn không hợp lệ.');
   const cleanSub = String(subFolder || '').replace(/^[\\/]+/, '');
   const target = cleanSub ? path.resolve(root, cleanSub) : root;
   const rel = path.relative(root, target);
   if (rel.startsWith('..') || path.isAbsolute(rel)) {
     throw new Error('Đường dẫn thư mục con không hợp lệ.');
   }
-  if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });
-  shell.openPath(target);
-  return target;
+  return openDirectorySafely(target, { createIfMissing: true });
 });
 
 ipcMain.handle('mc:force-kill', async () => {
@@ -1321,21 +1454,23 @@ ipcMain.handle('updater:install-now', async (_e, downloadUrl, latestVersion) => 
       const baseRaw = `https://raw.githubusercontent.com/buiduchuy2010qn-prog/${repoSlug}/${refBranch}`;
       const fallbackRaw = `https://raw.githubusercontent.com/buiduchuy2010qn-prog/aether-mine-launcher/${refBranch}`;
 
-      // v40.4 PRO: Fetch dynamic ota-manifest.json with SHA-256 verification (skips unchanged files & prevents corrupted updates)
+      // v41.8.0 PRO: Fetch ota-manifest.json (object map or array) with strict fail-closed SHA-256 verification
       let manifestEntries = null;
       let manifestBuf = null;
       try {
         const manBuf = await fetchBinaryBuffer(`${baseRaw}/ota-manifest.json?t=${Date.now()}`);
         const manJson = JSON.parse(manBuf.toString('utf8'));
-        if (manJson && Array.isArray(manJson.files) && manJson.files.length >= 8) {
-          manifestEntries = manJson.files.filter((e) => e && typeof e.path === 'string' && /^(package\.json|ota-manifest\.json|src\/[A-Za-z0-9._/-]+)$/.test(e.path) && !e.path.includes('..'));
+        const parsed = parseOtaManifestEntries(manJson);
+        if (parsed.length >= 8) {
+          manifestEntries = parsed;
           manifestBuf = manBuf;
         }
       } catch (_) {}
 
-      const entriesToProcess = manifestEntries && manifestEntries.length > 0
-        ? manifestEntries
-        : fallbackFiles.map((rel) => ({ path: rel, sha256: '' }));
+      if (!manifestEntries || manifestEntries.length < 8) {
+        throw new Error('Không xác thực được bảng băm SHA-256 (ota-manifest.json) từ GitHub. Đã hủy cập nhật để bảo vệ an toàn.');
+      }
+      const entriesToProcess = manifestEntries;
 
       // Phase 1: Download changed files into memory and verify SHA-256 hashes before touching disk
       const stagedFiles = [];
@@ -1343,11 +1478,14 @@ ipcMain.handle('updater:install-now', async (_e, downloadUrl, latestVersion) => 
         const item = entriesToProcess[i];
         const rel = item.path;
         const expectedSha = String(item.sha256 || '').trim().toLowerCase();
+        if (!/^[a-f0-9]{64}$/.test(expectedSha)) {
+          throw new Error(`Thiếu mã băm SHA-256 hợp lệ cho tệp cập nhật: ${rel}`);
+        }
         const localFile = path.resolve(appRoot, rel);
         const relCheck = path.relative(appRoot, localFile);
         if (relCheck.startsWith('..') || path.isAbsolute(relCheck)) continue;
 
-        if (/^[a-f0-9]{64}$/.test(expectedSha) && fs.existsSync(localFile)) {
+        if (fs.existsSync(localFile)) {
           try {
             const diskBuf = fs.readFileSync(localFile);
             if (sha256MatchesExpected(diskBuf, expectedSha, rel)) {
@@ -1363,10 +1501,10 @@ ipcMain.handle('updater:install-now', async (_e, downloadUrl, latestVersion) => 
         } catch (_) {
           buf = await fetchBinaryBuffer(`${fallbackRaw}/${rel}?t=${Date.now()}`);
         }
-        if (!buf || buf.length < 32) {
+        if (!buf || buf.length < 16) {
           throw new Error(`Tệp tải về không hợp lệ hoặc bị gián đoạn: ${rel}`);
         }
-        if (/^[a-f0-9]{64}$/.test(expectedSha) && !sha256MatchesExpected(buf, expectedSha, rel)) {
+        if (!sha256MatchesExpected(buf, expectedSha, rel)) {
           // CDN edge cache may still be refreshing right after a release; retry once, then fail closed
           const retryBuf = await fetchBinaryBuffer(`${baseRaw}/${rel}?nocache=${Date.now()}-${i}`).catch(() => buf);
           if (sha256MatchesExpected(retryBuf, expectedSha, rel)) {
@@ -1474,7 +1612,8 @@ const cfKeyPath = path.join(app.getPath('userData'), 'curseforge-api-key.txt');
 function loadCurseForgeKeyFromDisk() {
   try {
     if (fs.existsSync(cfKeyPath)) {
-      const k = fs.readFileSync(cfKeyPath, 'utf8').replace(/^\uFEFF/, '').trim();
+      const raw = fs.readFileSync(cfKeyPath, 'utf8').replace(/^\uFEFF/, '').trim();
+      const k = decryptSecretFromDisk(raw).trim();
       if (k) setCurseForgeApiKey(k);
       return k;
     }
@@ -1613,8 +1752,7 @@ ipcMain.handle('packs:instance-open', async (_e, params) => {
     const sub = params?.sub ? path.resolve(target, String(params.sub).replace(/^[\\/]+/, '')) : target;
     const relSub = path.relative(target, sub);
     if (relSub.startsWith('..') || path.isAbsolute(relSub)) throw new Error('Thư mục không hợp lệ.');
-    if (!fs.existsSync(sub)) fs.mkdirSync(sub, { recursive: true });
-    shell.openPath(sub);
+    await openDirectorySafely(sub, { createIfMissing: true });
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err.message };
@@ -1663,7 +1801,7 @@ ipcMain.handle('packs:cf-key-set', async (_e, key) => {
     }
     const st = await checkCurseForgeKey(clean);
     if (!st.valid) return { ok: false, error: 'Key CurseForge không hợp lệ (máy chủ từ chối).' };
-    fs.writeFileSync(cfKeyPath, clean, 'utf8');
+    fs.writeFileSync(cfKeyPath, encryptSecretForDisk(clean), { encoding: 'utf8', mode: 0o600 });
     setCurseForgeApiKey(clean);
     return { ok: true, hasKey: true, masked: `${clean.slice(0, 7)}…${clean.slice(-4)}`, ...st };
   } catch (err) {
@@ -1874,8 +2012,7 @@ ipcMain.handle('horizon:open-hmods-dir', async (_e, gameDir = '') => {
   try {
     const base = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
     const hmodsDir = path.join(base, 'horizon-mods');
-    fs.mkdirSync(hmodsDir, { recursive: true });
-    await shell.openPath(hmodsDir);
+    await openDirectorySafely(hmodsDir, { createIfMissing: true });
     return { ok: true, path: hmodsDir };
   } catch (err) {
     return { ok: false, error: err.message };
@@ -2247,8 +2384,12 @@ ipcMain.handle('screenshots:list', async (_e, gameDir) => {
 
 ipcMain.handle('screenshots:copy-image', async (_e, fullPath) => {
   try {
-    if (!fullPath || !fs.existsSync(fullPath)) return { ok: false, error: 'Không tìm thấy ảnh chụp.' };
-    const img = nativeImage.createFromPath(fullPath);
+    const fp = String(fullPath || '').trim();
+    if (!fp || isUncNetworkPath(fp) || !/\.(png|jpe?g|webp|bmp)$/i.test(fp) || !fs.existsSync(fp)) {
+      return { ok: false, error: 'Không tìm thấy ảnh chụp hợp lệ.' };
+    }
+    if (!fs.lstatSync(fp).isFile()) return { ok: false, error: 'Đường dẫn ảnh không hợp lệ.' };
+    const img = nativeImage.createFromPath(fp);
     if (img.isEmpty()) return { ok: false, error: 'Không thể đọc dữ liệu ảnh.' };
     clipboard.writeImage(img);
     return { ok: true };
@@ -2267,8 +2408,9 @@ ipcMain.handle('screenshots:delete', async (_e, { gameDir, fullPath }) => {
 
 ipcMain.handle('screenshots:reveal', async (_e, fullPath) => {
   try {
-    if (fullPath && fs.existsSync(fullPath)) {
-      shell.showItemInFolder(fullPath);
+    const fp = String(fullPath || '').trim();
+    if (fp && !isUncNetworkPath(fp) && /\.(png|jpe?g|webp|bmp)$/i.test(fp) && fs.existsSync(fp) && fs.lstatSync(fp).isFile()) {
+      shell.showItemInFolder(path.resolve(fp));
       return { ok: true };
     }
     return { ok: false };
@@ -2742,9 +2884,14 @@ ipcMain.handle('optifine:handle-jar', async (_e, params = {}) => {
   try {
     const resolvedGameDir = resolveUserGameDir(params?.gameDir);
     if (params.action === 'run-installer') {
-      const fp = String(params.filePath || '');
-      if (!fp || !fs.existsSync(fp)) return { ok: false, error: 'Không tìm thấy tệp OptiFine.jar.' };
+      const fp = path.resolve(String(params.filePath || '').trim());
+      if (!fp || isUncNetworkPath(fp) || !/\.jar$/i.test(fp) || !fs.existsSync(fp) || !fs.lstatSync(fp).isFile()) {
+        return { ok: false, error: 'Không tìm thấy tệp OptiFine.jar hợp lệ.' };
+      }
       const jarInfo = typeof inspectOptifineJar === 'function' ? inspectOptifineJar(fp) : {};
+      if (!jarInfo?.isOptifine) {
+        return { ok: false, error: 'Tệp .jar đã chọn không phải bộ cài OptiFine hợp lệ.' };
+      }
       const targetMc = String(params.currentMcVersion || jarInfo?.mcVersion || '').trim();
       if (typeof ensureVanillaBaseForOptifine === 'function') {
         await ensureVanillaBaseForOptifine(

@@ -3749,39 +3749,39 @@ html[data-theme="prism"] #heroBanner #btnGoModStore {
 
 /* --- 14.1 New 7th Theme: Trắng Sáng Hồng (Sakura Light Pink) --- */
 html[data-theme="sakura"] {
-  --bg-app: #fdf2f7;
+  --bg-app: #faf5f8;
   --bg-sidebar: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: #fff0f6;
-  --bg-input: #fef5f9;
+  --bg-card-hover: #fdf3f8;
+  --bg-input: #f8f1f5;
   --bg-dock: #ffffff;
-  --text-main: #2a0e1f;
-  --text-muted: #75385c;
-  --text-disabled: #b3849f;
-  --border-col: #f4cde0;
-  --border-subtle: #eeadd0;
+  --text-main: #24101c;
+  --text-muted: #6b475b;
+  --text-disabled: #ab899c;
+  --border-col: #eadbe3;
+  --border-subtle: #dec6d4;
   --accent: #ec4899;
   --accent-strong: #db2777;
-  --accent-glow: rgba(236, 72, 153, 0.16);
-  --accent-border: rgba(236, 72, 153, 0.48);
+  --accent-glow: rgba(236, 72, 153, 0.13);
+  --accent-border: rgba(236, 72, 153, 0.36);
   --on-accent: #ffffff;
   --play-top: #f472b6;
   --play-main: #ec4899;
   --play-bot: #db2777;
-  --play-border: rgba(244, 114, 182, 0.82);
-  --play-shadow: 0 8px 22px rgba(236, 72, 153, 0.32);
+  --play-border: rgba(244, 114, 182, 0.85);
+  --play-shadow: 0 8px 22px rgba(236, 72, 153, 0.30);
   --bw-chrome-top: #ffffff;
-  --bw-chrome-bot: #fff8fb;
+  --bw-chrome-bot: #fcf7fa;
   --bw-surface-top: #ffffff;
-  --bw-surface-bot: #fff8fb;
-  --bw-strip: linear-gradient(180deg, #ffffff, #fdf2f8);
-  --bw-card-strong: rgba(236, 72, 153, 0.38);
+  --bw-surface-bot: #fcf8fa;
+  --bw-strip: linear-gradient(180deg, #ffffff, #faf3f7);
+  --bw-card-strong: rgba(219, 39, 119, 0.22);
   --bw-nav-grad: linear-gradient(90deg, #db2777 0%, #ec4899 55%, #f472b6 100%);
-  --bw-nav-border: rgba(236, 72, 153, 0.55);
-  --bw-nav-shadow: 0 6px 16px rgba(236, 72, 153, 0.25);
-  --bw-shadow: 0 4px 16px rgba(131, 24, 67, 0.08);
-  --bw-glow-1: rgba(236, 72, 153, 0.10);
-  --bw-glow-2: rgba(244, 114, 182, 0.07);
+  --bw-nav-border: rgba(236, 72, 153, 0.50);
+  --bw-nav-shadow: 0 5px 14px rgba(236, 72, 153, 0.22);
+  --bw-shadow: 0 3px 12px rgba(88, 28, 58, 0.055);
+  --bw-glow-1: rgba(236, 72, 153, 0.07);
+  --bw-glow-2: rgba(244, 114, 182, 0.05);
   --bw-ok-text: #15803d;
   --bw-ok-text-2: #166534;
   --bw-ok-bg: rgba(22, 163, 74, 0.13);
@@ -3837,18 +3837,23 @@ html[data-theme="sakura"] #heroBanner .hbc-quick-actions {
 }
 
 html[data-theme="sakura"] #heroBanner #btnOpenMigrateModal {
-  background: linear-gradient(135deg, #db2777, #ec4899) !important;
-  border: 1.5px solid #be185d !important;
-  color: #ffffff !important;
-  box-shadow: 0 3px 10px rgba(219, 39, 119, 0.28) !important;
+  background: linear-gradient(180deg, #ffffff, #fdf2f7) !important;
+  border: 1px solid rgba(219, 39, 119, 0.32) !important;
+  color: #9d174d !important;
+  box-shadow: 0 2px 6px rgba(131, 24, 67, 0.08) !important;
+}
+
+html[data-theme="sakura"] #heroBanner #btnOpenMigrateModal:hover {
+  background: #fce7f3 !important;
+  border-color: rgba(219, 39, 119, 0.52) !important;
 }
 
 html[data-theme="sakura"] #heroBanner #btnBannerScreenshots,
 html[data-theme="sakura"] #heroBanner #btnBannerWorlds {
-  background: linear-gradient(180deg, #ffffff, #fff0f6) !important;
-  border: 1.5px solid rgba(236, 72, 153, 0.45) !important;
-  color: #2a0e1f !important;
-  box-shadow: 0 2px 7px rgba(236, 72, 153, 0.14) !important;
+  background: #ffffff !important;
+  border: 1px solid #e5d4de !important;
+  color: #3b192c !important;
+  box-shadow: 0 1px 4px rgba(88, 28, 58, 0.06) !important;
 }
 
 html[data-theme="sakura"] #heroBanner #btnBannerScreenshots svg,
@@ -10586,6 +10591,60 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .pir-rust {
   background: #f97316 !important;
   color: #ffffff !important;
 }
+
+/* ============================================================================
+   v41.8.0 PRO — VISUAL HIERARCHY, CALM SECONDARY SURFACES & KEYBOARD FOCUS
+   Separates Primary CTA (#btnLaunch, active Nav) from Secondary Controls & Tags
+   ============================================================================ */
+html[data-theme="sakura"] .bento-card,
+html[data-theme="sakura"] .mods-filter-tiers,
+html[data-theme="sakura"] .mod-card {
+  border-color: #eadbe3;
+  box-shadow: 0 2px 10px rgba(88, 28, 58, 0.045);
+}
+
+html[data-theme="sakura"] .core-card:not(.active),
+html[data-theme="sakura"] .ram-preset:not(.active),
+html[data-theme="sakura"] .vtype-btn:not(.active),
+html[data-theme="sakura"] .booster-check-pill {
+  background: #fbf7f9 !important;
+  border-color: #e5d5de !important;
+  color: #4a2539 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="sakura"] .booster-check-pill:has(input:checked) {
+  background: #fdf2f8 !important;
+  border-color: rgba(219, 39, 119, 0.34) !important;
+  color: #831843 !important;
+}
+
+html[data-theme="sakura"] .mod-tag {
+  background: #f6eff3 !important;
+  border-color: #e7d9e1 !important;
+  color: #633d52 !important;
+}
+
+/* Crisp Primary Launch CTA elevation across all themes */
+#btnLaunch {
+  letter-spacing: 0.02em;
+  transition: transform 0.14s ease, box-shadow 0.18s ease, filter 0.14s ease;
+}
+
+#btnLaunch:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+/* Accessible keyboard focus ring without noisy mouse outlines */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 
 
 

@@ -1,4 +1,8 @@
-const { app, shell } = require('electron');
+let app = null;
+let shell = null;
+try {
+  ({ app, shell } = require('electron'));
+} catch (_) {}
 const http = require('http');
 const crypto = require('crypto');
 const fs = require('fs');
@@ -325,6 +329,7 @@ function openMicrosoftLoginPopup(parentWindow) {
 
     let completed = false;
     let timeoutTimer = null;
+    const oauthState = crypto.randomBytes(16).toString('hex');
 
     const cleanup = () => {
       if (timeoutTimer) {
@@ -356,10 +361,18 @@ function openMicrosoftLoginPopup(parentWindow) {
         const code = reqUrl.searchParams.get('code');
         const error = reqUrl.searchParams.get('error');
         const errorDesc = reqUrl.searchParams.get('error_description');
+        const returnedState = String(reqUrl.searchParams.get('state') || '');
 
         if (!code && !error) {
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Frame-Options': 'DENY' });
           return res.end('<h3>Đang chờ xác thực Microsoft...</h3>');
+        }
+
+        const stateBufA = Buffer.from(returnedState, 'utf8');
+        const stateBufB = Buffer.from(oauthState, 'utf8');
+        if (stateBufA.length !== stateBufB.length || !crypto.timingSafeEqual(stateBufA, stateBufB)) {
+          res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8', 'X-Frame-Options': 'DENY' });
+          return res.end(buildErrorHtml('Phiên xác thực OAuth không khớp mã bảo vệ CSRF (state). Vui lòng bấm đăng nhập lại từ Launcher.'));
         }
 
         if (completed) {
@@ -401,7 +414,7 @@ function openMicrosoftLoginPopup(parentWindow) {
     server.listen(25560, '127.0.0.1', () => {
       const port = server.address().port;
       const redirectUri = `http://localhost:${port}`;
-      const authUrl = `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=${AZURE_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(AZURE_SCOPE)}&prompt=select_account`;
+      const authUrl = `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=${AZURE_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(AZURE_SCOPE)}&state=${encodeURIComponent(oauthState)}&prompt=select_account`;
       shell.openExternal(authUrl);
     });
 
@@ -409,7 +422,7 @@ function openMicrosoftLoginPopup(parentWindow) {
       server.listen(0, '127.0.0.1', () => {
         const port = server.address().port;
         const redirectUri = `http://localhost:${port}`;
-        const authUrl = `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=${AZURE_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(AZURE_SCOPE)}&prompt=select_account`;
+        const authUrl = `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=${AZURE_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(AZURE_SCOPE)}&state=${encodeURIComponent(oauthState)}&prompt=select_account`;
         shell.openExternal(authUrl);
       });
     });
@@ -1395,6 +1408,7 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
 
     let completed = false;
     let timeoutTimer = null;
+    const oauthState = crypto.randomBytes(16).toString('hex');
 
     const cleanup = () => {
       if (timeoutTimer) {
@@ -1424,8 +1438,12 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
         }
 
         if (req.method === 'GET') {
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-          return res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Cổng Tài Khoản BlockWay Cloud</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #06b6d4;border-radius:18px;padding:32px 38px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(6,182,212,0.16);color:#22d3ee;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#22d3ee;margin:0 0 6px;font-size:21px}p{color:#94a3b8;font-size:13px;margin:0 0 18px}label{display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin:10px 0 4px}input{width:100%;box-sizing:border-box;height:40px;padding:0 12px;border-radius:9px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:14px;outline:none}input:focus{border-color:#06b6d4}.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.btn{height:42px;border-radius:10px;border:none;font-weight:800;font-size:13.5px;cursor:pointer;color:#fff}.login{background:#16a34a}.reg{background:#0284c7}</style></head><body><div class="card"><div class="badge">🛡️ BLOCKWAY CLOUD WEB PORTAL</div><h2>Đăng Nhập / Đăng Ký Trên Web</h2><p>Hệ thống tài khoản độc lập của BlockWay Launcher (không cần Microsoft). Tự động đồng bộ vào Launcher ngay sau khi xác nhận!</p><form method="POST" action="/"><label>Email hoặc Tên đăng nhập:</label><input type="text" name="loginId" required placeholder="VD: player@gmail.com" autocomplete="username" /><label>Mật khẩu (≥8 ký tự):</label><input type="password" name="password" required minlength="8" placeholder="Nhập mật khẩu..." autocomplete="current-password" /><label>Tên Nhân Vật Minecraft (Nếu đăng ký mới):</label><input type="text" name="mcUsername" maxlength="16" placeholder="VD: StevePlayer (Bỏ trống nếu đã có TK)" /><div class="btns"><button class="btn login" type="submit" name="action" value="login">🔑 Đăng Nhập</button><button class="btn reg" type="submit" name="action" value="register">✨ Tạo Tài Khoản</button></div></form></div></body></html>`);
+          res.writeHead(200, {
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-Frame-Options': 'DENY',
+            'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'"
+          });
+          return res.end(`<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>Cổng Tài Khoản BlockWay Cloud</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#090d16;color:#f8fafc;font-family:'Segoe UI',system-ui,sans-serif}.card{background:#111827;border:2px solid #06b6d4;border-radius:18px;padding:32px 38px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,0.7)}.badge{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(6,182,212,0.16);color:#22d3ee;font-weight:800;font-size:12px;margin-bottom:10px}h2{color:#22d3ee;margin:0 0 6px;font-size:21px}p{color:#94a3b8;font-size:13px;margin:0 0 18px}label{display:block;font-size:12px;font-weight:700;color:#cbd5e1;margin:10px 0 4px}input{width:100%;box-sizing:border-box;height:40px;padding:0 12px;border-radius:9px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:14px;outline:none}input:focus{border-color:#06b6d4}.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.btn{height:42px;border-radius:10px;border:none;font-weight:800;font-size:13.5px;cursor:pointer;color:#fff}.login{background:#16a34a}.reg{background:#0284c7}</style></head><body><div class="card"><div class="badge">🛡️ BLOCKWAY CLOUD WEB PORTAL</div><h2>Đăng Nhập / Đăng Ký Trên Web</h2><p>Hệ thống tài khoản độc lập của BlockWay Launcher (không cần Microsoft). Tự động đồng bộ vào Launcher ngay sau khi xác nhận!</p><form method="POST" action="/"><input type="hidden" name="csrfToken" value="${oauthState}" /><label>Email hoặc Tên đăng nhập:</label><input type="text" name="loginId" required placeholder="VD: player@gmail.com" autocomplete="username" /><label>Mật khẩu (≥8 ký tự):</label><input type="password" name="password" required minlength="8" placeholder="Nhập mật khẩu..." autocomplete="current-password" /><label>Tên Nhân Vật Minecraft (Nếu đăng ký mới):</label><input type="text" name="mcUsername" maxlength="16" placeholder="VD: StevePlayer (Bỏ trống nếu đã có TK)" /><div class="btns"><button class="btn login" type="submit" name="action" value="login">🔑 Đăng Nhập</button><button class="btn reg" type="submit" name="action" value="register">✨ Tạo Tài Khoản</button></div></form></div></body></html>`);
         }
 
         if (req.method !== 'POST') {
@@ -1439,6 +1457,13 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
         }
 
         const form = await parseFormBody(req);
+        const submittedCsrf = String(form.get('csrfToken') || '');
+        const csrfA = Buffer.from(submittedCsrf, 'utf8');
+        const csrfB = Buffer.from(oauthState, 'utf8');
+        if (csrfA.length !== csrfB.length || !crypto.timingSafeEqual(csrfA, csrfB)) {
+          res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+          return res.end('CSRF token mismatch');
+        }
         const action = form.get('action') || '';
         const loginId = form.get('loginId') || '';
         const password = form.get('password') || '';

@@ -8,6 +8,9 @@ on:
       - 'docs/**'
       - '*.md'
       - 'google*.html'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -26,6 +29,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'npm'
 
       - name: Read package.json version
         id: pkg
@@ -34,13 +38,18 @@ jobs:
           $v = node -p "require('./package.json').version"
           "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-      - name: Install dependencies in GitHub Cloud
-        run: npm install
+      - name: Clean install dependencies (Reproducible lockfile)
+        run: npm ci
+
+      - name: Run automated syntax, security & smoke tests
+        run: npm test
 
       - name: Build Windows Setup & Portable EXE
+        if: github.event_name != 'pull_request'
         run: npm run dist:win
 
       - name: Upload Windows Artifacts
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: BlockWay-Windows-v${{ steps.pkg.outputs.version }}
@@ -57,19 +66,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'npm'
 
       - name: Read package.json version
         id: pkg
         run: |
           echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
-      - name: Install dependencies in GitHub Cloud
-        run: npm install
+      - name: Clean install dependencies (Reproducible lockfile)
+        run: npm ci
+
+      - name: Run automated syntax, security & smoke tests
+        run: npm test
 
       - name: Build Linux AppImage & DEB
+        if: github.event_name != 'pull_request'
         run: npm run dist:linux
 
       - name: Upload Linux Artifacts
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: BlockWay-Linux-v${{ steps.pkg.outputs.version }}
@@ -78,9 +93,31 @@ jobs:
             dist/*.deb
 
   publish-release:
+    if: github.event_name != 'pull_request'
     needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository for release notes
+        uses: actions/checkout@v4
+
+      - name: Build release notes from ota-manifest.json
+        id: notes
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            const ota = JSON.parse(fs.readFileSync('./ota-manifest.json', 'utf8'));
+            const body = [
+              '### 📦 BlockWay Launcher v' + pkg.version + ' PRO — Every World, One Place (Windows & Linux)',
+              '',
+              '- **📝 Điểm mới bản này:** ' + (ota.notes || pkg.description),
+              '- **🦀 8 Core Loaders (Java & Native Horizon Rust):** Hỗ trợ đầy đủ Vanilla, OptiFine, Fabric, Forge, NeoForge, Quilt, Legacy Fabric và **Horizon Rust** (Vulkan / DirectX 12, kho `.hmod` & `.hshader` WGSL chính thức, tự kiểm định tương thích trước khi cài).',
+              '- **🔒 Kiến trúc Bảo mật & Cập nhật OTA SHA-256:** Electron `contextIsolation` + `sandbox`, xác thực nguồn gọi IPC, mã hóa token tài khoản qua `safeStorage` (DPAPI / Keyring) và cập nhật delta OTA kiểm định SHA-256 kèm rollback nguyên tử.',
+              '- **🐧 Hỗ trợ Windows (`.exe` Setup / Portable) & Linux (`.AppImage` / `.deb`):** Quy trình build tái lập `npm ci` + kiểm thử tự động `npm test`.'
+            ].join('\n');
+            fs.writeFileSync('RELEASE_BODY.md', body, 'utf8');
+          "
+
       - name: Download Windows & Linux Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -92,12 +129,7 @@ jobs:
         with:
           tag_name: v${{ needs.build-windows.outputs.version }}
           name: "BlockWay Launcher v${{ needs.build-windows.outputs.version }} PRO - Windows & Linux"
-          body: |
-            ### 📦 BlockWay Launcher v${{ needs.build-windows.outputs.version }} PRO - Every World, One Place (Windows & Linux)
-            - **🐧 Hỗ Trợ Đa Nền Tảng Windows (`.exe`) & Linux (`.AppImage` / `.deb`):** Tự động tải Java Runtime (8 / 17 / 21 / 25) và FFmpeg theo đúng hệ điều hành, quét Launcher ngoài chuẩn XDG / Flatpak, hỗ trợ Discord Rich Presence trên Linux và tự bật tăng tốc đa luồng OpenGL (`mesa_glthread=true` / NVIDIA Prime Offload).
-            - **⚡ Turbo Smooth Core™ 6 Tầng & Generational ZGC (`< 0.05 ms`):** Tự động tối ưu `options.txt`, `optionsof.txt`, `sodium-options.json` (độ trễ 1-frame), `modernfix-mixins.properties`, `immediatelyfast.json`, gỡ khóa 30 FPS giao diện Exordium và hoàn tác 1-Click.
-            - **👤 Menu Nhanh Tài Khoản, Ảnh Avatar Hồ Sơ Riêng & Nhận Diện Khuôn Mặt Skin Thông Minh:** Chuyển nhanh *Cloud • Offline • Microsoft*, tải ảnh đại diện riêng (`.PNG` / `.JPG` / `.WEBP`) không làm đổi Skin 3D trong game.
-            - **🔆 Trợ Lý `OptiFine` Đa Nền Tảng & Kho Hạt Giống 16:9:** Chọn tự do mọi phiên bản MC (`1.7.10 → 26.3`) và mọi Mod Loader (`Core OptiFine`, `Fabric`, `Forge`, `NeoForge`, `Quilt`), tích chọn từng tính năng lẻ và tạo Thế giới Seed 16:9 1-Click.
+          body_path: RELEASE_BODY.md
           files: |
             release-dist/*.exe
             release-dist/*.AppImage

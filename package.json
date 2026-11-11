@@ -1,7 +1,7 @@
 {
   "name": "blockway-launcher",
-  "version": "41.7.1",
-  "description": "BlockWay Launcher v41.7.1 PRO — Every World, One Place. Minecraft Java & Native Horizon Rust launcher with Official .hmod/.hshader Rust Registry, Strict Pre-Install Rust Verification, 5 Native Rust Client Mods, and UI Customization Studio.",
+  "version": "41.8.0",
+  "description": "BlockWay Launcher v41.8.0 PRO — Every World, One Place. Minecraft Java & Native Horizon Rust launcher (8 Core Loaders) with hardened IPC/OTA/safeStorage security, Official .hmod/.hshader Rust Registry, and UI Studio.",
   "homepage": "https://buiduchuy2010qn-prog.github.io/blockway-launcher/",
   "repository": {
     "type": "git",
@@ -13,6 +13,7 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
+    "test": "node --test test/smoke.test.js",
     "dist:win": "electron-builder --win nsis portable --publish never",
     "dist:linux": "electron-builder --linux AppImage deb --publish never"
   },

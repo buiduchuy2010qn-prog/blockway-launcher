@@ -1,3 +1,23 @@
+function escapeHtml(val) {
+  return String(val ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+if (typeof window !== 'undefined' && typeof window.escapeHtml !== 'function') {
+  window.escapeHtml = escapeHtml;
+}
+function sanitizeCssBgUrl(rawUrl) {
+  const s = String(rawUrl || '').trim();
+  if (!s) return 'app-banner-hero.png';
+  if (/^(data:image\/|file:\/\/|https:\/\/)/i.test(s) || /^[A-Za-z0-9._/-]+$/.test(s)) {
+    return s.replace(/["'()\\\r\n]/g, (ch) => `%${ch.charCodeAt(0).toString(16).padStart(2, '0')}`);
+  }
+  return 'app-banner-hero.png';
+}
+
 const DEFAULT_FEATURED_SERVERS = [
   // 🇻🇳 MÁY CHỦ VIỆT NAM NỔI BẬT (OFFLINE / LOCAL & MICROSOFT)
   { name: 'KingMC Network (Việt Nam • BoxPvP / Skyblock)', ip: 'play.kingmc.vn', cat: 'vn' },
@@ -421,9 +441,10 @@ async function renderSkinCloset() {
   const faces = await Promise.all(list.map((s) => skinFaceFromDataUrl(s.dataUrl)));
   tray.innerHTML = list.map((s, i) => {
     const active = s.dataUrl === currentSkinDataUrl;
-    const safeName = String(s.name || 'Skin').replace(/[<>&"]/g, '');
+    const safeName = escapeHtml(s.name || 'Skin');
+    const safeFace = typeof faces[i] === 'string' && /^data:image\//i.test(faces[i]) ? escapeHtml(faces[i]) : '';
     return `<button type="button" class="skin-closet-item ${active ? 'active' : ''}" data-closetidx="${i}" title="Mặc lại: ${safeName}">
-      ${faces[i] ? `<img src="${faces[i]}" alt="" />` : '👕'}
+      ${safeFace ? `<img src="${safeFace}" alt="" />` : '👕'}
       <span>${safeName}</span>
     </button>`;
   }).join('');
@@ -820,7 +841,7 @@ function updateSummaryUI() {
   const heroBanner = document.getElementById('heroBanner');
   if (heroBanner) {
     const wpUrl = state.customWallpaper || 'app-banner-hero.png';
-    heroBanner.style.backgroundImage = `url("${String(wpUrl).replace(/"/g, '%22')}")`;
+    heroBanner.style.backgroundImage = `url("${sanitizeCssBgUrl(wpUrl)}")`;
     heroBanner.classList.toggle('is-brand-wallpaper', wpUrl === 'app-banner-hero.png');
     document.querySelectorAll('.wp-chip').forEach((w) => w.classList.toggle('active', w.dataset.wp === wpUrl));
   }
@@ -833,13 +854,15 @@ function updateSummaryUI() {
   const modCoreUpper = isHorizonMode ? 'NHÂN RUST HORIZON' : activeModCore.toUpperCase();
   const subDescEl = document.getElementById('modStoreSubDesc');
   if (subDescEl) {
-    const safePackName = String(modTgt?.inst?.name || 'Modpack').replace(/[<>&"]/g, '');
+    const safePackName = escapeHtml(modTgt?.inst?.name || 'Modpack');
+    const safeModVer = escapeHtml(modVer);
+    const safeCoreUpper = escapeHtml(modCoreUpper);
     if (modTgt?.isPack) {
-      subDescEl.innerHTML = `Đang cài vào gói <strong id="modStoreVerLabel">${safePackName} • MC ${modVer}</strong> (${modCoreUpper}) — tự động khớp phiên bản.`;
+      subDescEl.innerHTML = `Đang cài vào gói <strong id="modStoreVerLabel">${safePackName} • MC ${safeModVer}</strong> (${safeCoreUpper}) — tự động khớp phiên bản.`;
     } else if (isHorizonMode) {
-      subDescEl.innerHTML = `Đang chọn <strong id="modStoreVerLabel">MC ${modVer} • Nhân Rust Horizon</strong> — tự bật tiện ích Rust gốc &amp; chuyển đổi Mod / Datapack 1 chạm.`;
+      subDescEl.innerHTML = `Đang chọn <strong id="modStoreVerLabel">MC ${safeModVer} • Nhân Rust Horizon</strong> — tự bật tiện ích Rust gốc &amp; chuyển đổi Mod / Datapack 1 chạm.`;
     } else {
-      subDescEl.innerHTML = `Đang chọn cấu hình <strong id="modStoreVerLabel">MC ${modVer} • ${modCoreUpper}</strong> — tải 1 chạm, tự động kèm thư viện bắt buộc.`;
+      subDescEl.innerHTML = `Đang chọn cấu hình <strong id="modStoreVerLabel">MC ${safeModVer} • ${safeCoreUpper}</strong> — tải 1 chạm, tự động kèm thư viện bắt buộc.`;
     }
   }
   document.getElementById('btnStoreFpsBoost')?.classList.toggle('hidden', isHorizonMode);
@@ -1081,7 +1104,7 @@ function applyHeroWallpaper(url, label = '') {
   state.customWpLabel = label || '';
   const heroBanner = document.getElementById('heroBanner');
   if (heroBanner) {
-    heroBanner.style.backgroundImage = `url("${wpUrl.replace(/"/g, '%22')}")`;
+    heroBanner.style.backgroundImage = `url("${sanitizeCssBgUrl(wpUrl)}")`;
     heroBanner.classList.toggle('is-brand-wallpaper', wpUrl === 'app-banner-hero.png');
   }
   document.querySelectorAll('.wp-chip').forEach((w) => w.classList.toggle('active', w.dataset.wp === wpUrl));
@@ -1113,7 +1136,8 @@ function renderQuickVersionGrid() {
   if (!grid) return;
   grid.innerHTML = POPULAR_VERSIONS.map((v) => {
     const installed = isVersionInstalledOnDisk(v), active = state.selectedVersion === v ? 'active' : '';
-    return `<button class="qver-chip ${active}" data-qver="${v}"><strong>${v}</strong><span class="qver-status ${installed ? 'ready' : 'cloud'}">${installed ? '✓ Đã cài' : '⬇ Tải về'}</span></button>`;
+    const safeV = escapeHtml(v);
+    return `<button class="qver-chip ${active}" data-qver="${safeV}"><strong>${safeV}</strong><span class="qver-status ${installed ? 'ready' : 'cloud'}">${installed ? '✓ Đã cài' : '⬇ Tải về'}</span></button>`;
   }).join('');
   grid.querySelectorAll('.qver-chip').forEach((btn) => {
     btn.onclick = async () => {
@@ -1128,7 +1152,7 @@ function renderQuickVersionGrid() {
 function renderSavedAccounts() {
   const bar = document.getElementById('savedAccountsBar');
   if (!bar) return;
-  const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s) => String(s ?? '');
+  const esc = escapeHtml;
   bar.innerHTML = state.savedAccounts.map((acc) => {
     const active = acc.toLowerCase() === state.username.toLowerCase() ? 'active' : '';
     const safeAcc = esc(acc);
@@ -1177,7 +1201,9 @@ async function refreshLoaderBuilds() {
   }
   loaderSelect.innerHTML = res.data.map((item) => {
     const labelText = item.displayLabel || `${item.version} ${item.stable ? '(Ổn định)' : ''}`;
-    return `<option value="${item.version}" ${item.version === chosenVer ? 'selected' : ''}>${labelText}</option>`;
+    const safeVal = escapeHtml(item.version);
+    const safeLbl = escapeHtml(labelText);
+    return `<option value="${safeVal}" ${item.version === chosenVer ? 'selected' : ''}>${safeLbl}</option>`;
   }).join('');
   state.selectedLoaderVersion = chosenVer;
   updateSummaryUI();
@@ -1190,7 +1216,10 @@ function renderVersionOptions() {
     if (state.versionFilter === 'snapshot') return v.type === 'snapshot';
     return v.type === 'old_beta' || v.type === 'old_alpha';
   });
-  select.innerHTML = filtered.map((v) => `<option value="${v.id}" ${v.id === state.selectedVersion ? 'selected' : ''}>Minecraft ${v.id}${isVersionInstalledOnDisk(v.id) ? ' ✓ (Đã tải)' : ''}</option>`).join('');
+  select.innerHTML = filtered.map((v) => {
+    const safeId = escapeHtml(v.id);
+    return `<option value="${safeId}" ${v.id === state.selectedVersion ? 'selected' : ''}>Minecraft ${safeId}${isVersionInstalledOnDisk(v.id) ? ' ✓ (Đã tải)' : ''}</option>`;
+  }).join('');
   if (filtered.length > 0 && !filtered.some((v) => v.id === state.selectedVersion)) {
     state.selectedVersion = filtered[0].id; select.value = state.selectedVersion;
   }
@@ -1200,7 +1229,8 @@ function renderVersionOptions() {
 function renderFullVersionTable(query = '') {
   const container = document.getElementById('fullVersionsList');
   if (!container) return;
-  const grassSrc = document.getElementById('dockGrassImg')?.src || '';
+  const rawGrassSrc = document.getElementById('dockGrassImg')?.src || '';
+  const grassSrc = /^(file:|data:image\/|https:\/\/)/i.test(rawGrassSrc) ? escapeHtml(rawGrassSrc) : '';
   const q = query.trim().toLowerCase();
   const vf = state.fullVersionFilter || 'all';
 
@@ -1222,12 +1252,13 @@ function renderFullVersionTable(query = '') {
   }
 
   container.innerHTML = list.map((v) => {
-    const dateStr = v.releaseTime ? new Date(v.releaseTime).toLocaleDateString('vi-VN') : 'Chính thức';
+    const dateStr = escapeHtml(v.releaseTime ? new Date(v.releaseTime).toLocaleDateString('vi-VN') : 'Chính thức');
     const inst = isVersionInstalledOnDisk(v.id);
-    const displayName = v.id.length > 11 ? v.id : `Minecraft ${v.id}`;
+    const safeId = escapeHtml(v.id);
+    const displayName = escapeHtml(v.id.length > 11 ? v.id : `Minecraft ${v.id}`);
     const badgeClass = inst ? 'installed' : (v.type === 'release' ? 'release' : 'snapshot');
     const badgeLabel = inst ? '✓ Đã cài' : (v.type === 'release' ? 'Release' : (v.type === 'snapshot' ? 'Snapshot' : 'Legacy'));
-    return `<div class="ver-row-card ${v.id === state.selectedVersion ? 'active' : ''}" data-ver="${v.id}" title="Minecraft ${v.id} (${dateStr})">
+    return `<div class="ver-row-card ${v.id === state.selectedVersion ? 'active' : ''}" data-ver="${safeId}" title="Minecraft ${safeId} (${dateStr})">
       <div class="ver-card-left">
         ${grassSrc ? `<img src="${grassSrc}" class="ver-card-icon" draggable="false"/>` : ''}
         <div class="ver-card-text">
@@ -1890,7 +1921,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   function renderSidebarProfilePopover() {
     if (!sbPopover) return;
-    const esc = typeof window.escapeHtml === 'function' ? window.escapeHtml : (s) => String(s ?? '');
+    const esc = escapeHtml;
     const isMs = Boolean(state.authMode === 'microsoft' && state.msProfile?.name);
     const isCloud = Boolean(state.authMode === 'aether' && state.cloudProfile?.mcUsername);
     const activePlayer = isMs ? state.msProfile.name : (isCloud ? state.cloudProfile.mcUsername : (state.username || 'StevePlayer'));
