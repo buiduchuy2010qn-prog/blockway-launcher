@@ -32,7 +32,8 @@ const state = {
   versions: [], installedVersions: [], skinModel: 'default', selectedSkinPreset: '', cachedSkinDataUrl: '', customAvatarDataUrl: '', capeType: 'mojang', backEquipment: 'cape', stageStars: true,
   activeModStoreType: 'mod', activeLocalFolder: 'mods', serverCategoryFilter: 'all',
   favoriteServers: [...DEFAULT_FEATURED_SERVERS],
-  winResolution: '1280x720', uiScale: 1.0, outerLayerVisible: true, stageBgMode: 'stars', serverPingCache: {}, acceptedEula: false, skipLaunchConfirm: false, isLaunching: false,
+  winResolution: '1280x720', uiScale: 1.0, accentColor: '', uiDensity: 'normal', uiSidebarMode: 'full', uiCornerMode: 'normal',
+  outerLayerVisible: true, stageBgMode: 'stars', serverPingCache: {}, acceptedEula: false, skipLaunchConfirm: false, isLaunching: false,
   activeLaunchContext: null, lastLaunchContext: null,
   autoBackupWorlds: true, discordRpcEnabled: false, autoViLang: true, potatoGraphicsPreset: false, smartRamCoach: true, gentleSmoothMode: true,
   deepSmoothEngine: true, deepSmoothProfile: 'balanced', deepSmoothLayers: ['vanilla_io', 'optifine', 'sodium', 'modernfix', 'culling_hud', 'jvm_lowlatency'],
@@ -133,6 +134,78 @@ function applyUiScaleToUI(scale, notify = false) {
 }
 window.applyUiScaleToUI = applyUiScaleToUI;
 
+function applyUiCustomizationToDOM() {
+  const root = document.documentElement;
+  if (!root) return;
+  if (state.theme) root.setAttribute('data-theme', state.theme);
+  const density = ['compact', 'normal', 'spacious'].includes(state.uiDensity) ? state.uiDensity : 'normal';
+  const sidebarMode = state.uiSidebarMode === 'rail' ? 'rail' : 'full';
+  const cornerMode = ['round', 'normal', 'sharp'].includes(state.uiCornerMode) ? state.uiCornerMode : 'normal';
+  state.uiDensity = density;
+  state.uiSidebarMode = sidebarMode;
+  state.uiCornerMode = cornerMode;
+  root.setAttribute('data-ui-density', density);
+  root.setAttribute('data-ui-sidebar', sidebarMode);
+  root.setAttribute('data-ui-corners', cornerMode);
+
+  const customVars = [
+    '--accent', '--accent-strong', '--accent-glow', '--accent-border',
+    '--bw-card-strong', '--bw-nav-grad', '--bw-nav-border', '--bw-nav-shadow'
+  ];
+  const hex = String(state.accentColor || '').trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(hex)) {
+    state.accentColor = hex;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const dr = Math.max(0, Math.round(r * 0.82));
+    const dg = Math.max(0, Math.round(g * 0.82));
+    const db = Math.max(0, Math.round(b * 0.82));
+    const lr = Math.min(255, Math.round(r + (255 - r) * 0.28));
+    const lg = Math.min(255, Math.round(g + (255 - g) * 0.28));
+    const lb = Math.min(255, Math.round(b + (255 - b) * 0.28));
+    const darkHex = `#${[dr, dg, db].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+    const lightHex = `#${[lr, lg, lb].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+    root.style.setProperty('--accent', hex);
+    root.style.setProperty('--accent-strong', darkHex);
+    root.style.setProperty('--accent-glow', `rgba(${r}, ${g}, ${b}, 0.20)`);
+    root.style.setProperty('--accent-border', `rgba(${r}, ${g}, ${b}, 0.52)`);
+    root.style.setProperty('--bw-card-strong', `rgba(${r}, ${g}, ${b}, 0.38)`);
+    root.style.setProperty('--bw-nav-grad', `linear-gradient(90deg, ${darkHex} 0%, ${hex} 58%, ${lightHex} 100%)`);
+    root.style.setProperty('--bw-nav-border', `rgba(${r}, ${g}, ${b}, 0.58)`);
+    root.style.setProperty('--bw-nav-shadow', `0 6px 16px rgba(${r}, ${g}, ${b}, 0.28)`);
+  } else {
+    state.accentColor = '';
+    customVars.forEach((v) => root.style.removeProperty(v));
+  }
+
+  document.querySelectorAll('.ts-chip').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.themePick === state.theme);
+  });
+  let matchedPresetAccent = false;
+  document.querySelectorAll('[data-accent-pick]').forEach((btn) => {
+    const val = String(btn.dataset.accentPick || '').toLowerCase();
+    const isAct = val === state.accentColor;
+    if (isAct && val) matchedPresetAccent = true;
+    btn.classList.toggle('active', isAct);
+  });
+  const customInp = document.getElementById('customAccentColorInput');
+  if (customInp) {
+    if (state.accentColor) customInp.value = state.accentColor;
+    customInp.closest('.accent-custom-picker')?.classList.toggle('active', Boolean(state.accentColor && !matchedPresetAccent));
+  }
+  document.querySelectorAll('[data-uidensity]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.uidensity === density);
+  });
+  document.querySelectorAll('[data-uisidebar]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.uisidebar === sidebarMode);
+  });
+  document.querySelectorAll('[data-uicorners]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.uicorners === cornerMode);
+  });
+}
+window.applyUiCustomizationToDOM = applyUiCustomizationToDOM;
+
 // Pre-paint synchronous boot snapshot (zero flash of wrong theme / StevePlayer / 1.21.4 on startup)
 (function applyBootSnapshotSync() {
   try {
@@ -149,9 +222,7 @@ window.applyUiScaleToUI = applyUiScaleToUI;
     state.isLaunching = false;
     state.pendingQuickWorldFolder = '';
     state.pendingQuickWorldTitle = '';
-    if (state.theme) {
-      document.documentElement.setAttribute('data-theme', state.theme);
-    }
+    applyUiCustomizationToDOM();
   } catch (_) {}
 })();
 
@@ -413,8 +484,7 @@ function setPose(poseName) {
 
 function setTheme(themeId) {
   state.theme = themeId || 'lunar';
-  document.documentElement.setAttribute('data-theme', state.theme);
-  document.querySelectorAll('.ts-chip').forEach((btn) => btn.classList.toggle('active', btn.dataset.themePick === state.theme));
+  applyUiCustomizationToDOM();
   saveCurrentConfig();
 }
 
@@ -758,13 +828,24 @@ function updateSummaryUI() {
   if (javaBadge) javaBadge.textContent = getRecommendedJavaBadge(ver);
   const modTgt = typeof window.getModStoreTarget === 'function' ? window.getModStoreTarget() : null;
   const modVer = modTgt?.mcVersion || ver;
-  const modCoreUpper = (modTgt?.core || effectiveCore).toUpperCase();
-  const storeLabel = document.getElementById('modStoreVerLabel');
-  if (storeLabel) {
-    storeLabel.textContent = modTgt?.isPack
-      ? `${modTgt.inst?.name || 'Modpack'} — MC ${modVer} (${modCoreUpper})`
-      : `${modVer} (${modCoreUpper})`;
+  const activeModCore = String(modTgt?.core || effectiveCore || 'fabric').toLowerCase();
+  const isHorizonMode = activeModCore === 'horizon' && !modTgt?.isPack;
+  const modCoreUpper = isHorizonMode ? 'NHÂN RUST HORIZON' : activeModCore.toUpperCase();
+  const subDescEl = document.getElementById('modStoreSubDesc');
+  if (subDescEl) {
+    const safePackName = String(modTgt?.inst?.name || 'Modpack').replace(/[<>&"]/g, '');
+    if (modTgt?.isPack) {
+      subDescEl.innerHTML = `Đang cài vào gói <strong id="modStoreVerLabel">${safePackName} • MC ${modVer}</strong> (${modCoreUpper}) — tự động khớp phiên bản.`;
+    } else if (isHorizonMode) {
+      subDescEl.innerHTML = `Đang chọn <strong id="modStoreVerLabel">MC ${modVer} • Nhân Rust Horizon</strong> — tự bật tiện ích Rust gốc &amp; chuyển đổi Mod / Datapack 1 chạm.`;
+    } else {
+      subDescEl.innerHTML = `Đang chọn cấu hình <strong id="modStoreVerLabel">MC ${modVer} • ${modCoreUpper}</strong> — tải 1 chạm, tự động kèm thư viện bắt buộc.`;
+    }
   }
+  document.getElementById('btnStoreFpsBoost')?.classList.toggle('hidden', isHorizonMode);
+  document.getElementById('btnModsOptifineHub')?.classList.toggle('hidden', isHorizonMode);
+  document.getElementById('btnHorizonPortJarHub')?.classList.toggle('hidden', !isHorizonMode);
+  document.getElementById('btnHorizonHeaderPackPort')?.classList.toggle('hidden', !isHorizonMode);
   const modTgtBadge = document.getElementById('modTargetActiveBadge');
   if (modTgtBadge) {
     modTgtBadge.textContent = modTgt?.isPack
@@ -775,8 +856,8 @@ function updateSummaryUI() {
   if (btnModAllVer) {
     btnModAllVer.classList.toggle('active', !state.modAllVersions);
     btnModAllVer.textContent = state.modAllVersions
-      ? `🌐 Mọi phiên bản (Bấm để khớp ${modVer})`
-      : `🎯 Đang tự khớp: ${modVer} (${modCoreUpper})`;
+      ? `🌐 Mọi phiên bản MC (Lọc ${modVer})`
+      : `🎯 Lọc chuẩn: ${modVer}`;
   }
   updatePlaytimeUI();
   if (typeof refreshLocalAddonsCount === 'function') refreshLocalAddonsCount();
@@ -956,6 +1037,10 @@ function saveCurrentConfig() {
         deepSmoothLayers: Array.isArray(state.deepSmoothLayers) ? state.deepSmoothLayers : null,
         autoCreateFirstWorld: state.autoCreateFirstWorld !== false,
         uiScale: Number(state.uiScale) || 1.0,
+        accentColor: state.accentColor || '',
+        uiDensity: state.uiDensity || 'normal',
+        uiSidebarMode: state.uiSidebarMode || 'full',
+        uiCornerMode: state.uiCornerMode || 'normal',
         customWallpaper: state.customWallpaper || '',
         playtimeTotalSec: Number(state.playtimeStats?.totalSeconds) || 0,
         installedVersions: Array.isArray(state.installedVersions) ? state.installedVersions.slice(0, 40) : []
@@ -969,7 +1054,9 @@ function saveCurrentConfig() {
       javaPath: state.javaPath, gameDir: state.gameDir, serverIp: state.serverIp,
       fastSkipHash: state.fastSkipHash, aikarFlags: state.aikarFlags,
       hideLauncherOnPlay: state.hideLauncherOnPlay, skinModel: state.skinModel, selectedSkinPreset: state.selectedSkinPreset, cachedSkinDataUrl: state.cachedSkinDataUrl, customAvatarDataUrl: state.customAvatarDataUrl || '',
-      capeType: state.capeType, winResolution: state.winResolution, uiScale: Number(state.uiScale) || 1.0, favoriteServers: state.favoriteServers, acceptedEula: state.acceptedEula, skipLaunchConfirm: state.skipLaunchConfirm,
+      capeType: state.capeType, winResolution: state.winResolution, uiScale: Number(state.uiScale) || 1.0,
+      accentColor: state.accentColor || '', uiDensity: state.uiDensity || 'normal', uiSidebarMode: state.uiSidebarMode || 'full', uiCornerMode: state.uiCornerMode || 'normal',
+      favoriteServers: state.favoriteServers, acceptedEula: state.acceptedEula, skipLaunchConfirm: state.skipLaunchConfirm,
       autoBackupWorlds: state.autoBackupWorlds !== false, discordRpcEnabled: state.discordRpcEnabled !== false,
       autoViLang: state.autoViLang !== false, potatoGraphicsPreset: Boolean(state.potatoGraphicsPreset),
       smartRamCoach: state.smartRamCoach !== false,
@@ -1654,6 +1741,66 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   document.querySelectorAll('.ts-chip').forEach((chip) => { chip.onclick = () => setTheme(chip.dataset.themePick); });
+  document.querySelectorAll('[data-accent-pick]').forEach((btn) => {
+    btn.onclick = () => {
+      state.accentColor = String(btn.dataset.accentPick || '').toLowerCase();
+      applyUiCustomizationToDOM();
+      saveCurrentConfig();
+    };
+  });
+  const customAccentInp = document.getElementById('customAccentColorInput');
+  if (customAccentInp) {
+    customAccentInp.oninput = () => {
+      state.accentColor = String(customAccentInp.value || '').toLowerCase();
+      applyUiCustomizationToDOM();
+    };
+    customAccentInp.onchange = () => saveCurrentConfig();
+  }
+  document.querySelectorAll('[data-uidensity]').forEach((btn) => {
+    btn.onclick = () => {
+      state.uiDensity = btn.dataset.uidensity || 'normal';
+      applyUiCustomizationToDOM();
+      saveCurrentConfig();
+    };
+  });
+  document.querySelectorAll('[data-uisidebar]').forEach((btn) => {
+    btn.onclick = () => {
+      state.uiSidebarMode = btn.dataset.uisidebar || 'full';
+      applyUiCustomizationToDOM();
+      saveCurrentConfig();
+    };
+  });
+  document.querySelectorAll('[data-uicorners]').forEach((btn) => {
+    btn.onclick = () => {
+      state.uiCornerMode = btn.dataset.uicorners || 'normal';
+      applyUiCustomizationToDOM();
+      saveCurrentConfig();
+    };
+  });
+  const btnResetUiStudio = document.getElementById('btnResetUiStudioDefaults');
+  if (btnResetUiStudio) {
+    btnResetUiStudio.onclick = () => {
+      state.theme = 'lunar';
+      state.accentColor = '';
+      state.uiDensity = 'normal';
+      state.uiSidebarMode = 'full';
+      state.uiCornerMode = 'normal';
+      applyUiCustomizationToDOM();
+      applyUiScaleToUI(1.0, false);
+      saveCurrentConfig();
+      showAetherNotification('🎨 Đã khôi phục giao diện, màu nhấn, bố cục và cỡ chữ về mặc định!', 'success', 3200);
+    };
+  }
+  const btnOpenUiStudio = document.getElementById('btnOpenUiStudioSettings');
+  if (btnOpenUiStudio) {
+    btnOpenUiStudio.onclick = () => {
+      document.getElementById('themePickerPopover')?.classList.add('hidden');
+      switchMainTab('settings');
+      setTimeout(() => {
+        document.getElementById('uiCustomizationStudioCard')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 80);
+    };
+  }
   document.querySelectorAll('.sidebar-nav .nav-item').forEach((nav) => {
     nav.onclick = () => switchMainTab(nav.dataset.tab);
   });
@@ -2613,7 +2760,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const btnOpenModsFolder = document.getElementById('btnOpenModsFolder');
   if (btnOpenModsFolder) {
     btnOpenModsFolder.onclick = () => {
-      const folderMap = { mod: 'mods', shader: 'shaderpacks', resourcepack: 'resourcepacks', installed: state.activeLocalFolder };
+      const folderMap = { mod: 'mods', shader: 'shaderpacks', resourcepack: 'resourcepacks', 'rust-studio': 'horizon-mods', installed: state.activeLocalFolder };
       const targetDir = (typeof window.getModStoreTarget === 'function' ? window.getModStoreTarget().dir : '') || state.gameDir;
       window.aetherAPI.openSubFolder(targetDir, folderMap[state.activeModStoreType] || 'mods');
     };

@@ -49,7 +49,7 @@ const {
   exportPlayerPrefsSnapshot, importPlayerPrefsSnapshot,
   getWorldgenBoostStatus, installWorldgenBoostPack,
   getHorizonEngineStatus, ensureHorizonEnginePrepared, upgradeHorizonEngine,
-  portJavaJarsToHorizonRust, listHorizonRustMods, toggleHorizonRustMod, deleteHorizonRustMod
+  portJavaJarsToHorizonRust, portModpackToHorizonRust, listHorizonRustMods, toggleHorizonRustMod, deleteHorizonRustMod
 } = require('./launcher-engine');
 const {
   loginWithMicrosoftModal,
@@ -1731,9 +1731,9 @@ ipcMain.handle('horizon:port-jars', async (_e, options = {}) => {
 ipcMain.handle('horizon:pick-jars', async (_e, options = {}) => {
   try {
     const picked = await dialog.showOpenDialog(mainWindow, {
-      title: 'Chọn tệp Mod Java (.jar) để biên dịch sang .hmod (Rust)',
+      title: 'Chọn tệp Mod / Datapack (.jar, .zip) để chuyển sang Rust',
       properties: ['openFile', 'multiSelections'],
-      filters: [{ name: 'Minecraft Java Mod (.jar)', extensions: ['jar'] }]
+      filters: [{ name: 'Mod & Datapack (.jar, .zip)', extensions: ['jar', 'zip'] }]
     });
     if (picked.canceled || !Array.isArray(picked.filePaths) || picked.filePaths.length === 0) {
       return { ok: false, canceled: true };
@@ -1742,6 +1742,72 @@ ipcMain.handle('horizon:pick-jars', async (_e, options = {}) => {
       gameDir: options?.gameDir || '',
       rootDir: options?.rootDir || '',
       jarPaths: picked.filePaths,
+      autoEnable: options?.autoEnable !== false,
+      callbacks: {
+        onStatus: (msg) => mainWindow?.webContents.send('mc:status', msg),
+        onProgress: (p) => mainWindow?.webContents.send('mc:progress', p)
+      }
+    });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:port-pack', async (_e, options = {}) => {
+  try {
+    return await portModpackToHorizonRust({
+      packPath: options?.packPath || '',
+      gameDir: options?.gameDir || '',
+      rootDir: options?.rootDir || '',
+      autoEnable: options?.autoEnable !== false,
+      onlyIfUnported: Boolean(options?.onlyIfUnported),
+      callbacks: {
+        onStatus: (msg) => mainWindow?.webContents.send('mc:status', msg),
+        onProgress: (p) => mainWindow?.webContents.send('mc:progress', p)
+      }
+    });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:pick-pack', async (_e, options = {}) => {
+  try {
+    const picked = await dialog.showOpenDialog(mainWindow, {
+      title: 'Chọn gói Modpack (.mrpack / .zip) để chuyển đổi và chạy trên Rust',
+      properties: ['openFile'],
+      filters: [{ name: 'Gói Modpack (.mrpack, .zip)', extensions: ['mrpack', 'zip'] }]
+    });
+    if (picked.canceled || !Array.isArray(picked.filePaths) || picked.filePaths.length === 0) {
+      return { ok: false, canceled: true };
+    }
+    const chosenPack = picked.filePaths[0];
+    // If importAsInstance is requested, first import into .minecraft/instances/<slug>, then port to Rust!
+    if (options?.importAsInstance) {
+      const imp = await importPackFromFile({
+        filePath: chosenPack,
+        gameDir: options?.rootDir || options?.gameDir || '',
+        onProgress: (p) => mainWindow?.webContents.send('packs:progress', p)
+      });
+      if (!imp?.ok || !imp?.instance?.dir) {
+        return imp || { ok: false, error: 'Không thể nhập gói Modpack.' };
+      }
+      const ported = await portModpackToHorizonRust({
+        packPath: imp.instance.dir,
+        gameDir: imp.instance.dir,
+        rootDir: options?.rootDir || options?.gameDir || '',
+        autoEnable: true,
+        callbacks: {
+          onStatus: (msg) => mainWindow?.webContents.send('mc:status', msg),
+          onProgress: (p) => mainWindow?.webContents.send('mc:progress', p)
+        }
+      });
+      return { ...ported, ok: true, instance: imp.instance };
+    }
+    return await portModpackToHorizonRust({
+      packPath: chosenPack,
+      gameDir: options?.gameDir || '',
+      rootDir: options?.rootDir || '',
       autoEnable: options?.autoEnable !== false,
       callbacks: {
         onStatus: (msg) => mainWindow?.webContents.send('mc:status', msg),
@@ -1782,7 +1848,8 @@ ipcMain.handle('horizon:delete-hmod', async (_e, options = {}) => {
       gameDir: options?.gameDir || '',
       rootDir: options?.rootDir || '',
       modId: options?.modId || '',
-      fileName: options?.fileName || ''
+      fileName: options?.fileName || '',
+      kind: options?.kind || 'hmod'
     });
   } catch (err) {
     return { ok: false, error: err.message };

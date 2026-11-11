@@ -1,27 +1,27 @@
 {
-  "version": "41.6.0",
-  "releasedAt": "2026-11-11T10:45:14.465Z",
-  "notes": "v41.6.0 PRO: Bo sung trinh bien dich nguoc Mod Java (.jar) sang goi Horizon Rust (.hmod) chay that 100% bang Rust (horizon-port-jar.exe, 1.16.5 -> 26.3), tu dong dich khi tai Mod tu Modrinth & truoc khi khoi chay trong Core Horizon duy nhat (8 Core chuan 4x2).",
+  "version": "41.7.0",
+  "releasedAt": "2026-11-11T12:53:59.475Z",
+  "notes": "v41.7.0 PRO: Lam gon logic giao dien Kho Mod & Pack, bo sung 5 Tien ich Rust goc (Minimap, Zoom, Toa do, Keystrokes, FPS), chuyen doi Mod & Modpack 5 kenh chay that tren Nhan Horizon Rust, va Trung tam Ca nhan hoa Giao dien (Theme Rust Obsidian, Mau nhan, Do thoang, Thanh ben, Bo goc).",
   "files": {
     "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "fafb83264425e296d3d32a6f72389f02848725ad749bb647e8464911b13eed09",
-      "size": 617995
+      "sha256": "9e54f515b77a5922410584f2ed89852716144713570179b20bd5c457dd3237e0",
+      "size": 640138
     },
     "src/main.js": {
-      "sha256": "017cdb29ec525fa020a9d1af885377fa29a3f9cbd517fb02de3258dbdf84c097",
-      "size": 110843
+      "sha256": "b1e2fc83200c0215a5fb0c584e7c64b1a4a0835eb2d2d350b3f21cecc6d47f81",
+      "size": 113563
     },
     "src/microsoft-auth.js": {
       "sha256": "5e5f01aaf586a6bad099dcb4961256a935165c31aaa9608fae0e8c19c3165673",
       "size": 73767
     },
     "src/preload.js": {
-      "sha256": "5a78ca8408b2690bbfd6371f70a690ac3bc50dca6bfec45e1131675f6ab5611a",
-      "size": 16013
+      "sha256": "6f34a8f306ef7c15c84319f7134de6a6ab7e8813e2e78fa45bacd133de4a5b08",
+      "size": 16192
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -40,24 +40,24 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "825701cc58082619099869928faa77027da3a689d7a4b8f1a8619e0fcea49375",
-      "size": 236021
+      "sha256": "f3e94bd4813a80a0ddd1db7cdc96482e9b2dfce66cb3ae4e83afeba1eaa67dfc",
+      "size": 243502
     },
     "src/ui/installer-eula.txt": {
       "sha256": "b58a7a3604dcb1f2ade5c99b228d2868e1da70eaa0a92ee7409b1edd2822b82f",
       "size": 1700
     },
     "src/ui/layout-v33.css": {
-      "sha256": "fcdfc3fae773758f97b6faa254bc42c740322a5e48843d1e1697181ab572d576",
-      "size": 265909
+      "sha256": "68671fcf7f3cdfcfd5b1276bbc8afcc6d627c4eea4069f5899ab3463edcf492b",
+      "size": 274788
     },
     "src/ui/minecraft-logo.png": {
       "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37",
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "32cc64794acf79021316364e2e1a0f2044c22fb96c6ac1c1f1262fb060693af2",
-      "size": 176693
+      "sha256": "a960560cafacaaaf2acc97ef2a5139bb012ee6f671281f4dcc72aff06d4de1dc",
+      "size": 184113
     },
     "src/ui/seeds/badlands-gold-oasis-icon.png": {
       "sha256": "86e4da30e57f18e9fae9624206b8cdf7a3c7f652f5a46e5d7fa9fc0fd80363df",
@@ -128,12 +128,12 @@
       "size": 479194
     },
     "src/ui/store-features.js": {
-      "sha256": "d600d8fc66553d3bb3de118acbfd1ad50b59e4584a86bfa455b6396bbe66eefa",
-      "size": 489142
+      "sha256": "cd5b298479ad3dff348c2e830e61b6b52c31b71711e12a3b22c4d100a7e105e5",
+      "size": 511091
     },
     "src/ui/styles.css": {
-      "sha256": "74b04bd4b399faeb3185f90020a1e1c4b7cb2730ebf27f0b09771a6dddb41209",
-      "size": 123118
+      "sha256": "da8a4b0ee9f88da899aa85509f97490de1e551b7528f75da836a04c4e97c5b9c",
+      "size": 124726
     },
     "src/world-creator.js": {
       "sha256": "cc92428d7107c040d1dd61f8953c93fd57bab290a335307ea06cc68939612aac",

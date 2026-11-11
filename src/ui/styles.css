@@ -5505,18 +5505,18 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
 }
 
 /* ============================================================================
-   v41.6.0 PRO — HORIZON RUST .JAR -> .HMOD COMPILER STUDIO
+   v41.7.0 PRO — HORIZON RUST NATIVE MODS & 5-CHANNEL CONVERTER STUDIO
    ============================================================================ */
 .horizon-rust-studio-card {
   background: var(--bg-card);
-  border: 1.5px solid rgba(16, 185, 129, 0.38);
+  border: 1.5px solid rgba(249, 115, 22, 0.38);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   margin-bottom: 12px;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.08);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 14px;
 }
 
 .horizon-rust-studio-card.hidden {
@@ -5539,10 +5539,10 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
 .hrs-crab-icon {
   font-size: 22px;
   line-height: 1;
-  background: rgba(16, 185, 129, 0.14);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(249, 115, 22, 0.14);
+  border: 1px solid rgba(249, 115, 22, 0.38);
   border-radius: 10px;
-  padding: 7px 8px;
+  padding: 8px 9px;
 }
 
 .hrs-title-row {
@@ -5554,7 +5554,7 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
 }
 
 .hrs-title-row strong {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--text-main);
 }
@@ -5562,7 +5562,7 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
 .hrs-compiler-badge {
   font-size: 10.5px;
   font-weight: 800;
-  padding: 2px 8px;
+  padding: 2px 9px;
   border-radius: 999px;
   background: rgba(16, 185, 129, 0.15);
   color: #059669;
@@ -5571,9 +5571,92 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
 
 .hrs-head-left p {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-muted);
   line-height: 1.45;
+}
+
+.hrs-native-section,
+.hrs-converter-section {
+  background: var(--bg-input);
+  border: 1px solid var(--border-col);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hrs-sec-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.hrs-sec-label strong {
+  font-size: 12.6px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.hrs-native-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  gap: 9px;
+}
+
+.hrs-native-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-col);
+  border-radius: 11px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.hrs-native-card.is-on {
+  border-color: rgba(16, 185, 129, 0.52);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.10);
+}
+
+.hrs-nc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hrs-nc-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.hrs-nc-icon {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.hrs-nc-desc {
+  font-size: 11.2px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.hrs-nc-replaces {
+  font-size: 10.4px;
+  font-weight: 700;
+  color: var(--accent);
 }
 
 .hrs-actions {
@@ -5584,13 +5667,13 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
 }
 
 .hrs-report-box {
-  background: var(--bg-input);
+  background: var(--bg-card);
   border: 1px solid var(--border-col);
   border-radius: 10px;
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
 }
 
 .hrs-report-box.hidden {
@@ -5601,18 +5684,19 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
   font-size: 12px;
   font-weight: 800;
   color: var(--text-main);
+  line-height: 1.45;
 }
 
 .hrs-report-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 7px;
-  max-height: 185px;
+  max-height: 210px;
   overflow-y: auto;
 }
 
 .hrs-report-item {
-  background: var(--bg-card);
+  background: var(--bg-input);
   border: 1px solid var(--border-col);
   border-radius: 8px;
   padding: 7px 9px;
@@ -5625,7 +5709,7 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
 .hrs-hmod-section {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
 }
 
 .hrs-hmod-head {
@@ -5640,14 +5724,14 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
 
 .hrs-hmod-head strong {
   color: var(--text-main);
-  font-size: 12.5px;
+  font-size: 12.6px;
 }
 
 .hrs-hmod-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 8px;
-  max-height: 230px;
+  max-height: 260px;
   overflow-y: auto;
 }
 
@@ -5663,7 +5747,7 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
 }
 
 .hmod-item-row.is-enabled {
-  border-color: rgba(16, 185, 129, 0.42);
+  border-color: rgba(16, 185, 129, 0.45);
 }
 
 .hmod-item-meta {
@@ -5697,6 +5781,7 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
   border-radius: 999px;
   font-size: 10px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .hmod-verdict-badge.is-works {

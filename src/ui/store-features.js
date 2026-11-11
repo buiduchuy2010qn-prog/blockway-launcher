@@ -523,7 +523,10 @@ async function refreshModTargetSelector(skipFetch = false) {
     sel.value = state.modTargetInstanceDir || '';
   }
   const target = getModStoreTarget();
-  if (bar) bar.classList.toggle('is-pack-target', target.isPack);
+  if (bar) {
+    bar.classList.toggle('hidden', insts.length === 0 && !target.isPack);
+    bar.classList.toggle('is-pack-target', target.isPack);
+  }
   if (playPackBtn) playPackBtn.classList.toggle('hidden', !target.isPack);
   if (typeof updateSummaryUI === 'function') updateSummaryUI();
   return target;
@@ -671,12 +674,103 @@ function resolveUnderlyingModLoaderForCore(coreName, mcVer, loaderVer = '', isPa
   return c;
 }
 
+const HORIZON_UI_NATIVE_EQUIVALENTS = [
+  {
+    id: 'minimap',
+    label: 'Bản đồ Minimap Rust',
+    slugs: ['xaeros-minimap', 'xaeros-minimap-fair', 'xaeros-world-map', 'journeymap', 'voxelmap-updated', 'antique-atlas-4', 'mapfrontiers']
+  },
+  {
+    id: 'zoom',
+    label: 'Ống nhòm Zoom Rust',
+    slugs: ['zoomify', 'logical-zoom', 'ok-zoomer', 'wi-zoom', 'zume', 'just-zoom']
+  },
+  {
+    id: 'coords_hud',
+    label: 'Tọa độ & Quần xã Rust',
+    slugs: ['minihud', 'coordinates-display', 'hud-compass']
+  },
+  {
+    id: 'keystrokes',
+    label: 'Bàn phím & CPS Rust',
+    slugs: ['clean-keystrokes', 'evergreenhud', 'kronhud', 'keystrokes']
+  },
+  {
+    id: 'fps_overlay',
+    label: 'Bộ đếm FPS Rust',
+    slugs: ['betterf3', 'fpsdisplay', 'fps-display']
+  }
+];
+
+const HORIZON_UI_BUILTIN_SLUGS = new Set([
+  'sodium', 'sodium-extra', 'reeses-sodium-options', 'embeddium', 'rubidium', 'indium',
+  'lithium', 'radium', 'ferrite-core', 'ferritecore', 'modernfix', 'immediatelyfast',
+  'entityculling', 'moreculling', 'badoptimizations', 'krypton', 'c2me-fabric', 'c2me',
+  'noisium', 'scalablelux', 'starlight', 'lazydfu', 'dynamic-fps', 'fastload', 'fastquit',
+  'memoryleakfix', 'exordium', 'clumps', 'iris', 'oculus', 'optifabric', 'continuity',
+  'fusion-connected-textures', 'polytone', 'entity-model-features', 'entity-texture-features',
+  'entitytexturefeatures', 'cit-resewn', 'animatica', 'lambdynamiclights', 'dynamiclights',
+  'ryoamiclights', 'fabric-api', 'fabric-language-kotlin', 'architectury-api', 'cloth-config',
+  'yacl', 'modmenu', 'forge-config-api-port', 'malilib', 'collective', 'balm', 'puzzles-lib',
+  'bookshelf', 'iceberg', 'cristel-lib', 'lithostitched', 'terrablender', 'placeholder-api',
+  'e4mc', 'no-chat-reports'
+]);
+
+const HORIZON_UI_DEEP_JAVA_SLUGS = new Set([
+  'create', 'create-fabric', 'mekanism', 'botania', 'applied-energistics-2', 'refined-storage',
+  'ice-and-fire-dragons', 'alexs-mobs', 'alexs-caves', 'mowzies-mobs', 'l_enders_cataclysm',
+  'twilight-forest', 'origins', 'cobblemon', 'distant-horizons', 'nvidium', 'voxy',
+  'litematica', 'worldedit', 'axiom', 'replaymod', 'flashback', 'voice-chat', 'plasmo-voice',
+  'jei', 'rei', 'emi', 'jade', 'wthit'
+]);
+
+function classifyModCardForHorizonUI(slugRaw) {
+  const slug = String(slugRaw || '').trim().toLowerCase();
+  const clean = slug.replace(/-(fabric|forge|neoforge|quilt|mod)$/i, '');
+  for (const eq of HORIZON_UI_NATIVE_EQUIVALENTS) {
+    if (eq.slugs.includes(slug) || eq.slugs.includes(clean)) {
+      return { kind: 'native_rust', nativeId: eq.id, label: eq.label };
+    }
+  }
+  if (HORIZON_UI_BUILTIN_SLUGS.has(slug) || HORIZON_UI_BUILTIN_SLUGS.has(clean)) {
+    return { kind: 'builtin_engine' };
+  }
+  if (HORIZON_UI_DEEP_JAVA_SLUGS.has(slug) || HORIZON_UI_DEEP_JAVA_SLUGS.has(clean)) {
+    return { kind: 'deep_java' };
+  }
+  return { kind: 'portable_content' };
+}
+
 async function loadModrinthStore(append = false) {
   const grid = document.getElementById('modrinthResultsGrid');
   const localWrap = document.getElementById('localAddonsWrap');
+  const studioCard = document.getElementById('horizonRustModStudioCard');
+  const compatNoticeTop = document.getElementById('modCompatNoticeBar');
+  const searchRow = document.getElementById('modsSearchAndSortRow');
+  const quickCatBar = document.getElementById('modQuickCategoryBar');
   const totalBadge = document.getElementById('modTotalCounterBadge');
+
+  if (state.activeModStoreType === 'rust-studio') {
+    grid?.classList.add('hidden');
+    localWrap?.classList.add('hidden');
+    compatNoticeTop?.classList.add('hidden');
+    searchRow?.classList.add('hidden');
+    quickCatBar?.classList.add('hidden');
+    studioCard?.classList.remove('hidden');
+    if (totalBadge) totalBadge.textContent = '100% Nhân Rust';
+    if (typeof window.refreshHorizonRustModStudio === 'function') {
+      await window.refreshHorizonRustModStudio();
+    }
+    return;
+  }
+
+  studioCard?.classList.add('hidden');
+  searchRow?.classList.remove('hidden');
+  quickCatBar?.classList.toggle('hidden', state.activeModStoreType !== 'mod');
+
   if (state.activeModStoreType === 'installed') {
     grid.classList.add('hidden');
+    compatNoticeTop?.classList.add('hidden');
     localWrap.classList.remove('hidden');
     if (totalBadge) totalBadge.textContent = 'Quản lý trong máy';
     await renderLocalAddonsManager();
@@ -1158,62 +1252,33 @@ async function loadModrinthStore(append = false) {
           };
         });
       } else {
-        const runtimeLabel = (PACK_LOADER_LABEL[ofUnderlying] || ofUnderlying).toUpperCase();
-        compatNoticeEl.className = 'mod-compat-notice-bar is-ok';
-        compatNoticeEl.innerHTML = `
-          <div class="mcnb-left">
-            <span class="mcnb-icon">🔆</span>
-            <div>
-              <strong>Đang bật cấu hình: Minecraft ${escapeHtml(activeVer)} • OPTIFINE (Shader • Zoom — Chạy trực tiếp Mod ${escapeHtml(runtimeLabel)})</strong>
-              <span>Mọi Mod ${escapeHtml(runtimeLabel)} bên dưới đều tương thích 100% và cài thẳng vào cấu hình OptiFine hiện tại mà không cần đổi Core.</span>
-            </div>
-          </div>
-          <div class="mcnb-actions">
-            <button type="button" class="vtype-btn" id="btnModNoticeOptifineHub">🔆 Bộ Chuẩn OptiFine</button>
-            <button type="button" class="vtype-btn" id="btnModNoticeSwitchAll">${state.modAllVersions ? `🎯 Lọc riêng MC ${escapeHtml(activeVer)}` : '🌐 Xem mọi phiên bản MC'}</button>
-          </div>`;
-        compatNoticeEl.querySelector('#btnModNoticeOptifineHub')?.addEventListener('click', () => openOptifineHubModal(null));
-        compatNoticeEl.querySelector('#btnModNoticeSwitchAll')?.addEventListener('click', () => document.getElementById('btnToggleModAllVersions')?.click());
-      }
-    } else if (state.activeModStoreType === 'mod' && activeCore === 'horizon' && !target.isPack) {
-      compatNoticeEl.className = 'mod-compat-notice-bar is-ok';
-      compatNoticeEl.innerHTML = `
-        <div class="mcnb-left">
-          <span class="mcnb-icon">🦀</span>
-          <div>
-            <strong>Đang bật Nhân Horizon Rust (${escapeHtml(activeVer)}): Tự động biên dịch Mod .jar sang .hmod chạy thật 100% bằng Rust!</strong>
-            <span>Mọi Mod tải về hoặc có sẵn trong <code>mods/*.jar</code> sẽ được trình biên dịch <code>horizon-port-jar.exe</code> chuyển khối vuông, vật phẩm, kết cấu, công thức &amp; worldgen sang <code>horizon-mods/*.hmod</code>.</span>
-          </div>
-        </div>
-        <div class="mcnb-actions">
-          <button type="button" class="vtype-btn" id="btnModNoticeOpenRustStudio">🦀 Bảng Dịch .jar → .hmod</button>
-          <button type="button" class="vtype-btn" id="btnModNoticeScanRustNow">⚡ Quét mods/*.jar</button>
-          <button type="button" class="vtype-btn" id="btnModNoticeSwitchAll">${state.modAllVersions ? `🎯 Lọc riêng MC ${escapeHtml(activeVer)}` : '🌐 Xem mọi phiên bản MC'}</button>
-        </div>`;
-      compatNoticeEl.querySelector('#btnModNoticeOpenRustStudio')?.addEventListener('click', () => window.openHorizonRustModStudio?.(false));
-      compatNoticeEl.querySelector('#btnModNoticeScanRustNow')?.addEventListener('click', () => window.openHorizonRustModStudio?.(true));
-      compatNoticeEl.querySelector('#btnModNoticeSwitchAll')?.addEventListener('click', () => document.getElementById('btnToggleModAllVersions')?.click());
-    } else if (state.activeModStoreType === 'mod') {
-      compatNoticeEl.className = 'mod-compat-notice-bar is-ok';
-      compatNoticeEl.innerHTML = `
-        <div class="mcnb-left">
-          <span class="mcnb-icon">✅</span>
-          <div>
-            <strong>Đang kiểm tra tương thích cho cấu hình: Minecraft ${escapeHtml(activeVer)} • ${escapeHtml(activeCore.toUpperCase())}</strong>
-            <span>Mỗi Mod bên dưới đều hiển thị rõ có cài được ngay với phiên bản đang chọn hay cần tự động chuyển đúng cấu hình mà Mod yêu cầu.</span>
-          </div>
-        </div>
-        <div class="mcnb-actions">
-          <button type="button" class="vtype-btn" id="btnModNoticeSwitchAll">${state.modAllVersions ? `🎯 Lọc riêng MC ${escapeHtml(activeVer)}` : '🌐 Xem mọi phiên bản MC'}</button>
-        </div>`;
-      const btnSwitchAll = compatNoticeEl.querySelector('#btnModNoticeSwitchAll');
-      if (btnSwitchAll) {
-        btnSwitchAll.onclick = () => document.getElementById('btnToggleModAllVersions')?.click();
+        compatNoticeEl.className = 'mod-compat-notice-bar hidden';
+        compatNoticeEl.innerHTML = '';
       }
     } else {
       compatNoticeEl.className = 'mod-compat-notice-bar hidden';
       compatNoticeEl.innerHTML = '';
     }
+  }
+
+  let horizonNativeEnabledSet = new Set();
+  let horizonPortedIdsSet = new Set();
+  if (String(activeCore || '').toLowerCase() === 'horizon' && !target.isPack && window.aetherAPI?.listHorizonHmods) {
+    try {
+      const hzState = await window.aetherAPI.listHorizonHmods({ gameDir: target.dir, rootDir: state.gameDir });
+      if (hzState?.ok) {
+        const nList = Array.isArray(hzState.nativeMods) ? hzState.nativeMods : [];
+        const hList = Array.isArray(hzState.mods) ? hzState.mods : [];
+        const dpList = Array.isArray(hzState.datapacks) ? hzState.datapacks : [];
+        const rpList = Array.isArray(hzState.resourcepacks) ? hzState.resourcepacks : [];
+        nList.filter((m) => m.enabled).forEach((m) => horizonNativeEnabledSet.add(m.id));
+        hList.forEach((m) => horizonPortedIdsSet.add(String(m.id || '').toLowerCase()));
+        dpList.forEach((d) => horizonPortedIdsSet.add(String(d.id || '').toLowerCase()));
+        rpList.forEach((r) => horizonPortedIdsSet.add(String(r.file_name || '').replace(/-rust\.zip$/i, '').toLowerCase()));
+        const tabCnt = document.getElementById('rustStudioTabCount');
+        if (tabCnt) tabCnt.textContent = String(horizonNativeEnabledSet.size + hList.length + dpList.length + rpList.length);
+      }
+    } catch (_) {}
   }
 
   const pickBestReleaseVer = (vers = [], targetVer = '') => {
@@ -1295,13 +1360,31 @@ async function loadModrinthStore(append = false) {
     let needsConfigSwitch = false;
 
     const isHorizonRustSupportedVer = !/^1\.(?:[0-9]|1[0-5])(?:\.|$)/.test(String(activeVer || ''));
+    let horizonUiClass = null;
     if (state.activeModStoreType !== 'mod') {
-      compatBadgeHtml = `<div class="mod-compat-pill ok">✅ Tương thích ${target.isPack ? `gói ${escapeHtml(target.shortName)}` : `MC ${escapeHtml(activeVer)}`}</div>`;
+      compatBadgeHtml = `<div class="mod-compat-pill ok">✅ Tương thích ${target.isPack ? `gói ${escapeHtml(target.shortName)}` : `MC ${escapeHtml(activeVer)}${userCore === 'horizon' ? ' • Nhân Rust' : ''}`}</div>`;
     } else if (userCore === 'horizon' && !target.isPack && isHorizonRustSupportedVer) {
       targetInstallVer = activeVer;
       targetInstallCore = 'horizon';
       needsConfigSwitch = false;
-      compatBadgeHtml = `<div class="mod-compat-pill ok">🦀 Tải .jar &amp; Tự biên dịch sang .hmod Rust (${escapeHtml(activeVer)})</div>`;
+      horizonUiClass = classifyModCardForHorizonUI(item.slug);
+      const normSlugId = String(item.slug || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+      if (horizonUiClass.kind === 'native_rust') {
+        const alreadyOn = horizonNativeEnabledSet.has(horizonUiClass.nativeId);
+        if (alreadyOn) isInstalledExact = true;
+        compatBadgeHtml = alreadyOn
+          ? `<div class="mod-compat-pill ok">🦀 Tiện ích Rust gốc (${escapeHtml(horizonUiClass.label)}) đang BẬT sẵn</div>`
+          : `<div class="mod-compat-pill ok">🦀 Có sẵn bản 100% Rust gốc (${escapeHtml(horizonUiClass.label)}) — bật 1 chạm</div>`;
+      } else if (horizonUiClass.kind === 'builtin_engine') {
+        isInstalledExact = true;
+        compatBadgeHtml = `<div class="mod-compat-pill ok">⚡ Đã tích hợp sẵn trực tiếp trong Nhân Rust (Vulkan / DX12)</div>`;
+      } else if (horizonUiClass.kind === 'deep_java') {
+        if (horizonPortedIdsSet.has(normSlugId)) isInstalledExact = true;
+        compatBadgeHtml = `<div class="mod-compat-pill warn">☕ Mod máy móc/mã Java chuyên sâu (chỉ trích xuất khối &amp; đồ họa nếu có)</div>`;
+      } else {
+        if (horizonPortedIdsSet.has(normSlugId)) isInstalledExact = true;
+        compatBadgeHtml = `<div class="mod-compat-pill ok">🦀 Tự chuyển sang Mod / Datapack / Gói đồ họa Rust</div>`;
+      }
     } else if (userCore === 'vanilla') {
       targetInstallVer = supportsFamilyVer ? activeVer : bestMcVer;
       targetInstallCore = prefLoader;
@@ -1332,17 +1415,28 @@ async function loadModrinthStore(append = false) {
       compatBadgeHtml = `<div class="mod-compat-pill switch">🔄 Hỗ trợ MC ${escapeHtml(bestMcVer)} • ${escapeHtml((PACK_LOADER_LABEL[prefLoader] || prefLoader).toUpperCase())}</div>`;
     }
 
-    const btnText = isInstalledExact
-      ? `✓ Đã Cài (${target.isPack ? 'Trong Gói' : activeVer})`
-      : needsConfigSwitch
-        ? (target.isPack
-            ? `🏠 Cài vào .minecraft (${targetInstallVer})`
-            : `⚡ Đổi sang ${targetInstallVer} (${(PACK_LOADER_LABEL[targetInstallCore] || targetInstallCore)}) & Cài`)
-        : (userCore === 'horizon' && !target.isPack && state.activeModStoreType === 'mod' && isHorizonRustSupportedVer
-            ? `🦀 Tải & Dịch .hmod`
-            : (isInstalledOtherVer
-                ? `🔄 Đổi sang ${activeVer}`
-                : (target.isPack ? `⬇ Cài vào Gói (${activeVer})` : `⬇ Tải (${activeVer})`)));
+    let btnText = '';
+    if (horizonUiClass) {
+      if (horizonUiClass.kind === 'native_rust') {
+        btnText = isInstalledExact ? '✓ Đang Bật (Rust)' : '🦀 Bật Ngay (Rust)';
+      } else if (horizonUiClass.kind === 'builtin_engine') {
+        btnText = '✓ Đã Tích Hợp Sẵn';
+      } else if (horizonUiClass.kind === 'deep_java') {
+        btnText = isInstalledExact ? '✓ Đã Chuyển (Rust)' : '🦀 Thử Chuyển Dữ Liệu';
+      } else {
+        btnText = isInstalledExact ? '✓ Đã Cài (Rust)' : '🦀 Cài Cho Rust';
+      }
+    } else {
+      btnText = isInstalledExact
+        ? `✓ Đã Cài (${target.isPack ? 'Trong Gói' : activeVer})`
+        : needsConfigSwitch
+          ? (target.isPack
+              ? `🏠 Cài vào .minecraft (${targetInstallVer})`
+              : `⚡ Đổi sang ${targetInstallVer} (${(PACK_LOADER_LABEL[targetInstallCore] || targetInstallCore)}) & Cài`)
+          : (isInstalledOtherVer
+              ? `🔄 Đổi sang ${activeVer}`
+              : (target.isPack ? `⬇ Cài vào Gói (${activeVer})` : `⬇ Tải (${activeVer})`));
+    }
     const btnTitle = needsConfigSwitch
       ? (target.isPack
           ? `Gói "${target.shortName}" dùng MC ${activeVer} (${userCore.toUpperCase()}). Bấm để chuyển về .minecraft gốc (${targetInstallVer}) và cài Mod này`
@@ -1373,7 +1467,7 @@ async function loadModrinthStore(append = false) {
       <div class="mod-desc" data-moddesc="${safeSlug}" title="${fullTooltip}">${escapeHtml(viDesc)}</div>
       <div class="mod-card-foot">
         <div class="mod-tags">${tags}</div>
-        <button class="btn-install-mod ${isInstalledExact ? 'installed' : ''} ${needsConfigSwitch ? 'needs-switch' : ''}" data-slug="${safeSlug}" data-title="${safeTitle}" data-targetver="${escapeHtml(targetInstallVer)}" data-targetcore="${escapeHtml(targetInstallCore)}" data-needsswitch="${needsConfigSwitch ? '1' : '0'}" title="${safeBtnTitle}">${escapeHtml(btnText)}</button>
+        <button class="btn-install-mod ${isInstalledExact ? 'installed' : ''} ${needsConfigSwitch ? 'needs-switch' : ''}" data-slug="${safeSlug}" data-title="${safeTitle}" data-targetver="${escapeHtml(targetInstallVer)}" data-targetcore="${escapeHtml(targetInstallCore)}" data-needsswitch="${needsConfigSwitch ? '1' : '0'}" data-hzkind="${escapeHtml(horizonUiClass?.kind || '')}" title="${safeBtnTitle}">${escapeHtml(btnText)}</button>
       </div>
     </div>`;
   }).join('');
@@ -1423,6 +1517,7 @@ async function loadModrinthStore(append = false) {
       const targetCore = btn.dataset.targetcore || curTarget.core;
       const needsSwitch = btn.dataset.needsswitch === '1';
       const modTitle = btn.dataset.title || btn.dataset.slug;
+      const hzKind = btn.dataset.hzkind || '';
 
       if (needsSwitch) {
         if (curTarget.isPack) {
@@ -1445,11 +1540,11 @@ async function loadModrinthStore(append = false) {
             title: isStandaloneOfSwitch ? '🔆 Bật Chế Độ OptiFine Hỗ Trợ Mod' : '🔄 Tự Động Đổi Cấu Hình Theo Yêu Cầu Của Mod',
             message: isStandaloneOfSwitch
               ? `Bạn đang chọn hồ sơ OptiFine Java độc lập (${state.selectedLoaderVersion}) nên chưa nạp được Mod "${modTitle}".\n\nBạn có đồng ý bật chế độ "OptiFine Hỗ Trợ Mod (Shader • Zoom • Đuốc sáng)" trên MC ${targetVer} và cài Mod này ngay không?`
-              : `Mod "${modTitle}" không chạy trên cấu hình hiện tại (${state.selectedVersion} • ${state.selectedCore.toUpperCase()}) mà yêu cầu cấu hình:\n\n• Phiên bản Minecraft: ${targetVer}\n• Mod Loader: ${(PACK_LOADER_LABEL[targetCore] || targetCore).toUpperCase()}\n\nBạn có đồng ý để BlockWay tự động chuyển sang cấu hình MC ${targetVer} (${(PACK_LOADER_LABEL[targetCore] || targetCore).toUpperCase()}) và tải cài đặt Mod này ngay không?`,
+              : `Mod "${modTitle}" sử dụng mã máy Java chuyên sâu nên cần Mod Loader ${(PACK_LOADER_LABEL[targetCore] || targetCore).toUpperCase()} (MC ${targetVer}) thay vì cấu hình hiện tại (${state.selectedVersion} • ${state.selectedCore.toUpperCase()}).\n\nBạn có muốn BlockWay tự động chuyển sang MC ${targetVer} (${(PACK_LOADER_LABEL[targetCore] || targetCore).toUpperCase()}) và cài Mod này ngay không?`,
             agreeText: isStandaloneOfSwitch
               ? `🔆 Bật OptiFine Hỗ Trợ Mod (${targetVer}) & Cài`
               : `⚡ Đổi sang MC ${targetVer} (${(PACK_LOADER_LABEL[targetCore] || targetCore).toUpperCase()}) & Cài`,
-            cancelText: '✕ Giữ cấu hình cũ'
+            cancelText: '✕ Giữ cấu hình hiện tại'
           });
           if (!cSwitch.agreed) return;
           if (targetCore === 'optifine') {
@@ -1460,20 +1555,25 @@ async function loadModrinthStore(append = false) {
           }
           curTarget = getModStoreTarget();
         }
-      } else {
+      } else if (hzKind !== 'native_rust' && hzKind !== 'builtin_engine') {
         const destDesc = curTarget.isPack
           ? `gói Modpack "${curTarget.shortName}" (MC ${curTarget.mcVersion} • ${curTarget.core.toUpperCase()})`
-          : `Minecraft ${curTarget.mcVersion} (${curTarget.core.toUpperCase()})`;
+          : curTarget.core === 'horizon'
+            ? `Nhân Horizon Rust (${curTarget.mcVersion})`
+            : `Minecraft ${curTarget.mcVersion} (${curTarget.core.toUpperCase()})`;
         const cRes = await askUserAgreement({
-          title: curTarget.isPack ? '📦 Cài Đặt Thêm Vào Gói Modpack' : '📥 Xác Nhận Tải & Cài Đặt Tự Khớp Phiên Bản',
-          message: `Bạn có đồng ý tự động tải và cài đặt "${modTitle}" chuẩn ${destDesc} kèm thư viện bắt buộc đi kèm không?`,
-          agreeText: curTarget.isPack ? '✓ Cài Vào Gói Modpack' : '✓ Đồng Ý Tải Về',
+          title: curTarget.isPack ? '📦 Cài Đặt Thêm Vào Gói Modpack' : (curTarget.core === 'horizon' ? '🦀 Tải & Chuyển Đổi Sang Nhân Rust' : '📥 Xác Nhận Tải & Cài Đặt Tự Khớp Phiên Bản'),
+          message: curTarget.core === 'horizon' && !curTarget.isPack
+            ? `BlockWay sẽ tự tải "${modTitle}" và chuyển đổi nội dung sang định dạng chạy trực tiếp trên Nhân Horizon Rust (${curTarget.mcVersion}). Đồng ý tiếp tục?`
+            : `Bạn có đồng ý tự động tải và cài đặt "${modTitle}" chuẩn ${destDesc} kèm thư viện bắt buộc đi kèm không?`,
+          agreeText: curTarget.isPack ? '✓ Cài Vào Gói Modpack' : (curTarget.core === 'horizon' ? '🦀 Tải & Chuyển Sang Rust' : '✓ Đồng Ý Tải Về'),
           cancelText: '✕ Không, Hủy'
         });
         if (!cRes.agreed) return;
       }
 
-      btn.disabled = true; btn.textContent = '⏳ Đang tải...';
+      btn.disabled = true;
+      btn.textContent = hzKind === 'native_rust' ? '⏳ Đang bật Rust...' : '⏳ Đang tải...';
       const r = await window.aetherAPI.installModrinth({
         slug: btn.dataset.slug,
         projectType: state.activeModStoreType,
@@ -1482,7 +1582,13 @@ async function loadModrinthStore(append = false) {
         gameDir: curTarget.dir
       });
       if (r?.ok) {
-        btn.textContent = `✓ Đã Cài (${curTarget.isPack ? 'Trong Gói' : curTarget.mcVersion})`;
+        btn.textContent = r.nativeRust
+          ? '✓ Đang Bật (Rust)'
+          : r.builtinEngine
+            ? '✓ Đã Tích Hợp Sẵn'
+            : curTarget.core === 'horizon'
+              ? '✓ Đã Cài (Rust)'
+              : `✓ Đã Cài (${curTarget.isPack ? 'Trong Gói' : curTarget.mcVersion})`;
         btn.classList.add('installed');
         btn.classList.remove('needs-switch');
         btn.disabled = false;
@@ -1494,31 +1600,59 @@ async function loadModrinthStore(append = false) {
         document.getElementById('statusText').textContent = `✓ Đã cài ${r.fileName}${equipInfo}${depsInfo} vào ${targetLabel}!`;
         if (r.horizonPort && Array.isArray(r.horizonPort.results) && r.horizonPort.results.length > 0) {
           const pr = r.horizonPort.results[0];
-          if (pr.verdict === 'works' || pr.verdict === 'partly') {
+          const pKind = pr.kind || '';
+          if (pKind === 'native_rust' || r.nativeRust) {
+            const rustLabel = pr.ports?.[0] || pr.name || modTitle;
+            document.getElementById('statusText').textContent = `🦀 Đã bật tiện ích Rust gốc "${rustLabel}" — vào Game là có ngay!`;
+            showAetherNotification(
+              `🦀 Đã bật sẵn "${rustLabel}" chạy bằng Rust 100%! Khi vào Game bấm Tùy chọn → Mods để chỉnh kích thước/vị trí.`,
+              'success',
+              5600
+            );
+          } else if (pKind === 'builtin_engine' || r.builtinEngine) {
+            document.getElementById('statusText').textContent = `⚡ Tính năng của "${modTitle}" đã có sẵn trong Nhân Horizon Rust (Vulkan / DX12)!`;
+            showAetherNotification(
+              `⚡ "${modTitle}" đã được tích hợp trực tiếp trong Nhân Horizon Rust (Vulkan / DX12) — không cần cài thêm file Java!`,
+              'success',
+              5500
+            );
+          } else if (pKind === 'datapack') {
+            document.getElementById('statusText').textContent = `🌍 Đã chuyển "${modTitle}" thành Datapack thế giới Rust (${pr.files_packed || 0} tệp)!`;
+            showAetherNotification(
+              `🌍 Đã chuyển "${modTitle}" sang Datapack Thế giới Rust (${pr.files_packed || 0} tệp) — tự nạp khi bạn tạo Thế giới mới!`,
+              'success',
+              6000
+            );
+          } else if (pKind === 'resourcepack') {
+            document.getElementById('statusText').textContent = `🎨 Đã chuyển "${modTitle}" thành Gói đồ họa Rust & tự bật sẵn!`;
+            showAetherNotification(
+              `🎨 Đã trích xuất "${modTitle}" thành Gói đồ họa Rust (${pr.files_packed || 0} tệp) & tự động trang bị trong Game!`,
+              'success',
+              5800
+            );
+          } else if (pr.verdict === 'works' || pr.verdict === 'partly') {
             const detailParts = [];
             if (pr.blocks > 0) detailParts.push(`${pr.blocks} khối`);
             if (pr.items > 0) detailParts.push(`${pr.items} vật phẩm`);
             if (pr.recipes > 0) detailParts.push(`${pr.recipes} công thức`);
-            if (pr.structures > 0 || pr.worldgen > 0) detailParts.push(`${(pr.structures || 0) + (pr.worldgen || 0)} cấu trúc/worldgen`);
-            if (pr.files_packed > 0) detailParts.push(`${pr.files_packed} tệp đóng gói`);
+            if ((pr.structures || 0) + (pr.worldgen || 0) > 0) detailParts.push(`${(pr.structures || 0) + (pr.worldgen || 0)} địa hình`);
+            if (pr.files_packed > 0) detailParts.push(`${pr.files_packed} tệp`);
             const sumTxt = detailParts.length ? ` (${detailParts.join(', ')})` : '';
-            document.getElementById('statusText').textContent = `🦀 Đã dịch "${r.fileName}" → ${pr.mod_id}.hmod${sumTxt} & bật sẵn trong Horizon Rust!`;
+            document.getElementById('statusText').textContent = `🦀 Đã chuyển "${modTitle}" sang gói Mod Rust${sumTxt} & bật sẵn!`;
             showAetherNotification(
-              pr.verdict === 'works'
-                ? `🦀 Đã biên dịch 100% "${r.fileName}" → ${pr.mod_id}.hmod${sumTxt} chạy thật bằng Rust!`
-                : `🦀 Đã biên dịch phần dữ liệu/khối "${r.fileName}" → ${pr.mod_id}.hmod${sumTxt} (bỏ qua phần mã JVM riêng)!`,
+              `🦀 Đã chuyển "${modTitle}" sang gói Mod Rust chạy thật${sumTxt} — vào Game là dùng ngay!`,
               'success',
               6000
             );
           } else {
             showAetherNotification(
-              `ℹ Đã lưu "${r.fileName}": Gói này thuần mã Java/Mixin (không chứa khối/vật phẩm/tài nguyên riêng cho .hmod). Đổi sang chế độ Hybrid Java nếu cần chạy mã JVM!`,
+              `ℹ "${modTitle}" viết bằng mã máy Java chuyên sâu (chưa có khối/dữ liệu rời cho Rust). Bạn có thể chọn Core Fabric / Forge ở Trang chủ nếu muốn chơi trọn vẹn Mod này!`,
               'info',
               6500
             );
           }
           if (typeof window.refreshHorizonRustModStudio === 'function') {
-            window.refreshHorizonRustModStudio().catch(() => {});
+            window.refreshHorizonRustModStudio(true).catch(() => {});
           }
         } else if (r.autoEquipped || depsInfo || curTarget.isPack) {
           showAetherNotification(
@@ -1530,7 +1664,7 @@ async function loadModrinthStore(append = false) {
           );
         }
         await refreshLocalAddonsCount();
-        // v40.8: Shaders need Iris (Fabric) — if the player is still on Vanilla, switch to Fabric so the shader actually loads
+        // v40.8: Shaders need Iris (Fabric) ONLY if player is on plain Vanilla (Horizon Rust supports shaderpacks natively via horizon-graphics.txt!)
         if (!curTarget.isPack && state.activeModStoreType === 'shader' && (state.selectedCore === 'vanilla' || !state.selectedCore)) {
           if (typeof window.selectMcVersionAndCore === 'function') {
             await window.selectMcVersionAndCore(state.selectedVersion || curTarget.mcVersion, 'fabric');
@@ -1545,10 +1679,13 @@ async function loadModrinthStore(append = false) {
         }
         if (needsSwitch) loadModrinthStore(false);
       } else {
-        btn.textContent = '⚠ Khác phiên bản';
+        btn.textContent = '⚠ Thử lại';
         btn.title = r?.error || 'Không tương thích phiên bản đang chọn';
         btn.disabled = false;
-        if (r?.error) document.getElementById('statusText').textContent = `⚠ ${r.error}`;
+        if (r?.error) {
+          document.getElementById('statusText').textContent = `⚠ ${r.error}`;
+          showAetherNotification(`⚠ ${r.error}`, 'error', 5200);
+        }
       }
     };
   });
@@ -3208,6 +3345,7 @@ async function refreshPackInstances() {
     const islandBadge = inst.autoIslandMode
       ? ` • <strong style="color:#10b981;">🏝️ Đã tích hợp Đảo ${inst.autoIslandMode === 'oneblock' ? 'OneBlock' : 'SkyBlock'} (Bấm 🌍 Thế giới mới để vào thẳng đảo)</strong>`
       : '';
+    const canPlayRust = !/^1\.(?:[0-9]|1[0-5])(?:\.|$)/.test(inst.mcVersion || '');
     return `<div class="pack-inst-row">
       ${packIconHtml(inst.iconUrl, 'pack-inst-icon')}
       <div class="pir-info">
@@ -3225,6 +3363,7 @@ async function refreshPackInstances() {
         <button class="srv-icon-btn danger" data-piact="delete" data-pii="${i}" title="Xóa gói">🗑</button>
         <button class="vtype-btn pir-coop" data-piact="coop" data-pii="${i}" title="Mở phòng chơi chung gói này qua Internet (e4mc + Mã Phòng BlockWay)">🤝 Mở Phòng</button>
         <button class="vtype-btn pir-newworld" data-piact="new-world" data-pii="${i}" title="Tạo thế giới mới (chọn chế độ, độ khó, seed, giữ đồ khi chết...) rồi vào thẳng">🌍 Thế giới mới</button>
+        ${canPlayRust ? `<button class="vtype-btn pir-rust" data-piact="play-rust" data-pii="${i}" title="Tự chuyển đổi nội dung gói Modpack này (Khối/Vật phẩm, Datapack Thế giới, Gói đồ họa, Tiện ích Minimap/Zoom &amp; Shader) sang Rust rồi khởi chạy bằng Nhân Horizon Rust siêu nhẹ">🦀 Chơi Rust</button>` : ''}
         <button class="btn-install-mod pir-play" data-piact="play" data-pii="${i}" title="${inst.worldsCount > 0 ? 'Mở gói này' : 'Gói chưa có thế giới — bấm Chơi sẽ tự tạo sẵn & vào thẳng (nếu đang bật trong Cài đặt)'}">▶ Chơi</button>
       </div>
     </div>`;
@@ -3235,6 +3374,7 @@ async function refreshPackInstances() {
       const inst = insts[Number(b.dataset.pii)];
       const act = b.dataset.piact;
       if (act === 'play') launchPackInstance(inst);
+      else if (act === 'play-rust') launchPackInstance(inst, '', '', '', null, { forceRust: true });
       else if (act === 'new-world') openQuickWorldModal(inst);
       else if (act === 'add-mods') {
         state.modTargetInstanceDir = inst.dir;
@@ -3506,7 +3646,7 @@ function openQuickWorldModal(inst = null, prefillSeed = '', prefillName = '') {
 }
 window.openQuickWorldModal = openQuickWorldModal;
 
-async function launchPackInstance(inst, customServerIp = '', customWorldFolder = '', customWorldTitle = '', newWorldOptions = null) {
+async function launchPackInstance(inst, customServerIp = '', customWorldFolder = '', customWorldTitle = '', newWorldOptions = null, launchOpts = null) {
   if (state.isLaunching) { packNotify('⚠️ Minecraft đang chạy hoặc đang khởi động. Hãy tắt game trước.', 'error'); return; }
   if (state.authMode === 'microsoft' && !state.msProfile) { packNotify('⚠️ Vui lòng đăng nhập tài khoản Microsoft trước (Trang chủ → Tài khoản).', 'error'); return; }
   if (state.authMode === 'aether' && !state.cloudProfile) { packNotify('⚠️ Vui lòng đăng nhập BlockWay Cloud trước (Trang chủ → Tài khoản).', 'error'); return; }
@@ -3520,6 +3660,9 @@ async function launchPackInstance(inst, customServerIp = '', customWorldFolder =
     });
     if (!ask.agreed) { openManualDownloadsModal(inst); return; }
   }
+  const runOnRust = Boolean(launchOpts?.forceRust || inst.loader === 'horizon');
+  const effectiveLoader = runOnRust ? 'horizon' : (inst.loader || 'vanilla');
+  const effectiveLoaderVer = runOnRust ? 'horizon-auto' : (inst.loaderVersion || '');
   const maxRam = Math.max(2, (Number(state.totalMemGB) || 8) - 2);
   const ram = Math.min(maxRam, Math.max(Number(state.ramGB) || 4, Number(inst.ramRecommendedGB) || 0));
   packHub.launchingInstance = inst;
@@ -3527,9 +3670,9 @@ async function launchPackInstance(inst, customServerIp = '', customWorldFolder =
     isPack: true,
     name: inst.name || 'Modpack',
     mcVersion: inst.mcVersion,
-    core: inst.loader || 'vanilla',
-    loaderType: inst.loader || 'vanilla',
-    loaderVersion: inst.loaderVersion || '',
+    core: effectiveLoader,
+    loaderType: effectiveLoader,
+    loaderVersion: effectiveLoaderVer,
     ramGB: ram,
     instanceDir: inst.dir,
     inst
@@ -3537,6 +3680,31 @@ async function launchPackInstance(inst, customServerIp = '', customWorldFolder =
   state.activeLaunchContext = launchCtx;
   state.lastLaunchContext = launchCtx;
   if (typeof updateSummaryUI === 'function') updateSummaryUI();
+
+  if (runOnRust && typeof window.aetherAPI.portModpackToHorizon === 'function') {
+    packShowProgress(`🦀 Đang chuyển đổi nội dung gói “${inst.name}” sang Nhân Horizon Rust...`, 8);
+    setLaunchUiState('starting', `🦀 Đang chuyển đổi gói “${inst.name}” sang Nhân Horizon Rust...`);
+    try {
+      const portRes = await window.aetherAPI.portModpackToHorizon({
+        packPath: inst.dir,
+        gameDir: inst.dir,
+        rootDir: state.gameDir,
+        onlyIfUnported: true
+      });
+      if (portRes?.ok && !portRes.alreadyPorted) {
+        const pStats = [];
+        if (portRes.hmods_created > 0) pStats.push(`${portRes.hmods_created} Mod khối/vật phẩm`);
+        if (portRes.datapacks_created > 0) pStats.push(`${portRes.datapacks_created} Datapack thế giới`);
+        if (portRes.resourcepacks_created > 0) pStats.push(`${portRes.resourcepacks_created} Gói đồ họa`);
+        if (portRes.native_rust_enabled > 0) pStats.push(`${portRes.native_rust_enabled} tiện ích Rust`);
+        if (portRes.shaderpacks_copied > 0) pStats.push(`${portRes.shaderpacks_copied} Shader`);
+        if (pStats.length > 0) {
+          packNotify(`🦀 Đã chuyển gói “${inst.name}” sang Rust (${pStats.join(' • ')})!`, 'success', 5500);
+        }
+      }
+    } catch (_) {}
+  }
+
   // Bấm "Thế giới mới" → luôn tạo; bấm "Chơi" lần đầu (gói chưa có thế giới) → tự tạo nếu đang bật trong Cài đặt
   let autoCreateWorld = null;
   if (!customWorldFolder && !customServerIp) {
@@ -3547,11 +3715,13 @@ async function launchPackInstance(inst, customServerIp = '', customWorldFolder =
     }
   }
   const statusMsg = customWorldFolder
-    ? `⚡ Đang vào thẳng thế giới “${customWorldTitle || customWorldFolder}” — gói “${inst.name}” (MC ${inst.mcVersion})...`
+    ? `⚡ Đang vào thẳng thế giới “${customWorldTitle || customWorldFolder}” — gói “${inst.name}” (MC ${inst.mcVersion}${runOnRust ? ' • RUST' : ''})...`
     : autoCreateWorld
-      ? `🌍 Đang tạo thế giới “${autoCreateWorld.levelName}” & vào thẳng — gói “${inst.name}” (MC ${inst.mcVersion})...`
-      : `🚀 Đang khởi động “${inst.name}” (MC ${inst.mcVersion} • ${String(inst.loader).toUpperCase()} • RAM ${ram} GB)...`;
-  packShowProgress(statusMsg, 5);
+      ? `🌍 Đang tạo thế giới “${autoCreateWorld.levelName}” & vào thẳng — gói “${inst.name}” (MC ${inst.mcVersion}${runOnRust ? ' • RUST' : ''})...`
+      : runOnRust
+        ? `🦀 Đang khởi động gói “${inst.name}” bằng Nhân Horizon Rust (MC ${inst.mcVersion} • Vulkan / DX12)...`
+        : `🚀 Đang khởi động “${inst.name}” (MC ${inst.mcVersion} • ${String(inst.loader).toUpperCase()} • RAM ${ram} GB)...`;
+  packShowProgress(statusMsg, 15);
   setLaunchUiState('starting', statusMsg);
   const rawActiveSkin = currentSkinDataUrl || state.cachedSkinDataUrl || createFallbackSteveSkinDataUrl();
   const finalSkinDataUrl = typeof convertSkinTo64x64DataUrl === 'function' ? await convertSkinTo64x64DataUrl(rawActiveSkin) : rawActiveSkin;
@@ -3559,7 +3729,7 @@ async function launchPackInstance(inst, customServerIp = '', customWorldFolder =
   const res = await window.aetherAPI.launchGame({
     authMode: state.authMode, username: state.username, crackSkinSync: state.crackSkinSync,
     msProfile: state.msProfile, cloudProfile: state.cloudProfile,
-    mcVersion: inst.mcVersion, loaderType: inst.loader || 'vanilla', loaderVersion: inst.loaderVersion || '',
+    mcVersion: inst.mcVersion, loaderType: effectiveLoader, loaderVersion: effectiveLoaderVer,
     ramGB: ram, javaPath: state.javaPath, gameDir: state.gameDir, instanceDir: inst.dir, packName: inst.name || 'Modpack',
     useAikarFlags: state.aikarFlags, fastSkipHash: state.fastSkipHash, hideLauncherOnPlay: state.hideLauncherOnPlay,
     serverIp: customWorldFolder ? '' : (customServerIp || ''), worldFolderName: customWorldFolder || '',
@@ -3708,6 +3878,58 @@ function initPackHubUI() {
 
   const bImp = document.getElementById('btnPacksImportFile');
   if (bImp) bImp.onclick = doPackImportFile;
+  const bImpRust = document.getElementById('btnPacksImportRust');
+  if (bImpRust) {
+    bImpRust.onclick = async () => {
+      if (packHub.installing) { packNotify('⏳ Đang cài một gói khác...', 'error'); return; }
+      if (typeof window.aetherAPI.pickAndPortModpackToHorizon !== 'function') return;
+      packHub.installing = true;
+      packShowProgress('🦀 Chọn tệp Modpack (.mrpack / .zip) để tải & chuyển đổi toàn bộ sang Nhân Horizon Rust...', 5);
+      try {
+        const res = await window.aetherAPI.pickAndPortModpackToHorizon({
+          gameDir: state.gameDir,
+          rootDir: state.gameDir,
+          importAsInstance: true
+        });
+        packHub.installing = false;
+        if (res?.canceled) {
+          packHideProgress(200);
+          return;
+        }
+        if (!res?.ok) {
+          packShowProgress(`❌ ${res?.error || 'Không thể chuyển đổi Modpack sang Rust'}`, 0, true);
+          packNotify(`❌ ${res?.error || 'Không thể chuyển đổi Modpack sang Rust'}`, 'error', 5500);
+          return;
+        }
+        await refreshPackInstances();
+        const stats = [];
+        if (res.hmods_created > 0) stats.push(`${res.hmods_created} Mod khối/vật phẩm`);
+        if (res.datapacks_created > 0) stats.push(`${res.datapacks_created} Datapack thế giới`);
+        if (res.resourcepacks_created > 0) stats.push(`${res.resourcepacks_created} Gói đồ họa`);
+        if (res.native_rust_enabled > 0) stats.push(`${res.native_rust_enabled} tiện ích Rust`);
+        if (res.shaderpacks_copied > 0) stats.push(`${res.shaderpacks_copied} Shader`);
+        const sumText = stats.length ? stats.join(' • ') : `${res.ported || 0} nội dung tương thích`;
+        packShowProgress(`🦀 Đã chuyển gói “${res.pack_name || 'Modpack'}” sang Rust (${sumText})!`, 100);
+        packHideProgress(4500);
+        packNotify(`🦀 Đã nhập & chuyển gói “${res.pack_name || 'Modpack'}” sang Nhân Rust (${sumText})!`, 'success', 6500);
+        if (res.importedInstance) {
+          const askPlay = await askUserAgreement({
+            title: '🦀 Đã Chuyển Đổi Gói Modpack Sang Nhân Rust Thành Công',
+            message: `Gói "${res.pack_name || res.importedInstance.name}" đã sẵn sàng trên Nhân Horizon Rust!\n\nNội dung đã chuyển sang Rust: ${sumText}.\n\nBạn có muốn khởi chạy gói Modpack này bằng Nhân Horizon Rust (Vulkan / DX12) ngay bây giờ không?`,
+            agreeText: '🦀 Chơi Bằng Rust Ngay',
+            cancelText: 'Để Sau'
+          });
+          if (askPlay.agreed) {
+            launchPackInstance(res.importedInstance, '', '', '', null, { forceRust: true });
+          }
+        }
+      } catch (err) {
+        packHub.installing = false;
+        packShowProgress(`❌ ${err.message || err}`, 0, true);
+        packNotify(`❌ ${err.message || err}`, 'error', 5500);
+      }
+    };
+  }
   const bQuickSky = document.getElementById('btnQuickInstallSkyBlock');
   if (bQuickSky) bQuickSky.onclick = () => runQuickIslandInstall('skyblock');
   const bQuickOne = document.getElementById('btnQuickInstallOneBlock');
@@ -5968,12 +6190,53 @@ function initV402FeaturesUI() {
     };
   }
 
-  // v41.6.0 PRO: Native Rust .jar -> .hmod Compiler Studio (horizon-port-jar.exe)
+  // v41.7.0 PRO: Native Rust Mods & 5-Channel Mod / Modpack Converter Studio
+  const HORIZON_NATIVE_STUDIO_CARDS = [
+    {
+      id: 'minimap',
+      icon: '🗺️',
+      title: 'Bản Đồ Thu Nhỏ (Minimap)',
+      desc: 'Hiển thị địa hình 2D góc phải trên, hướng xoay nhân vật, tọa độ & bấm phím B đổi mức phóng.',
+      replaces: 'Thay thế: Xaero\'s Minimap, JourneyMap'
+    },
+    {
+      id: 'zoom',
+      icon: '🔭',
+      title: 'Ống Nhòm Zoom Mượt (Phím Z)',
+      desc: 'Giữ phím Z để phóng to tầm nhìn mượt mà, cuộn con lăn chuột để chỉnh độ phóng đại 1.5×–16×.',
+      replaces: 'Thay thế: Zoomify, Logical Zoom, OK Zoomer'
+    },
+    {
+      id: 'coords_hud',
+      icon: '🧭',
+      title: 'Thanh Tọa Độ & La Bàn',
+      desc: 'Hiển thị tọa độ X / Y / Z, hướng Đông-Tây-Nam-Bắc và quần xã sinh vật gọn nhẹ trên màn hình.',
+      replaces: 'Thay thế: MiniHUD, Coordinates Display'
+    },
+    {
+      id: 'keystrokes',
+      icon: '⌨️',
+      title: 'Bàn Phím PvP & CPS',
+      desc: 'Hiển thị trực quan các phím W A S D, Nhảy, Chuột trái/phải phục vụ PvP & quay video.',
+      replaces: 'Thay thế: KronHUD, KeystrokesMod'
+    },
+    {
+      id: 'fps_overlay',
+      icon: '⚡',
+      title: 'Bộ Đếm FPS Siêu Nhẹ',
+      desc: 'Theo dõi tốc độ khung hình thực tế của Nhân Rust Vulkan / DX12 ngay góc trái màn hình.',
+      replaces: 'Thay thế: FPS Display, Sodium Extra FPS'
+    }
+  ];
+
   const renderHorizonPortReport = (res) => {
     const reportEl = document.getElementById('horizonPortReportBox');
     if (!reportEl) return;
-    if (!res || !Array.isArray(res.results) || res.results.length === 0) {
-      if (res?.message) {
+    if (!res || (!Array.isArray(res.results) || res.results.length === 0)) {
+      if (res?.pack_name) {
+        reportEl.classList.remove('hidden');
+        reportEl.innerHTML = `<div class="hrs-report-summary">🦀 Đã chuyển đổi gói Modpack <strong>${escapeHtml(res.pack_name)}</strong> sang Nhân Rust!</div>`;
+      } else if (res?.message) {
         reportEl.classList.remove('hidden');
         reportEl.innerHTML = `<div class="hrs-report-summary">ℹ ${escapeHtml(res.message)}</div>`;
       } else {
@@ -5984,89 +6247,217 @@ function initV402FeaturesUI() {
     }
     reportEl.classList.remove('hidden');
     const itemsHtml = res.results.map((r) => {
-      const vClass = r.verdict === 'works' ? 'is-works' : (r.verdict === 'partly' ? 'is-partly' : 'is-no');
-      const vLabel = r.verdict === 'works'
-        ? '✓ Chạy 100% Rust'
-        : (r.verdict === 'partly' ? '⚡ Chạy dữ liệu/khối Rust' : 'ℹ Thuần mã Java/Mixin');
+      const kind = r.kind || '';
+      let vClass = 'is-no';
+      let vLabel = 'ℹ Mã máy Java riêng';
+      if (kind === 'native_rust') {
+        vClass = 'is-works';
+        vLabel = '🦀 Tiện ích Rust gốc';
+      } else if (kind === 'builtin_engine') {
+        vClass = 'is-works';
+        vLabel = '⚡ Tích hợp sẵn trong Engine';
+      } else if (kind === 'datapack') {
+        vClass = 'is-works';
+        vLabel = '🌍 Datapack Thế giới Rust';
+      } else if (kind === 'resourcepack') {
+        vClass = 'is-works';
+        vLabel = '🎨 Gói Đồ họa Rust';
+      } else if (r.verdict === 'works') {
+        vClass = 'is-works';
+        vLabel = '✓ Mod Khối/Vật phẩm Rust';
+      } else if (r.verdict === 'partly') {
+        vClass = 'is-partly';
+        vLabel = '⚡ Đã trích phần Khối/Dữ liệu';
+      }
       const stats = [];
       if (r.blocks > 0) stats.push(`${r.blocks} khối`);
       if (r.items > 0) stats.push(`${r.items} vật phẩm`);
       if (r.recipes > 0) stats.push(`${r.recipes} công thức`);
-      if ((r.structures || 0) + (r.worldgen || 0) > 0) stats.push(`${(r.structures || 0) + (r.worldgen || 0)} worldgen`);
+      if ((r.structures || 0) + (r.worldgen || 0) > 0) stats.push(`${(r.structures || 0) + (r.worldgen || 0)} địa hình`);
       if (r.textures > 0) stats.push(`${r.textures} kết cấu`);
       if (r.files_packed > 0) stats.push(`${r.files_packed} tệp`);
-      const jarFile = r.file_name || String(r.jar_path || '').split(/[\\/]/).pop() || r.mod_id || 'mod.jar';
+      const jarFile = r.file_name || String(r.jar_path || '').split(/[\\/]/).pop() || r.mod_id || 'mod';
+      const subText = kind === 'native_rust' && r.ports?.[0]
+        ? escapeHtml(r.ports[0])
+        : kind === 'builtin_engine' && r.ports?.[0]
+          ? escapeHtml(r.ports[0])
+          : stats.length
+            ? escapeHtml(stats.join(' • '))
+            : escapeHtml(r.summary || jarFile);
       return `<div class="hrs-report-item">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
           <strong style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(jarFile)}">${escapeHtml(r.name || jarFile)}</strong>
           <span class="hmod-verdict-badge ${vClass}">${vLabel}</span>
         </div>
-        <div style="color:var(--text-muted);">
-          ${r.hmod_path ? `<code>${escapeHtml(r.mod_id)}.hmod</code>` : `<code>${escapeHtml(jarFile)}</code>`}
-          ${stats.length ? ` • ${escapeHtml(stats.join(' • '))}` : ''}
+        <div style="color:var(--text-muted);font-size:11.2px;">
+          ${subText}
           ${r.clash_warning ? ` • <span style="color:#dc2626;">${escapeHtml(r.clash_warning)}</span>` : ''}
         </div>
       </div>`;
     }).join('');
+    const summaryParts = [];
+    if (res.hmods_created > 0) summaryParts.push(`${res.hmods_created} Mod khối/vật phẩm`);
+    if (res.datapacks_created > 0) summaryParts.push(`${res.datapacks_created} Datapack thế giới`);
+    if (res.resourcepacks_created > 0) summaryParts.push(`${res.resourcepacks_created} Gói đồ họa`);
+    if (res.native_rust_enabled > 0) summaryParts.push(`${res.native_rust_enabled} tiện ích Rust gốc`);
+    if (res.builtin_engine_matched > 0) summaryParts.push(`${res.builtin_engine_matched} tính năng có sẵn trong Engine`);
+    if (res.shaderpacks_copied > 0) summaryParts.push(`${res.shaderpacks_copied} Shader`);
+    const sumDetail = summaryParts.length ? summaryParts.join(' • ') : `${res.ported || 0} gói chạy trên Rust`;
+    const headTitle = res.pack_name
+      ? `🦀 Đã chuyển đổi gói Modpack <strong>${escapeHtml(res.pack_name)}</strong> (${res.total || res.results.length} thành phần): <strong>${escapeHtml(sumDetail)}</strong>`
+      : `🦀 Kết quả chuyển đổi sang Rust (${res.total || res.results.length} tệp): <strong>${escapeHtml(sumDetail)}</strong>${res.skipped_code_only > 0 ? ` • ${res.skipped_code_only} gói mã Java chuyên sâu giữ nguyên` : ''}`;
     reportEl.innerHTML = `
-      <div class="hrs-report-summary">
-        🦀 Kết quả biên dịch Rust (${res.total || res.results.length} tệp .jar): Tạo thành công <strong>${res.ported || 0}</strong> gói <code>.hmod</code> (${res.works || 0} trọn vẹn • ${res.partly || 0} một phần • ${res.skipped_code_only || 0} thuần mã Java)
-      </div>
+      <div class="hrs-report-summary">${headTitle}</div>
       <div class="hrs-report-grid">${itemsHtml}</div>`;
   };
 
-  window.refreshHorizonRustModStudio = async () => {
+  window.refreshHorizonRustModStudio = async (forceCountOnly = false) => {
     const studioEl = document.getElementById('horizonRustModStudioCard');
-    if (!studioEl || studioEl.classList.contains('hidden')) return;
-    const listEl = document.getElementById('horizonHmodsList');
-    const countTitle = document.getElementById('horizonHmodsCountTitle');
-    const badgeEl = document.getElementById('horizonPortJarBadge');
-    const scanBtn = document.getElementById('btnHorizonScanAllJars');
+    const tabCountEl = document.getElementById('rustStudioTabCount');
     const t = getModStoreTarget();
     try {
       const res = await window.aetherAPI.listHorizonHmods({ gameDir: t.dir, rootDir: state.gameDir });
+      const mods = Array.isArray(res?.mods) ? res.mods : [];
+      const nativeList = Array.isArray(res?.native_mods) ? res.native_mods : [];
+      const datapacks = Array.isArray(res?.datapacks) ? res.datapacks : [];
+      const resourcepacks = Array.isArray(res?.resourcepacks) ? res.resourcepacks : [];
+      const nativeEnabledMap = new Map();
+      for (const nm of nativeList) {
+        if (nm?.id) nativeEnabledMap.set(String(nm.id), Boolean(nm.enabled));
+      }
+      const activeNativeCount = HORIZON_NATIVE_STUDIO_CARDS.filter((c) => nativeEnabledMap.get(c.id)).length;
+      const activeHmodCount = mods.filter((m) => m.enabled).length;
+      const totalActiveRust = activeNativeCount + activeHmodCount + datapacks.length + resourcepacks.length;
+      if (tabCountEl) {
+        tabCountEl.textContent = String(totalActiveRust > 0 ? totalActiveRust : HORIZON_NATIVE_STUDIO_CARDS.length);
+      }
+      if (forceCountOnly || !studioEl || studioEl.classList.contains('hidden')) return;
+
+      const badgeEl = document.getElementById('horizonPortJarBadge');
+      const scanBtn = document.getElementById('btnHorizonScanAllJars');
+      const nativeGridEl = document.getElementById('horizonNativeModsGrid');
+      const countTitle = document.getElementById('horizonHmodsCountTitle');
+      const listEl = document.getElementById('horizonHmodsList');
+
       if (badgeEl) {
         badgeEl.textContent = res?.hasPortJarTool
-          ? '✓ horizon-port-jar.exe • Rust Native Sẵn Sàng'
-          : '⬇ Tự tải horizon-port-jar.exe từ GitHub khi bấm Dịch';
+          ? '✓ Trình biên dịch Rust 5 Kênh Sẵn Sàng'
+          : '✓ Tiện ích Rust Sẵn Sàng • Tự tải bộ chuyển đổi khi dùng';
       }
       if (scanBtn) {
         const jc = Number(res?.javaJarCount || 0);
-        scanBtn.innerHTML = `<span>⚡ Quét &amp; Dịch toàn bộ mods/*.jar → .hmod${jc > 0 ? ` (${jc} tệp .jar)` : ''}</span>`;
+        scanBtn.innerHTML = `<span>⚡ Quét &amp; Chuyển Toàn Bộ Mod Đang Có${jc > 0 ? ` (${jc} tệp)` : ''}</span>`;
       }
-      const mods = Array.isArray(res?.mods) ? res.mods : [];
+
+      if (nativeGridEl) {
+        nativeGridEl.innerHTML = HORIZON_NATIVE_STUDIO_CARDS.map((card) => {
+          const isOn = Boolean(nativeEnabledMap.get(card.id));
+          return `<div class="hrs-native-card ${isOn ? 'is-on' : ''}">
+            <div>
+              <div class="hrs-nc-top">
+                <div class="hrs-nc-title"><span class="hrs-nc-icon">${card.icon}</span><span>${escapeHtml(card.title)}</span></div>
+              </div>
+              <div class="hrs-nc-desc" style="margin-top:5px;">${escapeHtml(card.desc)}</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;">
+              <span class="hrs-nc-replaces">${escapeHtml(card.replaces)}</span>
+              <button type="button" class="vtype-btn ${isOn ? 'active' : ''}" data-native-toggle="${card.id}" data-native-next="${isOn ? '0' : '1'}" style="flex-shrink:0;">
+                ${isOn ? '🟢 Đang Bật' : '⚪ Bật Ngay'}
+              </button>
+            </div>
+          </div>`;
+        }).join('');
+
+        nativeGridEl.querySelectorAll('[data-native-toggle]').forEach((b) => {
+          b.onclick = async () => {
+            const modId = b.dataset.nativeToggle;
+            const nextEnabled = b.dataset.nativeNext === '1';
+            b.disabled = true;
+            await window.aetherAPI.toggleHorizonHmod({
+              gameDir: t.dir,
+              rootDir: state.gameDir,
+              modId,
+              enabled: nextEnabled
+            });
+            const cardMeta = HORIZON_NATIVE_STUDIO_CARDS.find((c) => c.id === modId);
+            showAetherNotification(
+              nextEnabled
+                ? `🦀 Đã bật "${cardMeta?.title || modId}" trên Nhân Horizon Rust!`
+                : `⚪ Đã tắt "${cardMeta?.title || modId}".`,
+              nextEnabled ? 'success' : 'info',
+              3200
+            );
+            await window.refreshHorizonRustModStudio();
+          };
+        });
+      }
+
+      const totalConverted = mods.length + datapacks.length + resourcepacks.length;
       if (countTitle) {
-        const activeCount = mods.filter((m) => m.enabled).length;
-        countTitle.textContent = `📦 Gói .hmod Rust đang cài (${activeCount}/${mods.length} đang bật)`;
+        countTitle.textContent = `3. Các Gói Nội Dung Đã Chuyển Sang Rust (${totalConverted} gói)`;
       }
       if (!listEl) return;
-      if (mods.length === 0) {
+      if (totalConverted === 0) {
         listEl.innerHTML = `<div style="grid-column:1/-1;padding:12px;text-align:center;color:var(--text-muted);font-size:12px;">
-          Chưa có gói <code>.hmod</code> nào trong <code>horizon-mods/</code>. Bấm <strong>"⚡ Quét &amp; Dịch toàn bộ mods/*.jar"</strong> hoặc <strong>"📂 Chọn tệp .jar lẻ"</strong> để biên dịch Mod Java sang gói Rust chạy thật!
+          Chưa có Mod khối/vật phẩm, Datapack hay Gói đồ họa nào được chuyển đổi. Bạn có thể tải trực tiếp từ <strong>🧩 Kho Mod</strong> hoặc bấm <strong>"⚡ Quét &amp; Chuyển Toàn Bộ Mod Đang Có"</strong> / <strong>"📦 Chuyển Gói Modpack"</strong> ở trên!
         </div>`;
         return;
       }
-      listEl.innerHTML = mods.map((m) => {
+
+      const hmodRowsHtml = mods.map((m) => {
         const kb = Math.max(1, Math.round((Number(m.size_bytes) || 0) / 1024));
-        const statBadges = [];
-        if (m.blocks > 0) statBadges.push(`🧱 ${m.blocks} khối`);
-        if (m.items > 0) statBadges.push(`⚔️ ${m.items} vật phẩm`);
-        if (m.creative_tabs > 0) statBadges.push(`🗂️ ${m.creative_tabs} tab`);
-        if (m.files > 0) statBadges.push(`📄 ${m.files} tệp`);
+        const statBadges = ['🧱 Mod Khối/Vật phẩm Rust'];
+        if (m.blocks > 0) statBadges.push(`${m.blocks} khối`);
+        if (m.items > 0) statBadges.push(`${m.items} vật phẩm`);
+        if (m.creative_tabs > 0) statBadges.push(`${m.creative_tabs} tab sáng tạo`);
         statBadges.push(`${kb} KB`);
         return `<div class="hmod-item-row ${m.enabled ? 'is-enabled' : ''}">
           <div class="hmod-item-meta">
             <div class="hmod-item-title" title="${escapeHtml(m.description || m.name || m.id)}">
-              ${m.enabled ? '🟢' : '⚪'} ${escapeHtml(m.name || m.id)} <small style="font-weight:600;color:var(--text-muted);">(${escapeHtml(m.id)}.hmod${m.version ? ` • v${escapeHtml(m.version)}` : ''})</small>
+              ${m.enabled ? '🟢' : '⚪'} ${escapeHtml(m.name || m.id)}
             </div>
             <div class="hmod-item-stats">${statBadges.map((s) => `<span>${escapeHtml(s)}</span>`).join(' • ')}</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
             <button type="button" class="vtype-btn ${m.enabled ? 'active' : ''}" data-hmod-toggle="${escapeHtml(m.id)}" data-hmod-next="${m.enabled ? '0' : '1'}">${m.enabled ? 'Đang Bật' : 'Đang Tắt'}</button>
-            <button type="button" class="vtype-btn" data-hmod-del="${escapeHtml(m.id)}" data-hmod-file="${escapeHtml(m.file_name || `${m.id}.hmod`)}" title="Xoá gói .hmod này">🗑️</button>
+            <button type="button" class="vtype-btn" data-hmod-del="${escapeHtml(m.id)}" data-hmod-kind="hmod" data-hmod-file="${escapeHtml(m.file_name || `${m.id}.hmod`)}" title="Xoá gói Mod Rust này">🗑️</button>
           </div>
         </div>`;
-      }).join('');
+      });
+
+      const dpRowsHtml = datapacks.map((dp) => {
+        const kb = Math.max(1, Math.round((Number(dp.size_bytes) || 0) / 1024));
+        return `<div class="hmod-item-row is-enabled">
+          <div class="hmod-item-meta">
+            <div class="hmod-item-title" title="${escapeHtml(dp.description || dp.id)}">
+              🌍 ${escapeHtml(dp.id)}
+            </div>
+            <div class="hmod-item-stats"><span>Datapack Thế giới &amp; Đảo Bay Rust</span> • <span>${dp.files || 0} tệp</span> • <span>${kb} KB</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <span class="mod-compat-pill ok" style="font-size:10.5px;">Tự nạp Map mới</span>
+            <button type="button" class="vtype-btn" data-hmod-del="${escapeHtml(dp.id)}" data-hmod-kind="datapack" data-hmod-file="${escapeHtml(dp.id)}" title="Xoá Datapack này">🗑️</button>
+          </div>
+        </div>`;
+      });
+
+      const rpRowsHtml = resourcepacks.map((rp) => {
+        const kb = Math.max(1, Math.round((Number(rp.size_bytes) || 0) / 1024));
+        return `<div class="hmod-item-row is-enabled">
+          <div class="hmod-item-meta">
+            <div class="hmod-item-title">
+              🎨 ${escapeHtml(rp.id || rp.file_name)}
+            </div>
+            <div class="hmod-item-stats"><span>Gói Đồ họa trích xuất cho Rust</span> • <span>${kb} KB</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <span class="mod-compat-pill ok" style="font-size:10.5px;">Đang trang bị</span>
+            <button type="button" class="vtype-btn" data-hmod-del="${escapeHtml(rp.id)}" data-hmod-kind="resourcepack" data-hmod-file="${escapeHtml(rp.file_name)}" title="Xoá Gói đồ họa này">🗑️</button>
+          </div>
+        </div>`;
+      });
+
+      listEl.innerHTML = [...hmodRowsHtml, ...dpRowsHtml, ...rpRowsHtml].join('');
 
       listEl.querySelectorAll('[data-hmod-toggle]').forEach((b) => {
         b.onclick = async () => {
@@ -6081,7 +6472,7 @@ function initV402FeaturesUI() {
           });
           b.disabled = false;
           if (!tg?.ok && tg?.clash) {
-            showAetherNotification(`⚠ Không thể bật "${modId}.hmod": Trùng không gian tên với "${tg.clash}.hmod"!`, 'error', 5500);
+            showAetherNotification(`⚠ Không thể bật "${modId}": Trùng nội dung với "${tg.clash}"!`, 'error', 5500);
           } else if (tg?.error) {
             showAetherNotification(`⚠ ${tg.error}`, 'error', 5000);
           }
@@ -6093,19 +6484,22 @@ function initV402FeaturesUI() {
         b.onclick = async () => {
           const modId = b.dataset.hmodDel;
           const fileName = b.dataset.hmodFile;
+          const kind = b.dataset.hmodKind || 'hmod';
           b.disabled = true;
           await window.aetherAPI.deleteHorizonHmod({
             gameDir: t.dir,
             rootDir: state.gameDir,
             modId,
-            fileName
+            fileName,
+            kind
           });
-          showAetherNotification(`🗑️ Đã xoá gói "${fileName}" khỏi horizon-mods/!`, 'info', 3500);
+          showAetherNotification(`🗑️ Đã xoá gói "${modId}" khỏi danh sách Rust!`, 'info', 3200);
           await window.refreshHorizonRustModStudio();
         };
       });
     } catch (err) {
-      if (listEl) {
+      const listEl = document.getElementById('horizonHmodsList');
+      if (!forceCountOnly && listEl) {
         listEl.innerHTML = `<div style="grid-column:1/-1;padding:10px;color:#dc2626;font-size:12px;">⚠ ${escapeHtml(err.message || String(err))}</div>`;
       }
     }
@@ -6116,7 +6510,7 @@ function initV402FeaturesUI() {
     const origHtml = scanBtn ? scanBtn.innerHTML : '';
     if (scanBtn) {
       scanBtn.disabled = true;
-      scanBtn.innerHTML = '<span>⏳ Đang biên dịch mods/*.jar → .hmod bằng Rust...</span>';
+      scanBtn.innerHTML = '<span>⏳ Đang quét &amp; chuyển đổi Mod sang Rust...</span>';
     }
     const t = getModStoreTarget();
     try {
@@ -6128,20 +6522,20 @@ function initV402FeaturesUI() {
         autoEnable: true
       });
       if (!res?.ok) {
-        showAetherNotification(`⚠ Lỗi biên dịch .jar sang .hmod: ${res?.error || 'Kiểm tra kết nối'}`, 'error', 5500);
+        showAetherNotification(`⚠ Lỗi chuyển đổi Mod sang Rust: ${res?.error || 'Kiểm tra kết nối'}`, 'error', 5500);
       } else {
         renderHorizonPortReport(res);
         if ((res.ported || 0) > 0) {
           showAetherNotification(
-            `🦀 Đã biên dịch thành công ${res.ported}/${res.total} Mod .jar sang gói .hmod chạy thật bằng Rust!`,
+            `🦀 Đã chuyển đổi thành công ${res.ported}/${res.total} gói sang chạy trực tiếp trên Nhân Rust!`,
             'success',
             5500
           );
         } else {
           showAetherNotification(
-            res.message || `ℹ Đã quét ${res.total || 0} tệp .jar (các gói thuần mã Java/Mixin không chứa khối/tài nguyên riêng cho .hmod).`,
+            res.message || `ℹ Đã kiểm tra ${res.total || 0} tệp (chưa có khối/dữ liệu rời mới cần chuyển đổi).`,
             'info',
-            5500
+            5200
           );
         }
       }
@@ -6156,28 +6550,71 @@ function initV402FeaturesUI() {
     }
   };
 
+  const runPickModpackForRustStudio = async (triggerBtn = null) => {
+    if (typeof window.aetherAPI.pickAndPortModpackToHorizon !== 'function') return;
+    const origText = triggerBtn ? triggerBtn.innerHTML : '';
+    if (triggerBtn) {
+      triggerBtn.disabled = true;
+      triggerBtn.innerHTML = '⏳ Đang chuyển Modpack sang Rust...';
+    }
+    const t = getModStoreTarget();
+    try {
+      const res = await window.aetherAPI.pickAndPortModpackToHorizon({
+        gameDir: t.dir,
+        rootDir: state.gameDir,
+        importAsInstance: false
+      });
+      if (res?.canceled) return;
+      await window.openHorizonRustModStudio(false);
+      if (!res?.ok) {
+        showAetherNotification(`⚠ ${res?.error || 'Không thể chuyển đổi gói Modpack đã chọn'}`, 'error', 5500);
+      } else {
+        renderHorizonPortReport(res);
+        showAetherNotification(
+          `🦀 Đã chuyển đổi gói Modpack "${res.pack_name || 'Modpack'}" sang Nhân Horizon Rust thành công!`,
+          'success',
+          6000
+        );
+      }
+    } catch (err) {
+      showAetherNotification(`⚠ ${err.message || err}`, 'error', 5500);
+    } finally {
+      if (triggerBtn) {
+        triggerBtn.disabled = false;
+        triggerBtn.innerHTML = origText;
+      }
+      await window.refreshHorizonRustModStudio();
+    }
+  };
+
   window.openHorizonRustModStudio = async (autoScan = false) => {
-    const studioEl = document.getElementById('horizonRustModStudioCard');
-    if (!studioEl) return;
-    studioEl.classList.remove('hidden');
-    studioEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    await window.refreshHorizonRustModStudio();
+    state.activeModStoreType = 'rust-studio';
+    document.querySelectorAll('.mtype-btn[data-ptype]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.ptype === 'rust-studio');
+    });
+    await loadModrinthStore(false);
     if (autoScan) {
       await runScanAllModsJarsToRust();
     }
   };
 
   document.getElementById('btnHorizonPortJarHub')?.addEventListener('click', async () => {
-    const studioEl = document.getElementById('horizonRustModStudioCard');
-    if (!studioEl) return;
-    if (studioEl.classList.contains('hidden')) {
-      await window.openHorizonRustModStudio(false);
+    if (state.activeModStoreType === 'rust-studio') {
+      state.activeModStoreType = 'mod';
+      document.querySelectorAll('.mtype-btn[data-ptype]').forEach((b) => {
+        b.classList.toggle('active', b.dataset.ptype === 'mod');
+      });
+      await loadModrinthStore(false);
     } else {
-      studioEl.classList.add('hidden');
+      await window.openHorizonRustModStudio(false);
     }
   });
-  document.getElementById('btnCloseHorizonRustStudio')?.addEventListener('click', () => {
-    document.getElementById('horizonRustModStudioCard')?.classList.add('hidden');
+  document.getElementById('btnCloseHorizonRustStudio')?.addEventListener('click', async () => {
+    state.activeModStoreType = 'mod';
+    document.querySelectorAll('.mtype-btn[data-ptype]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.ptype === 'mod');
+    });
+    await loadModrinthStore(false);
   });
   document.getElementById('btnHorizonScanAllJars')?.addEventListener('click', () => runScanAllModsJarsToRust());
   document.getElementById('btnHorizonPickJarFiles')?.addEventListener('click', async () => {
@@ -6191,13 +6628,13 @@ function initV402FeaturesUI() {
       });
       if (res?.canceled) return;
       if (!res?.ok) {
-        showAetherNotification(`⚠ ${res?.error || 'Không thể biên dịch tệp .jar đã chọn'}`, 'error', 5500);
+        showAetherNotification(`⚠ ${res?.error || 'Không thể chuyển đổi tệp đã chọn'}`, 'error', 5500);
       } else {
         renderHorizonPortReport(res);
         showAetherNotification(
           (res.ported || 0) > 0
-            ? `🦀 Đã biên dịch ${res.ported}/${res.total} tệp .jar đã chọn thành gói .hmod chạy thật bằng Rust!`
-            : `ℹ Tệp .jar đã chọn thuần mã Java/Mixin, không có dữ liệu khối/vật phẩm/tài nguyên để đóng gói .hmod.`,
+            ? `🦀 Đã chuyển đổi ${res.ported}/${res.total} tệp đã chọn sang định dạng chạy trên Nhân Rust!`
+            : `ℹ Tệp đã chọn viết bằng mã máy Java chuyên sâu, chưa có khối/dữ liệu rời cho Rust.`,
           (res.ported || 0) > 0 ? 'success' : 'info',
           5500
         );
@@ -6207,11 +6644,15 @@ function initV402FeaturesUI() {
       await window.refreshHorizonRustModStudio();
     }
   });
+  document.getElementById('btnHorizonPickModpack')?.addEventListener('click', (e) => runPickModpackForRustStudio(e.currentTarget));
+  document.getElementById('btnHorizonHeaderPackPort')?.addEventListener('click', (e) => runPickModpackForRustStudio(e.currentTarget));
   document.getElementById('btnHorizonRefreshHmods')?.addEventListener('click', () => window.refreshHorizonRustModStudio());
   document.getElementById('btnHorizonOpenHmodsFolder')?.addEventListener('click', () => {
     const t = getModStoreTarget();
     window.aetherAPI.openHorizonHmodsFolder(t.dir);
   });
+  // Refresh the Rust Studio count badge once on startup
+  setTimeout(() => { window.refreshHorizonRustModStudio?.(true); }, 1200);
 }
 
 /* ============================================================================

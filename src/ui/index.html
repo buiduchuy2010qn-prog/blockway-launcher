@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>BlockWay Launcher v41.6.0 PRO — Every World, One Place</title>
+  <title>BlockWay Launcher v41.7.0 PRO — Every World, One Place</title>
   <link rel="icon" href="app-icon.ico" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="layout-v33.css" />
@@ -23,7 +23,7 @@
         </div>
         <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
           <span>🔄 Kiểm tra cập nhật</span>
-          <strong id="titlebarUpdateVer">v41.6.0</strong>
+          <strong id="titlebarUpdateVer">v41.7.0</strong>
         </button>
       </div>
 
@@ -61,11 +61,15 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 1 1 10-10c0 2.2-1.8 3.5-4 3.5h-1.6a1.9 1.9 0 0 0-1.4 3.2c.5.6.3 1.6-.4 2.2-.8.7-1.6 1.1-2.6 1.1z"/><circle cx="7.5" cy="11" r="1.3" fill="currentColor"/><circle cx="10.5" cy="7" r="1.3" fill="currentColor"/><circle cx="15.5" cy="7.5" r="1.3" fill="currentColor"/></svg>
           </button>
           <div class="theme-popover hidden" id="themePickerPopover">
-            <div class="notif-pop-head"><strong>Màu giao diện</strong><span class="theme-pop-hint">Lưu tự động</span></div>
+            <div class="notif-pop-head"><strong>🎨 Chủ đề &amp; Giao diện</strong><span class="theme-pop-hint">Lưu tự động</span></div>
             <div class="theme-swatch-grid">
               <button class="ts-chip theme-swatch" data-theme-pick="lunar" title="Giao diện BlockWay Dark (Mặc định dịu mắt)">
                 <span class="tsw-preview" style="background: linear-gradient(135deg, #151922 0 50%, #3b82f6 50% 78%, #22c55e 78% 100%);"></span>
                 <span class="tsw-info"><span class="tsw-label">BlockWay Dark</span><small class="tsw-sub">Tối Mặc Định</small></span>
+              </button>
+              <button class="ts-chip theme-swatch" data-theme-pick="rust" title="Giao diện Rust Obsidian (Đen núi lửa &amp; Cam Rust hiện đại)">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #121318 0 50%, #f97316 50% 78%, #fbbf24 78% 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">🦀 Rust Obsidian</span><small class="tsw-sub">Đen Cam Mới</small></span>
               </button>
               <button class="ts-chip theme-swatch" data-theme-pick="prism" title="Giao diện Trắng Sáng">
                 <span class="tsw-preview" style="background: linear-gradient(135deg, #ffffff 0 50%, #2563eb 50% 78%, #dbe4f0 78% 100%);"></span>
@@ -91,6 +95,20 @@
                 <span class="tsw-preview" style="background: linear-gradient(135deg, #24111f 0 50%, #db2777 50% 78%, #f9a8d4 78% 100%);"></span>
                 <span class="tsw-info"><span class="tsw-label">Cherry Dark</span><small class="tsw-sub">Tối Hồng</small></span>
               </button>
+            </div>
+            <div class="theme-pop-quick-studio">
+              <div class="tpqs-row">
+                <span class="tpqs-lbl">Màu nhấn:</span>
+                <div class="accent-swatch-row">
+                  <button type="button" class="accent-dot-btn is-auto active" data-accent-pick="" title="Màu chuẩn theo chủ đề">Auto</button>
+                  <button type="button" class="accent-dot-btn" data-accent-pick="#3b82f6" style="--dot:#3b82f6;" title="Xanh Dương"></button>
+                  <button type="button" class="accent-dot-btn" data-accent-pick="#f97316" style="--dot:#f97316;" title="Cam Rust"></button>
+                  <button type="button" class="accent-dot-btn" data-accent-pick="#10b981" style="--dot:#10b981;" title="Xanh Ngọc"></button>
+                  <button type="button" class="accent-dot-btn" data-accent-pick="#8b5cf6" style="--dot:#8b5cf6;" title="Tím Neon"></button>
+                  <button type="button" class="accent-dot-btn" data-accent-pick="#ec4899" style="--dot:#ec4899;" title="Hồng Anh Đào"></button>
+                </div>
+              </div>
+              <button type="button" class="vtype-btn tpqs-more-btn" id="btnOpenUiStudioSettings">⚙️ Tùy chỉnh bố cục, bo góc &amp; thanh bên ›</button>
             </div>
           </div>
         </div>
@@ -961,29 +979,32 @@
         </section>
 
         <!-- =========================================================
-             MỤC 4: MOD & PACK (MODRINTH STORE & INSTALLED ADDONS)
+             MỤC 4: MOD & PACK (MODRINTH STORE, RUST MOD STUDIO & INSTALLED ADDONS)
              ========================================================= -->
         <section class="tab-panel" id="tab-mods">
           <div class="mods-tab-header">
             <div class="subpage-title-block">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <h2>🧩 Kho Mod, Shader &amp; Resource Pack (Modrinth Official)</h2>
-                <span class="installed-count-tag" id="modTotalCounterBadge">77,600+ Gói</span>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <h2>🧩 Kho Mod, Shader &amp; Gói Đồ Họa</h2>
+                <span class="installed-count-tag" id="modTotalCounterBadge">77.600+ Gói</span>
               </div>
-              <p>Tự động cài kèm thư viện bắt buộc vào <strong id="modStoreVerLabel">1.21.4 (FABRIC)</strong>.</p>
+              <p id="modStoreSubDesc">Đang chọn cấu hình <strong id="modStoreVerLabel">1.21.4 (FABRIC)</strong> — tải 1 chạm, tự khớp phiên bản.</p>
             </div>
             <div class="mods-header-actions">
               <button class="btn-fps-boost-1click" id="btnStoreFpsBoost" title="Tự động tải bộ Mod tối ưu X3 FPS (Sodium, Lithium, FerriteCore, EntityCulling, ModernFix, Iris)">
-                <span>⚡ Cài Trọn Bộ Mod X3 FPS</span>
+                <span>⚡ Bộ Mod X3 FPS</span>
               </button>
-              <button class="btn-sync-skin is-ok" id="btnModsOptifineHub" title="Trang bị 1-Click trọn bộ tính năng OptiFine (Shader, Zoom phím C, Đuốc sáng hang, Nối kính, Fresh Animations) hoặc cài tệp OptiFine.jar">
+              <button class="btn-sync-skin is-ok" id="btnModsOptifineHub" title="Trang bị 1-Click trọn bộ tính năng OptiFine (Shader, Zoom phím C, Đuốc sáng hang, Nối kính, Fresh Animations)">
                 🔆 Bộ Chuẩn OptiFine
               </button>
-              <button class="btn-sync-skin is-ok" id="btnHorizonPortJarHub" title="Dịch ngược tài nguyên, khối, vật phẩm, công thức &amp; worldgen từ Mod .jar Java sang gói .hmod chạy thật 100% bằng Rust (horizon-port-jar.exe)">
-                🦀 Dịch Mod .jar → .hmod
+              <button class="btn-fps-boost-1click hidden" id="btnHorizonPortJarHub" title="Mở Trung tâm Tiện ích Rust có sẵn (Minimap, Zoom, Tọa độ, Keystrokes) &amp; chuyển đổi Mod/Modpack sang Rust">
+                <span>🦀 Tiện Ích &amp; Chuyển Mod Rust</span>
+              </button>
+              <button class="btn-sync-skin is-ok hidden" id="btnHorizonHeaderPackPort" title="Chọn tệp Modpack (.mrpack / .zip) để chuyển đổi toàn bộ sang Nhân Rust">
+                📦 Chuyển Modpack Sang Rust
               </button>
               <button class="btn-sync-skin" id="btnOpenModsFolder">📂 Mở Thư Mục</button>
-              <button class="btn-sync-skin hidden" id="btnModsVisualBoost" title="Mở Kho Làm Đẹp 0% Lag: Lửa thấp PvP, Viền quặng phát sáng, Hoạt ảnh sinh vật, Âm thanh 3D &amp; Tăng tốc tải Chunk">🎨 Làm Đẹp 0% Lag</button>
+              <button class="btn-sync-skin hidden" id="btnModsVisualBoost" title="Mở Kho Làm Đẹp 0% Lag">🎨 Làm Đẹp 0% Lag</button>
               <button class="btn-sync-skin is-turbo hidden" id="btnModsTurboSmooth" title="Mở Turbo Smooth Core™">⚡ Can Thiệp File Mượt</button>
               <button class="btn-sync-skin hidden" id="btnModsSharePack" title="Đóng gói bộ Mod gửi bạn bè">📦 Đóng gói gửi bạn</button>
               <button class="btn-sync-skin hidden" id="btnSyncAllModsToVer" title="Đồng bộ Mod sang phiên bản đang chọn">🔄 Đồng Bộ Mod Sang Bản Này</button>
@@ -993,9 +1014,9 @@
           </div>
 
           <div class="mods-filter-tiers">
-            <div class="mods-target-bar" id="modTargetInstanceBar">
+            <div class="mods-target-bar hidden" id="modTargetInstanceBar">
               <div class="mtb-left">
-                <span class="mtb-label">📥 Cài &amp; Quản lý Mod / Shader cho:</span>
+                <span class="mtb-label">📥 Cài vào:</span>
                 <select id="modTargetInstanceSelect" class="pro-input mtb-select" title="Chọn cài Mod vào thư mục chính (.minecraft) hoặc cài riêng vào 1 gói Modpack đã tải">
                   <option value="">🏠 Thư mục chính (.minecraft)</option>
                 </select>
@@ -1008,23 +1029,24 @@
 
             <div class="mods-tier-row mods-tier-1">
               <div class="mods-type-tabs">
-                <button class="mtype-btn active" data-ptype="mod">🧩 Mod (.jar)</button>
-                <button class="mtype-btn" data-ptype="shader">✨ Shader (Bóng đổ)</button>
-                <button class="mtype-btn" data-ptype="resourcepack">🎨 Resource Pack</button>
+                <button class="mtype-btn active" data-ptype="mod">🧩 Kho Mod</button>
+                <button class="mtype-btn" data-ptype="shader">✨ Kho Shader</button>
+                <button class="mtype-btn" data-ptype="resourcepack">🎨 Gói Đồ Họa</button>
+                <button class="mtype-btn" data-ptype="rust-studio" id="btnModTabRustStudio">🦀 Mod Rust (<span id="rustStudioTabCount">5</span>)</button>
                 <button class="mtype-btn" data-ptype="installed">📦 Đã Cài (<span id="localAddonCount">0</span>)</button>
               </div>
               <button class="btn-sync-skin compat-filter-btn active" id="btnToggleModAllVersions">
-                🎯 Đang tự khớp: 1.21.4 (FABRIC)
+                🎯 Lọc chuẩn: 1.21.4
               </button>
             </div>
 
-            <div class="mods-tier-row mods-tier-2">
+            <div class="mods-tier-row mods-tier-2" id="modsSearchAndSortRow">
               <div class="mods-search-box">
-                <input type="text" id="modSearchInput" class="pro-input" placeholder="Tìm nhanh trong 77,600+ gói (vd: Sodium, Iris, Create, Ice and Fire, Xaero)..." />
+                <input type="text" id="modSearchInput" class="pro-input" placeholder="Tìm nhanh tên Mod, Shader, Gói đồ họa (vd: Xaero, Zoomify, Terralith, Complementary)..." />
                 <button class="btn-sync-skin" id="btnSearchModrinth">🔍 Tìm kiếm</button>
               </div>
               <div class="mods-sort-group" id="modSortBar">
-                <button class="vtype-btn active" data-msort="downloads">Tải nhiều nhất</button>
+                <button class="vtype-btn active" data-msort="downloads">Phổ biến</button>
                 <button class="vtype-btn" data-msort="follows">Yêu thích</button>
                 <button class="vtype-btn" data-msort="updated">Mới cập nhật</button>
                 <button class="vtype-btn" data-msort="newest">Mới nhất</button>
@@ -1033,31 +1055,31 @@
 
             <div class="mods-tier-3" id="modQuickCategoryBar">
               <div class="mods-cat-primary-row">
-                <span class="mqt-label">Danh mục:</span>
+                <span class="mqt-label">Chủ đề:</span>
                 <div class="mods-cat-primary-chips">
                   <button class="mqt-chip active" data-mcat="" data-mquery="" data-mtype="mod">Tất Cả</button>
-                  <button class="mqt-chip" data-mcat="optimization" data-mquery="" data-mtype="mod">⚡ Tối Ưu FPS</button>
-                  <button class="mqt-chip" data-mcat="combat" data-mquery="" data-mtype="mod">⚔️ Vũ Khí &amp; PvP</button>
-                  <button class="mqt-chip" data-mcat="mobs" data-mquery="" data-mtype="mod">🐉 Boss &amp; Sinh Vật</button>
-                  <button class="mqt-chip" data-mcat="worldgen" data-mquery="" data-mtype="mod">🌍 Thế Giới &amp; Biome</button>
-                  <button class="mqt-chip" data-mcat="technology" data-mquery="" data-mtype="mod">⚙️ Công Nghệ (Create)</button>
+                  <button class="mqt-chip" data-mcat="optimization" data-mquery="" data-mtype="mod">⚡ Tăng FPS</button>
                   <button class="mqt-chip" data-mcat="" data-mquery="Xaero JourneyMap Minimap" data-mtype="mod">🗺️ Bản Đồ Minimap</button>
-                  <button class="mqt-chip" data-mcat="" data-mquery="JEI Roughly Enough Items EMI Jade" data-mtype="mod">📖 Công Thức (JEI)</button>
+                  <button class="mqt-chip" data-mcat="worldgen" data-mquery="" data-mtype="mod">🌍 Địa Hình &amp; Biome</button>
+                  <button class="mqt-chip" data-mcat="decoration" data-mquery="" data-mtype="mod">🪑 Nội Thất &amp; Xây Nhà</button>
+                  <button class="mqt-chip" data-mcat="combat" data-mquery="" data-mtype="mod">⚔️ Vũ Khí &amp; PvP</button>
+                  <button class="mqt-chip" data-mcat="mobs" data-mquery="" data-mtype="mod">🐉 Sinh Vật &amp; Boss</button>
+                  <button class="mqt-chip" data-mcat="utility" data-mquery="" data-mtype="mod">🔭 Tiện Ích &amp; Zoom</button>
                 </div>
-                <button type="button" class="mqt-more-btn" id="btnToggleMoreModCats">+ Bộ lọc khác (10) ▾</button>
+                <button type="button" class="mqt-more-btn" id="btnToggleMoreModCats">+ Danh mục khác (10) ▾</button>
               </div>
 
               <div class="mods-cat-secondary-drawer hidden" id="modMoreCatsDrawer">
-                <button class="mqt-chip" data-mcat="adventure" data-mquery="" data-mtype="mod">🏰 Phiêu Lưu &amp; RPG</button>
-                <button class="mqt-chip" data-mcat="magic" data-mquery="" data-mtype="mod">🔮 Phép Thuật &amp; Kỹ Năng</button>
-                <button class="mqt-chip" data-mcat="storage" data-mquery="" data-mtype="mod">🎒 Ba Lô, Rương &amp; Kho Đồ</button>
+                <button class="mqt-chip" data-mcat="adventure" data-mquery="" data-mtype="mod">🏰 Phiêu Lưu &amp; Hầm Ngục</button>
+                <button class="mqt-chip" data-mcat="technology" data-mquery="" data-mtype="mod">⚙️ Công Nghệ &amp; Máy Móc</button>
+                <button class="mqt-chip" data-mcat="magic" data-mquery="" data-mtype="mod">🔮 Phép Thuật &amp; Cổ Vật</button>
+                <button class="mqt-chip" data-mcat="storage" data-mquery="" data-mtype="mod">🎒 Ba Lô &amp; Kho Đồ</button>
                 <button class="mqt-chip" data-mcat="food" data-mquery="" data-mtype="mod">🌾 Nông Trại &amp; Nấu Ăn</button>
-                <button class="mqt-chip" data-mcat="decoration" data-mquery="" data-mtype="mod">🪑 Nội Thất &amp; Trang Trí</button>
-                <button class="mqt-chip" data-mcat="transportation" data-mquery="" data-mtype="mod">✈️ Xe Cộ, Máy Bay &amp; Tàu</button>
+                <button class="mqt-chip" data-mcat="transportation" data-mquery="" data-mtype="mod">✈️ Xe Cộ &amp; Tàu Thuyền</button>
+                <button class="mqt-chip" data-mcat="" data-mquery="JEI Roughly Enough Items EMI Jade" data-mtype="mod">📖 Xem Công Thức (JEI)</button>
                 <button class="mqt-chip" data-mcat="" data-mquery="Simple Voice Chat Emotecraft Skin Layers" data-mtype="mod">🎙️ Voice Chat &amp; 3D Skin</button>
-                <button class="mqt-chip" data-mcat="utility" data-mquery="" data-mtype="mod">🔭 Tiện Ích &amp; Zoom</button>
-                <button class="mqt-chip" data-mcat="library" data-mquery="" data-mtype="mod">📚 Thư Viện (Fabric API/GeckoLib)</button>
-                <button class="mqt-chip" data-mcat="" data-mquery="" data-mtype="shader">✨ Top Shaders Bóng Đổ</button>
+                <button class="mqt-chip" data-mcat="library" data-mquery="" data-mtype="mod">📚 Thư Viện Nền</button>
+                <button class="mqt-chip" data-mcat="" data-mquery="" data-mtype="shader">✨ Top Shader Đẹp Nhất</button>
               </div>
             </div>
           </div>
@@ -1068,33 +1090,55 @@
                 <span class="hrs-crab-icon">🦀</span>
                 <div>
                   <div class="hrs-title-row">
-                    <strong>Trình Dịch Mod Java (.jar) → Horizon Rust (.hmod) Chạy Thật 100%</strong>
-                    <span class="hrs-compiler-badge" id="horizonPortJarBadge">horizon-port-jar.exe • Rust Native</span>
+                    <strong>Trung Tâm Tiện Ích &amp; Chuyển Đổi Mod Sang Nhân Rust (Chạy Thật 100%)</strong>
+                    <span class="hrs-compiler-badge" id="horizonPortJarBadge">✓ Sẵn sàng trên Rust</span>
                   </div>
-                  <p>Biên dịch trực tiếp bằng Rust (<code>horizon-port-pack</code> + <code>horizon-mods</code>): khối vuông, vật phẩm, mô hình 3D, kết cấu PNG, công thức chế tạo (<code>1.16.5–26.3</code>), tab Sáng Tạo &amp; quần xã sinh vật thành gói <code>.hmod</code> nạp thẳng vào <code>horizon-client.exe</code>.</p>
+                  <p>Bật ngay các tiện ích màn hình viết bằng <strong>Rust nguyên bản</strong> (Minimap, Zoom, Tọa độ, FPS, Keystrokes) hoặc chuyển đổi <strong>Mod khối/vật phẩm, Datapack thế giới, Gói đồ họa &amp; cả gói Modpack</strong> sang chạy trực tiếp trên Nhân Horizon Rust.</p>
                 </div>
               </div>
-              <button type="button" class="vtype-btn" id="btnCloseHorizonRustStudio" title="Thu gọn bảng Dịch Mod Rust">✕ Đóng</button>
+              <button type="button" class="vtype-btn" id="btnCloseHorizonRustStudio" title="Quay lại danh sách Kho Mod">← Về Kho Mod</button>
             </div>
-            <div class="hrs-actions">
-              <button type="button" class="btn-fps-boost-1click" id="btnHorizonScanAllJars" title="Quét toàn bộ tệp .jar trong thư mục mods/ và biên dịch sang .hmod chạy thật bằng Rust">
-                <span>⚡ Quét &amp; Dịch toàn bộ mods/*.jar → .hmod</span>
-              </button>
-              <button type="button" class="btn-sync-skin is-ok" id="btnHorizonPickJarFiles" title="Chọn 1 hoặc nhiều tệp Mod .jar bất kỳ trên máy để dịch sang .hmod">
-                📂 Chọn tệp .jar lẻ → .hmod
-              </button>
-              <button type="button" class="btn-sync-skin" id="btnHorizonRefreshHmods" title="Làm mới danh sách các gói .hmod đang có trong horizon-mods/">
-                🔄 Làm mới
-              </button>
-              <button type="button" class="btn-sync-skin" id="btnHorizonOpenHmodsFolder" title="Mở thư mục .minecraft/horizon-mods chứa các gói .hmod thật">
-                📁 Mở thư mục horizon-mods/
-              </button>
+
+            <!-- KHU VỰC 1: 5 TIỆN ÍCH RUST GỐC TÍCH HỢP SẴN -->
+            <div class="hrs-native-section">
+              <div class="hrs-sec-label">
+                <strong>1. Tiện Ích Màn Hình Viết Bằng Rust Gốc (Bật / Tắt 1 Chạm — Không Cần Tải File)</strong>
+                <span>Chỉnh chi tiết vị trí &amp; kích thước ngay trong Game: <em>Tùy chọn → Mods</em></span>
+              </div>
+              <div class="hrs-native-grid" id="horizonNativeModsGrid"></div>
             </div>
-            <div id="horizonPortReportBox" class="hrs-report-box hidden"></div>
+
+            <!-- KHU VỰC 2: CÔNG CỤ CHUYỂN ĐỔI ĐA KÊNH (MOD LẺ, DATAPACK & MODPACK) -->
+            <div class="hrs-converter-section">
+              <div class="hrs-sec-label">
+                <strong>2. Chuyển Đổi Mod Java, Datapack &amp; Gói Modpack Sang Rust (5 Kênh Tự Động)</strong>
+                <span>Tự phân loại: Tiện ích Rust • Khối &amp; Vật phẩm • Địa hình &amp; Đảo Bay • Gói đồ họa • Shader</span>
+              </div>
+              <div class="hrs-actions">
+                <button type="button" class="btn-fps-boost-1click" id="btnHorizonScanAllJars" title="Quét toàn bộ các Mod đang có trong thư mục và tự chuyển sang định dạng chạy trên Rust">
+                  <span>⚡ Quét &amp; Chuyển Toàn Bộ Mod Đang Có</span>
+                </button>
+                <button type="button" class="btn-sync-skin is-ok" id="btnHorizonPickJarFiles" title="Chọn 1 hoặc nhiều file Mod (.jar) hoặc Datapack (.zip) từ máy tính">
+                  📂 Chọn File Mod / Datapack (.jar, .zip)
+                </button>
+                <button type="button" class="btn-sync-skin is-ok" id="btnHorizonPickModpack" title="Chọn trọn bộ gói Modpack (.mrpack / CurseForge .zip) để chuyển toàn bộ nội dung sang Rust">
+                  📦 Chuyển Gói Modpack (.mrpack, .zip)
+                </button>
+                <button type="button" class="btn-sync-skin" id="btnHorizonRefreshHmods" title="Cập nhật lại danh sách các gói Rust">
+                  🔄 Làm mới
+                </button>
+                <button type="button" class="btn-sync-skin" id="btnHorizonOpenHmodsFolder" title="Mở thư mục chứa các gói Mod Rust đã chuyển đổi">
+                  📁 Mở Thư Mục Mod Rust
+                </button>
+              </div>
+              <div id="horizonPortReportBox" class="hrs-report-box hidden"></div>
+            </div>
+
+            <!-- KHU VỰC 3: DANH SÁCH ĐÃ CHUYỂN ĐỔI -->
             <div class="hrs-hmod-section">
               <div class="hrs-hmod-head">
-                <strong id="horizonHmodsCountTitle">📦 Gói .hmod Rust đang cài (0)</strong>
-                <span>Tự nạp qua <code>horizon-mods.txt</code> khi bấm CHƠI NGAY trên Core Horizon</span>
+                <strong id="horizonHmodsCountTitle">3. Các Gói Nội Dung Đã Chuyển Sang Rust (0)</strong>
+                <span>Tự động nạp khi bấm <strong>CHƠI NGAY</strong> trên Core <strong>Horizon</strong></span>
               </div>
               <div id="horizonHmodsList" class="hrs-hmod-list"></div>
             </div>
@@ -1142,6 +1186,7 @@
             <div class="packs-header-actions">
               <button class="btn-fps-boost-1click" id="btnQuickInstallSkyBlock" title="Tạo ngay gói Đảo Sinh Tồn SkyBlock chuẩn (Cây Sồi + Rương Lava/Băng + Đảo Cát — vào Chơi Đơn bấm Tạo Thế Giới Mới là ra Đảo Bay ngay!)">🏝️ Tạo Đảo SkyBlock</button>
               <button class="btn-sync-skin" id="btnQuickInstallOneBlock" title="Tạo ngay gói Một Ô Đất OneBlock chuẩn (Sinh tồn trên 1 khối đất tự tái tạo)">🧱 Tạo Đảo OneBlock</button>
+              <button class="btn-sync-skin is-ok" id="btnPacksImportRust" title="Chọn file Modpack (.mrpack / CurseForge .zip), tự nhập vào máy và chuyển đổi toàn bộ nội dung sang chạy mượt trên Nhân Rust">🦀 Nhập Modpack chạy Rust</button>
               <button class="btn-sync-skin" id="btnPacksImportFile" title="Nhập .mrpack, CurseForge .zip, Prism/MultiMC .zip, Technic .zip, Map .zip, Datapack .zip">📥 Nhập file pack</button>
               <button class="btn-sync-skin" id="btnPacksImportUrl">🔗 Nhập từ link</button>
               <button class="btn-sync-skin is-ok" id="btnPacksToggleVi" title="Tự động dịch mô tả Modpack sang Tiếng Việt dễ hiểu">🌐 Mô tả: Tiếng Việt</button>
@@ -1764,7 +1809,7 @@
               </div>
             </div>
             <div class="console-terminal" id="consoleOutput">
-              <div class="log-entry info">[BlockWay Launcher v41.6.0 PRO] Sẵn sàng khởi chạy.</div>
+              <div class="log-entry info">[BlockWay Launcher v41.7.0 PRO] Sẵn sàng khởi chạy.</div>
             </div>
           </div>
         </section>
@@ -1786,7 +1831,7 @@
                 📦 GitHub Repo
               </button>
               <button class="btn-sync-skin" id="btnCheckUpdate">
-                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v41.6.0</span>)
+                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v41.7.0</span>)
               </button>
             </div>
           </div>
@@ -1836,19 +1881,20 @@
               </div>
             </div>
 
-            <!-- THẺ 3: HIỂN THỊ CỬA SỔ GAME, CỠ CHỮ & CHỦ ĐỀ GIAO DIỆN -->
-            <div class="bento-card settings-card-unit settings-card-wide">
+            <!-- THẺ 3: HIỂN THỊ CỬA SỔ GAME, CỠ CHỮ & STUDIO CÁ NHÂN HÓA GIAO DIỆN -->
+            <div class="bento-card settings-card-unit settings-card-wide" id="uiCustomizationStudioCard">
               <div class="dsp-head">
                 <div class="dsp-head-left">
                   <span class="card-dot emerald"></span>
-                  <h3>Cửa sổ game, cỡ chữ &amp; màu giao diện</h3>
+                  <h3>🎨 Cá nhân hóa giao diện, cỡ chữ &amp; cửa sổ game</h3>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                   <span class="installed-count-tag" id="settingsUiScaleBadge">Cỡ chữ: 100%</span>
                   <span class="installed-count-tag" id="settingsResBadge">1280×720 (HD)</span>
+                  <button type="button" class="vtype-btn" id="btnResetUiStudioDefaults" title="Đưa chủ đề, màu nhấn, mật độ bố cục, bo góc và cỡ chữ về mặc định">↺ Mặc định</button>
                 </div>
               </div>
-              <p class="settings-card-desc">Chọn độ phân giải cửa sổ game, cỡ chữ giao diện và bảng màu yêu thích.</p>
+              <p class="settings-card-desc">Tùy chỉnh trọn bộ chủ đề nền, màu nhấn yêu thích, độ thoáng bố cục, kiểu thanh bên trái và độ phân giải cửa sổ game.</p>
               <div class="res-preset-bar" id="winResolutionBar">
                 <button class="res-pill-btn" data-res="854x480">854×480 (Nhẹ)</button>
                 <button class="res-pill-btn active" data-res="1280x720">1280×720 (HD)</button>
@@ -1867,15 +1913,57 @@
                 </div>
               </div>
               <div class="settings-utility-bar">
-                <span class="sub-bar-label">🎨 Chủ đề màu sắc:</span>
+                <span class="sub-bar-label">🎨 Chủ đề nền:</span>
                 <div class="theme-studio-bar">
                   <button class="ts-chip active" data-theme-pick="lunar"><span class="ts-dot" style="background:linear-gradient(135deg,#151922 45%,#3b82f6 45%);"></span>BlockWay Dark</button>
+                  <button class="ts-chip" data-theme-pick="rust"><span class="ts-dot" style="background:linear-gradient(135deg,#121318 45%,#f97316 45%);"></span>🦀 Rust Obsidian</button>
                   <button class="ts-chip" data-theme-pick="mojang"><span class="ts-dot" style="background:linear-gradient(135deg,#1c1f26 45%,#22c55e 45%);"></span>Mojang</button>
                   <button class="ts-chip" data-theme-pick="modrinth"><span class="ts-dot" style="background:linear-gradient(135deg,#142019 45%,#1bd96a 45%);"></span>Modrinth</button>
                   <button class="ts-chip" data-theme-pick="feather"><span class="ts-dot" style="background:linear-gradient(135deg,#102235 45%,#0ea5e9 45%);"></span>Feather</button>
                   <button class="ts-chip" data-theme-pick="cherry"><span class="ts-dot" style="background:linear-gradient(135deg,#24111f 45%,#ec4899 45%);"></span>Cherry Dark</button>
                   <button class="ts-chip" data-theme-pick="prism"><span class="ts-dot" style="background:linear-gradient(135deg,#ffffff 45%,#2563eb 45%);border:1px solid #94a3b8;"></span>Trắng Sáng</button>
                   <button class="ts-chip" data-theme-pick="sakura"><span class="ts-dot" style="background:linear-gradient(135deg,#ffffff 45%,#ec4899 45%);border:1px solid #f472b6;"></span>Trắng Hồng ✨</button>
+                </div>
+              </div>
+              <div class="settings-utility-bar">
+                <span class="sub-bar-label">🌈 Màu nhấn chủ đạo:</span>
+                <div class="accent-studio-bar">
+                  <button type="button" class="res-pill-btn active" data-accent-pick="">Theo chủ đề</button>
+                  <button type="button" class="accent-chip-btn" data-accent-pick="#3b82f6" style="--sw:#3b82f6;"><i></i>Xanh Dương</button>
+                  <button type="button" class="accent-chip-btn" data-accent-pick="#f97316" style="--sw:#f97316;"><i></i>Cam Rust</button>
+                  <button type="button" class="accent-chip-btn" data-accent-pick="#10b981" style="--sw:#10b981;"><i></i>Xanh Ngọc</button>
+                  <button type="button" class="accent-chip-btn" data-accent-pick="#8b5cf6" style="--sw:#8b5cf6;"><i></i>Tím Neon</button>
+                  <button type="button" class="accent-chip-btn" data-accent-pick="#ec4899" style="--sw:#ec4899;"><i></i>Hồng Đào</button>
+                  <button type="button" class="accent-chip-btn" data-accent-pick="#eab308" style="--sw:#eab308;"><i></i>Vàng Gold</button>
+                  <label class="accent-custom-picker" title="Tự chọn bất kỳ màu nhấn nào bạn thích">
+                    <input type="color" id="customAccentColorInput" value="#3b82f6" />
+                    <span>🎨 Tự chọn màu</span>
+                  </label>
+                </div>
+              </div>
+              <div class="ui-studio-layout-grid">
+                <div class="usl-item">
+                  <span class="sub-bar-label">📐 Độ thoáng bố cục:</span>
+                  <div class="vtype-group" id="uiDensityBar">
+                    <button type="button" class="vtype-btn" data-uidensity="compact">Gọn gàng</button>
+                    <button type="button" class="vtype-btn active" data-uidensity="normal">Tiêu chuẩn</button>
+                    <button type="button" class="vtype-btn" data-uidensity="spacious">Thoáng rộng</button>
+                  </div>
+                </div>
+                <div class="usl-item">
+                  <span class="sub-bar-label">🧭 Thanh menu bên trái:</span>
+                  <div class="vtype-group" id="uiSidebarModeBar">
+                    <button type="button" class="vtype-btn active" data-uisidebar="full">Đầy đủ chữ + icon</button>
+                    <button type="button" class="vtype-btn" data-uisidebar="rail">Thu gọn icon</button>
+                  </div>
+                </div>
+                <div class="usl-item">
+                  <span class="sub-bar-label">🔲 Kiểu bo góc thẻ:</span>
+                  <div class="vtype-group" id="uiCornerModeBar">
+                    <button type="button" class="vtype-btn" data-uicorners="round">Bo tròn mềm</button>
+                    <button type="button" class="vtype-btn active" data-uicorners="normal">Tiêu chuẩn</button>
+                    <button type="button" class="vtype-btn" data-uicorners="sharp">Vuông sắc nét</button>
+                  </div>
                 </div>
               </div>
             </div>

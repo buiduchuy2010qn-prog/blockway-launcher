@@ -190,6 +190,8 @@ contextBridge.exposeInMainWorld('aetherAPI', {
   upgradeHorizonEngine: (gameDir, force = true) => ipcRenderer.invoke('horizon:upgrade', { gameDir, force }),
   portJavaJarsToHorizon: (params) => ipcRenderer.invoke('horizon:port-jars', params),
   pickAndPortJarsToHorizon: (params) => ipcRenderer.invoke('horizon:pick-jars', params),
+  portModpackToHorizon: (params) => ipcRenderer.invoke('horizon:port-pack', params),
+  pickAndPortModpackToHorizon: (params) => ipcRenderer.invoke('horizon:pick-pack', params),
   listHorizonHmods: (params) => ipcRenderer.invoke('horizon:list-hmods', params),
   toggleHorizonHmod: (params) => ipcRenderer.invoke('horizon:toggle-hmod', params),
   deleteHorizonHmod: (params) => ipcRenderer.invoke('horizon:delete-hmod', params),
