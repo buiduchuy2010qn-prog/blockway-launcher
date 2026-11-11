@@ -49,6 +49,7 @@ const {
   exportPlayerPrefsSnapshot, importPlayerPrefsSnapshot,
   getWorldgenBoostStatus, installWorldgenBoostPack,
   getHorizonEngineStatus, ensureHorizonEnginePrepared, upgradeHorizonEngine,
+  checkModrinthForHorizonRust,
   portJavaJarsToHorizonRust, portModpackToHorizonRust, listHorizonRustMods, toggleHorizonRustMod, deleteHorizonRustMod
 } = require('./launcher-engine');
 const {
@@ -1853,6 +1854,19 @@ ipcMain.handle('horizon:delete-hmod', async (_e, options = {}) => {
     });
   } catch (err) {
     return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:check-modrinth', async (_e, options = {}) => {
+  try {
+    return await checkModrinthForHorizonRust({
+      slug: options?.slug || '',
+      mcVersion: options?.mcVersion || '26.3',
+      gameDir: options?.gameDir || '',
+      rootDir: options?.rootDir || ''
+    });
+  } catch (err) {
+    return { ok: false, canRunOnRust: false, verdict: 'no', kind: 'java_code', error: err.message };
   }
 });
 

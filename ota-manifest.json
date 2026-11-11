@@ -1,27 +1,27 @@
 {
-  "version": "41.7.0",
-  "releasedAt": "2026-11-11T12:53:59.475Z",
-  "notes": "v41.7.0 PRO: Lam gon logic giao dien Kho Mod & Pack, bo sung 5 Tien ich Rust goc (Minimap, Zoom, Toa do, Keystrokes, FPS), chuyen doi Mod & Modpack 5 kenh chay that tren Nhan Horizon Rust, va Trung tam Ca nhan hoa Giao dien (Theme Rust Obsidian, Mau nhan, Do thoang, Thanh ben, Bo goc).",
+  "version": "41.7.1",
+  "releasedAt": "2026-11-11T13:45:05.668Z",
+  "notes": "v41.7.1 PRO: Kiem dinh nghiem ngat tuong thich Nhan Horizon Rust truoc khi cho cai Mod, chan 100% Mod thuan ma Java gia danh Da Cai, tich hop Kho Mod .hmod & Shader WGSL .hshader chinh thuc cua Horizon Rust, va tu dong cai Datapack Rust vao ca the gioi cu.",
   "files": {
     "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "9e54f515b77a5922410584f2ed89852716144713570179b20bd5c457dd3237e0",
-      "size": 640138
+      "sha256": "6e8f3259da2b1a8b71b7136a032918e6966e19c007ad5b8ee2744be369e179af",
+      "size": 671401
     },
     "src/main.js": {
-      "sha256": "b1e2fc83200c0215a5fb0c584e7c64b1a4a0835eb2d2d350b3f21cecc6d47f81",
-      "size": 113563
+      "sha256": "4d0520cb365f01c4df6a6aae4d232ede9f2a2eb5147a148054403d05ee5ebf6b",
+      "size": 114027
     },
     "src/microsoft-auth.js": {
       "sha256": "5e5f01aaf586a6bad099dcb4961256a935165c31aaa9608fae0e8c19c3165673",
       "size": 73767
     },
     "src/preload.js": {
-      "sha256": "6f34a8f306ef7c15c84319f7134de6a6ab7e8813e2e78fa45bacd133de4a5b08",
-      "size": 16192
+      "sha256": "3f06caa589df0c4499646e8051ce60e40eb6b094992174b5c657f2a7bcbab463",
+      "size": 16286
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -40,7 +40,7 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "f3e94bd4813a80a0ddd1db7cdc96482e9b2dfce66cb3ae4e83afeba1eaa67dfc",
+      "sha256": "e8fdc80239c64f1694bf9b63b200ec9664d9b12b203e492d9ea7e25652118dc4",
       "size": 243502
     },
     "src/ui/installer-eula.txt": {
@@ -128,8 +128,8 @@
       "size": 479194
     },
     "src/ui/store-features.js": {
-      "sha256": "cd5b298479ad3dff348c2e830e61b6b52c31b71711e12a3b22c4d100a7e105e5",
-      "size": 511091
+      "sha256": "7c974fe5cf2fa483f8cf75b16729f5b253e81890f134331e10fa440c37073b90",
+      "size": 528653
     },
     "src/ui/styles.css": {
       "sha256": "da8a4b0ee9f88da899aa85509f97490de1e551b7528f75da836a04c4e97c5b9c",

@@ -186,6 +186,7 @@ contextBridge.exposeInMainWorld('aetherAPI', {
 
   // v41.6.0 PRO — 🦀 BlockWay Rust Multi-Version Engine, GitHub Self-Upgrading Core & Native Rust .jar -> .hmod Compiler
   getHorizonStatus: (gameDir) => ipcRenderer.invoke('horizon:status', gameDir),
+  checkModrinthForHorizon: (params) => ipcRenderer.invoke('horizon:check-modrinth', params),
   prepareHorizonEngine: (gameDir) => ipcRenderer.invoke('horizon:prepare', gameDir),
   upgradeHorizonEngine: (gameDir, force = true) => ipcRenderer.invoke('horizon:upgrade', { gameDir, force }),
   portJavaJarsToHorizon: (params) => ipcRenderer.invoke('horizon:port-jars', params),

@@ -1058,6 +1058,98 @@ async function prepareCustomLoaderJson(gameDir, mcVersion, loaderType, loaderVer
   return null;
 }
 
+const HORIZON_MOD_REGISTRY_URL = 'https://horizon-rust.github.io/horizon-mods/index.json';
+let _horizonRegistryMemCache = { fetchedAt: 0, projects: null };
+
+async function fetchHorizonRegistryIndex({ force = false } = {}) {
+  const now = Date.now();
+  if (!force && Array.isArray(_horizonRegistryMemCache.projects) && (now - _horizonRegistryMemCache.fetchedAt) < 10 * 60 * 1000) {
+    return _horizonRegistryMemCache.projects;
+  }
+  const cacheFile = path.join(getDefaultGameDir(), 'horizon-mods', '.registry-index-cache.json');
+  try {
+    const data = await fetchJson(HORIZON_MOD_REGISTRY_URL);
+    if (data && Array.isArray(data.projects)) {
+      _horizonRegistryMemCache = { fetchedAt: now, projects: data.projects };
+      try {
+        fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+        fs.writeFileSync(cacheFile, JSON.stringify({ fetchedAt: now, projects: data.projects }), 'utf8');
+      } catch (_) {}
+      return data.projects;
+    }
+  } catch (_) {}
+  try {
+    if (fs.existsSync(cacheFile)) {
+      const disk = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+      if (disk && Array.isArray(disk.projects)) {
+        _horizonRegistryMemCache = { fetchedAt: now - 5 * 60 * 1000, projects: disk.projects };
+        return disk.projects;
+      }
+    }
+  } catch (_) {}
+  return [];
+}
+
+function mapHorizonRegistryHits({ projects = [], projectType = 'mod', query = '', category = '', sortBy = 'downloads' } = {}) {
+  const qLower = String(query || '').trim().toLowerCase();
+  const catLower = String(category || '').trim().toLowerCase();
+  const filtered = (Array.isArray(projects) ? projects : []).filter((p) => {
+    if (!p || !p.id || !Array.isArray(p.versions) || !p.versions[0]?.file?.url) return false;
+    const v0 = p.versions[0];
+    if (projectType === 'mod') {
+      if (p.kind !== 'mod') return false;
+      // Only offer standalone 0.2 content .hmod packages (exclude deprecated 0.1 WASM or companion-only (assets) packs)
+      if (String(v0.api || '') !== '0.2') return false;
+      if (/\(assets\)/i.test(String(p.name || '')) || /needs the .* mod/i.test(String(p.summary || ''))) return false;
+    } else if (projectType === 'shader') {
+      if (p.kind !== 'shader' && p.kind !== 'shaderpack') return false;
+    } else if (projectType === 'resourcepack') {
+      if (p.kind !== 'resourcepack') return false;
+    } else {
+      return false;
+    }
+    if (catLower) {
+      const allTags = [...(p.categories || []), ...(p.tags || [])].map((t) => String(t || '').toLowerCase());
+      if (!allTags.includes(catLower)) return false;
+    }
+    if (qLower) {
+      const hay = `${p.id} ${p.name || ''} ${p.summary || ''} ${(p.tags || []).join(' ')} ${(p.categories || []).join(' ')}`.toLowerCase();
+      if (!hay.includes(qLower)) return false;
+    }
+    return true;
+  });
+
+  if (sortBy === 'newest' || sortBy === 'updated') {
+    filtered.sort((a, b) => String(b.versions?.[0]?.published || '').localeCompare(String(a.versions?.[0]?.published || '')));
+  } else {
+    filtered.sort((a, b) => (Number(b.downloads) || 0) - (Number(a.downloads) || 0));
+  }
+
+  return filtered.map((p) => {
+    const v0 = p.versions[0];
+    return {
+      projectId: `hzreg:${p.id}`,
+      slug: `hzreg:${p.id}`,
+      horizonId: p.id,
+      horizonKind: p.kind,
+      horizonFileName: v0.file.name,
+      isHorizonRegistry: true,
+      title: p.name || p.id,
+      description: p.summary || p.description || '',
+      iconUrl: p.icon || '',
+      downloads: Number(p.downloads) || 0,
+      follows: 0,
+      author: (Array.isArray(p.authors) && p.authors[0]) || (Array.isArray(p.owners) && p.owners[0]) || 'Horizon Rust',
+      categories: ['horizon-rust', ...(p.categories || []), ...(p.tags || [])].slice(0, 10),
+      displayCategories: (p.categories || []).slice(0, 8),
+      versions: [v0.game || '26.3', '1.21.11'],
+      clientSide: 'required',
+      serverSide: p.kind === 'mod' ? 'required' : 'optional',
+      projectType
+    };
+  });
+}
+
 async function searchModrinth({
   query = '',
   projectType = 'mod',
@@ -1069,17 +1161,35 @@ async function searchModrinth({
   limit = 48,
   allVersions = false
 }) {
+  const isHorizonRust = isRustCoreType(loaderType);
+  const cleanQuery = String(query || '').trim();
+  const cleanCat = String(category || '').trim();
   const effectiveLoader = normalizeModrinthLoader(loaderType, mcVersion);
+
   const buildFacets = (strictExactVer) => {
-    const f = [[`project_type:${projectType}`]];
+    // On Horizon Rust default Mod Store (!allVersions):
+    // - When browsing without search query (unless filtering 'optimization'), query Modrinth's real Datapack-compatible mods
+    //   so pure-Java Mixin UI/library mods never clutter the Rust store!
+    // - When searching by keyword, search BOTH 'mod' and 'datapack' so any mod/datapack can be checked honestly!
+    let typeFacet = [`project_type:${projectType}`];
+    if (isHorizonRust && projectType === 'mod') {
+      if (cleanQuery) {
+        typeFacet = ['project_type:mod', 'project_type:datapack'];
+      } else if (!allVersions && cleanCat !== 'optimization') {
+        typeFacet = ['project_type:datapack'];
+      }
+    }
+    const f = [typeFacet];
     if (mcVersion && !allVersions) {
-      if (strictExactVer && projectType === 'mod') {
+      if (strictExactVer && projectType === 'mod' && !isHorizonRust) {
         f.push([`versions:${mcVersion}`]);
       } else {
         const baseParts = String(mcVersion).split('-')[0].split('.');
         const familyPrefix = baseParts.length >= 2 ? `${baseParts[0]}.${baseParts[1]}` : mcVersion;
         const verGroup = new Set([mcVersion]);
-        if (familyPrefix === '1.21' || (isRustCoreType(loaderType) && /^2[6-9]\./.test(familyPrefix))) {
+        if (isHorizonRust) {
+          ['26.3', '26.2', '26.1', '1.21.11', '1.21.5', '1.21.4', '1.21.3', '1.21.1', '1.21'].forEach((v) => verGroup.add(v));
+        } else if (familyPrefix === '1.21') {
           ['1.21.11', '1.21.5', '1.21.4', '1.21.3', '1.21.1', '1.21'].forEach((v) => verGroup.add(v));
         } else if (familyPrefix === '1.20') {
           ['1.20.6', '1.20.4', '1.20.2', '1.20.1', '1.20'].forEach((v) => verGroup.add(v));
@@ -1093,10 +1203,8 @@ async function searchModrinth({
         f.push(Array.from(verGroup).map((v) => `versions:${v}`));
       }
     }
-    if (projectType === 'mod' && !allVersions) {
-      if (isRustCoreType(loaderType)) {
-        f.push(['categories:fabric', 'categories:neoforge', 'categories:forge', 'categories:quilt', 'categories:datapack']);
-      } else if (effectiveLoader === 'quilt') {
+    if (projectType === 'mod' && !allVersions && !isHorizonRust) {
+      if (effectiveLoader === 'quilt') {
         f.push(['categories:quilt', 'categories:fabric']);
       } else if (effectiveLoader === 'forge') {
         f.push(['categories:forge', 'categories:neoforge']);
@@ -1104,8 +1212,8 @@ async function searchModrinth({
         f.push([`categories:${effectiveLoader}`]);
       }
     }
-    if (category && category.trim()) {
-      f.push([`categories:${category.trim()}`]);
+    if (cleanCat) {
+      f.push([`categories:${cleanCat}`]);
     }
     return f;
   };
@@ -1114,18 +1222,22 @@ async function searchModrinth({
   const safeOffset = Math.max(0, Number(offset) || 0);
   const safeSort = ['downloads', 'follows', 'updated', 'newest', 'relevance'].includes(sortBy) ? sortBy : 'downloads';
 
+  const registryPromise = (isHorizonRust && safeOffset === 0)
+    ? fetchHorizonRegistryIndex().catch(() => [])
+    : Promise.resolve([]);
+
   let facets = buildFacets(true);
-  let url = `https://api.modrinth.com/v2/search?query=${encodeURIComponent(query)}&limit=${safeLimit}&offset=${safeOffset}&index=${safeSort}&facets=${encodeURIComponent(JSON.stringify(facets))}`;
-  let res = await fetchJson(url);
+  let url = `https://api.modrinth.com/v2/search?query=${encodeURIComponent(cleanQuery)}&limit=${safeLimit}&offset=${safeOffset}&index=${safeSort}&facets=${encodeURIComponent(JSON.stringify(facets))}`;
+  let [res, regProjects] = await Promise.all([fetchJson(url), registryPromise]);
 
   // Fallback to minor version family only if strict exact version returned 0 hits (e.g. brand-new snapshot)
   if ((!res?.hits || res.hits.length === 0) && mcVersion && !allVersions && projectType === 'mod' && safeOffset === 0) {
     facets = buildFacets(false);
-    url = `https://api.modrinth.com/v2/search?query=${encodeURIComponent(query)}&limit=${safeLimit}&offset=${safeOffset}&index=${safeSort}&facets=${encodeURIComponent(JSON.stringify(facets))}`;
+    url = `https://api.modrinth.com/v2/search?query=${encodeURIComponent(cleanQuery)}&limit=${safeLimit}&offset=${safeOffset}&index=${safeSort}&facets=${encodeURIComponent(JSON.stringify(facets))}`;
     res = await fetchJson(url);
   }
 
-  const hits = (res.hits || []).map((h) => ({
+  const mapModrinthHit = (h) => ({
     projectId: h.project_id,
     slug: h.slug,
     title: h.title,
@@ -1136,9 +1248,126 @@ async function searchModrinth({
     author: h.author,
     categories: (h.categories || []).slice(0, 12),
     displayCategories: (h.display_categories || []).slice(0, 12),
-    versions: Array.isArray(h.versions) ? h.versions : []
-  }));
-  hits.totalHits = res.total_hits || hits.length;
+    versions: Array.isArray(h.versions) ? h.versions : [],
+    clientSide: h.client_side || '',
+    serverSide: h.server_side || '',
+    projectType: h.project_type || projectType
+  });
+
+  let modrinthHits = (res.hits || []).map(mapModrinthHit);
+  if (isHorizonRust && projectType === 'mod' && !allVersions && !cleanQuery) {
+    // Exclude companion datapacks that depend on heavy JVM-only mods (Cobblemon / Pixelmon / Origins)
+    modrinthHits = modrinthHits.filter((h) => !/\b(cobblemon|pixelmon|origins|create[-_\s])\b/i.test(`${h.slug || ''} ${h.title || ''}`));
+  }
+
+  let prependedHits = [];
+  if (isHorizonRust && safeOffset === 0) {
+    const regHits = mapHorizonRegistryHits({
+      projects: regProjects,
+      projectType,
+      query: cleanQuery,
+      category: cleanCat,
+      sortBy: safeSort
+    });
+    prependedHits.push(...regHits);
+
+    // On default Horizon Mod Store (offset 0, no search query, All/Utility category), also surface the 5 built-in 100% Native Rust client utilities!
+    if (projectType === 'mod' && !allVersions && !cleanQuery && (!cleanCat || cleanCat === 'utility')) {
+      const nativeShowcaseCards = [
+        {
+          projectId: 'hz-native-minimap',
+          slug: 'xaeros-minimap',
+          title: 'Bản Đồ Thu Nhỏ (Minimap Rust Gốc)',
+          description: 'Bản đồ địa hình thời gian thực góc màn hình viết 100% bằng Rust: xoay theo hướng nhìn, hiển thị tọa độ & đổi mức phóng bằng phím B.',
+          iconUrl: 'https://cdn.modrinth.com/data/1bokaNcj/4570ed7f5621be5ea4eb8bf2226f5d5ef6bf96db.png',
+          downloads: 120200000,
+          follows: 0,
+          author: 'BlockWay Rust',
+          categories: ['horizon-rust', 'utility', 'adventure'],
+          displayCategories: ['utility'],
+          versions: ['26.3', '1.21.11'],
+          clientSide: 'required',
+          serverSide: 'optional',
+          projectType: 'mod'
+        },
+        {
+          projectId: 'hz-native-zoom',
+          slug: 'zoomify',
+          title: 'Ống Nhòm Phóng To (Zoom Phím Z Rust)',
+          description: 'Giữ phím Z để phóng to tầm nhìn siêu mượt + lăn chuột chỉnh độ phóng từ 1.5x đến 16x chạy trực tiếp trên Nhân Rust.',
+          iconUrl: 'https://cdn.modrinth.com/data/w7ThoJFB/c08d3dc4aa7e8c02df0b712a988b8b19c530ad19_96.webp',
+          downloads: 42500000,
+          follows: 0,
+          author: 'BlockWay Rust',
+          categories: ['horizon-rust', 'utility'],
+          displayCategories: ['utility'],
+          versions: ['26.3', '1.21.11'],
+          clientSide: 'required',
+          serverSide: 'optional',
+          projectType: 'mod'
+        },
+        {
+          projectId: 'hz-native-coords',
+          slug: 'minihud',
+          title: 'Tọa Độ XYZ & Quần Xã (Coords HUD Rust)',
+          description: 'Hiển thị tọa độ X Y Z, hướng Đông/Tây/Nam/Bắc và tên quần xã (Biome) gọn nhẹ ngay góc màn hình bằng Rust.',
+          iconUrl: 'https://cdn.modrinth.com/data/UMxybHE8/icon.png',
+          downloads: 29400000,
+          follows: 0,
+          author: 'BlockWay Rust',
+          categories: ['horizon-rust', 'utility'],
+          displayCategories: ['utility'],
+          versions: ['26.3', '1.21.11'],
+          clientSide: 'required',
+          serverSide: 'optional',
+          projectType: 'mod'
+        },
+        {
+          projectId: 'hz-native-keystrokes',
+          slug: 'clean-keystrokes',
+          title: 'Bàn Phím PvP & CPS (Keystrokes Rust)',
+          description: 'Hiển thị trực quan cụm phím W A S D, Nhảy, Chuột Trái/Phải và tốc độ nhấp chuột CPS dành cho PvP / BedWars.',
+          iconUrl: 'https://cdn.modrinth.com/data/YhBn6624/84bc5260e7ae1a52ab667d70a76b79c18a35016b.png',
+          downloads: 8500000,
+          follows: 0,
+          author: 'BlockWay Rust',
+          categories: ['horizon-rust', 'utility', 'combat'],
+          displayCategories: ['utility', 'combat'],
+          versions: ['26.3', '1.21.11'],
+          clientSide: 'required',
+          serverSide: 'optional',
+          projectType: 'mod'
+        },
+        {
+          projectId: 'hz-native-fps',
+          slug: 'betterf3',
+          title: 'Đồng Hồ FPS Trực Tiếp (FPS Overlay Rust)',
+          description: 'Hiển thị số khung hình/giây (FPS) thời gian thực và mức FPS thấp nhất ở góc màn hình không tốn tài nguyên.',
+          iconUrl: 'https://cdn.modrinth.com/data/8shC1gFX/69c2ef660bfac82d1bc43778133ef637f929f08f.png',
+          downloads: 54100000,
+          follows: 0,
+          author: 'BlockWay Rust',
+          categories: ['horizon-rust', 'utility', 'optimization'],
+          displayCategories: ['utility'],
+          versions: ['26.3', '1.21.11'],
+          clientSide: 'required',
+          serverSide: 'optional',
+          projectType: 'mod'
+        }
+      ];
+      prependedHits.push(...nativeShowcaseCards);
+    }
+  }
+
+  const seenSlugs = new Set();
+  const hits = [];
+  for (const item of [...prependedHits, ...modrinthHits]) {
+    const k = String(item.slug || item.projectId || '').toLowerCase();
+    if (!k || seenSlugs.has(k)) continue;
+    seenSlugs.add(k);
+    hits.push(item);
+  }
+  hits.totalHits = (res.total_hits || modrinthHits.length) + prependedHits.length;
   return hits;
 }
 
@@ -1419,24 +1648,31 @@ const HORIZON_NATIVE_MOD_CATALOG = [
   }
 ];
 
+// Strictly genuine features built directly into horizon-client.exe (Vulkan / DirectX 12 renderer, multithreaded chunk/light/culling & OF/Iris resource extensions).
+// Pure Java API libraries (Architectury, Fabric API, Cloth Config, YACL, Kotlin) & Java GUI screens (ModMenu, Reese's Sodium Options, Sodium Extra) are intentionally NOT here!
 const HORIZON_BUILTIN_ENGINE_SLUGS = new Set([
-  'sodium', 'embeddium', 'rubidium', 'lithium', 'radium', 'canary',
+  'sodium', 'embeddium', 'rubidium', 'indium',
+  'lithium', 'radium', 'canary',
   'ferrite-core', 'ferritecore', 'modernfix', 'immediatelyfast',
   'entityculling', 'moreculling', 'c2me-fabric', 'c2me', 'noisium',
   'scalablelux', 'starlight', 'krypton', 'fastload', 'lazydfu',
-  'memoryleakfix', 'dynamic-fps', 'dynamic_fps', 'badoptimizations',
-  'enhanced-block-entities', 'fastquit', 'iris', 'oculus', 'optifine',
-  'optifabric', 'indium', 'sodium-extra', 'reeses-sodium-options',
+  'memoryleakfix', 'badoptimizations',
+  'iris', 'oculus', 'optifine', 'optifabric',
   'continuity', 'fusion-connected-textures', 'polytone',
   'entity-model-features', 'entity-texture-features', 'entitytexturefeatures',
-  'cit-resewn', 'lambdynamiclights', 'dynamiclights',
-  'fabric-api', 'fabric-language-kotlin', 'cloth-config', 'yacl', 'modmenu',
-  'architectury-api', 'forge-config-api-port', 'puzzles-lib', 'balm',
-  'bookshelf', 'collective', 'moonlight', 'cristel-lib', 'lithostitched',
-  'terrablender', 'e4mc', 'no-chat-reports', 'mouse-tweaks', 'clumps'
+  'cit-resewn', 'lambdynamiclights', 'dynamiclights', 'ryoamiclights'
 ]);
 
 function classifyModForHorizonRust(slugOrId = '', fileName = '') {
+  const rawSlug = String(slugOrId || '').trim();
+  if (/^hzreg:/i.test(rawSlug)) {
+    return {
+      channel: 'horizon_registry',
+      nativeModId: '',
+      registryId: rawSlug.replace(/^hzreg:/i, ''),
+      titleVi: 'Gói Mod Horizon Rust chính chủ (.hmod)'
+    };
+  }
   const norm = (s) => String(s || '')
     .toLowerCase()
     .replace(/\.(jar|zip|disabled)$/i, '')
@@ -1456,7 +1692,7 @@ function classifyModForHorizonRust(slugOrId = '', fileName = '') {
     }
   }
 
-  if (candidates.some((c) => HORIZON_BUILTIN_ENGINE_SLUGS.has(c) || Array.from(HORIZON_BUILTIN_ENGINE_SLUGS).some((bs) => c === bs || c.startsWith(`${bs}-`)))) {
+  if (candidates.some((c) => HORIZON_BUILTIN_ENGINE_SLUGS.has(c))) {
     return {
       channel: 'builtin_engine',
       nativeModId: '',
@@ -1467,8 +1703,388 @@ function classifyModForHorizonRust(slugOrId = '', fileName = '') {
   return {
     channel: 'convertible',
     nativeModId: '',
-    titleVi: 'Biên dịch sang Mod / Datapack / Gói tài nguyên Rust'
+    titleVi: 'Biên dịch sang Mod / Datapack Rust'
   };
+}
+
+function readHorizonInstalledSlugs(gameDir) {
+  try {
+    const p = path.join(gameDir, 'horizon-mods', '.installed-slugs.json');
+    if (fs.existsSync(p)) {
+      const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch (_) {}
+  return {};
+}
+
+function recordHorizonInstalledSlug(gameDir, slug, info = {}) {
+  if (!slug) return;
+  try {
+    const hmodsDir = path.join(gameDir, 'horizon-mods');
+    fs.mkdirSync(hmodsDir, { recursive: true });
+    const map = readHorizonInstalledSlugs(gameDir);
+    map[String(slug).toLowerCase()] = { ...info, updatedAt: Date.now() };
+    fs.writeFileSync(path.join(hmodsDir, '.installed-slugs.json'), JSON.stringify(map, null, 2), 'utf8');
+  } catch (_) {}
+}
+
+function copyDatapackIntoExistingSaves(gameDir, dpSourcePath, dpModId) {
+  let copiedWorlds = 0;
+  try {
+    if (!dpSourcePath || !fs.existsSync(dpSourcePath)) return 0;
+    const savesDir = path.join(gameDir, 'saves');
+    if (!fs.existsSync(savesDir)) return 0;
+    const cleanDpName = path.basename(String(dpModId || path.basename(dpSourcePath))).replace(/[^a-zA-Z0-9._-]/g, '_');
+    if (!cleanDpName) return 0;
+    for (const ent of fs.readdirSync(savesDir, { withFileTypes: true })) {
+      if (!ent.isDirectory() || ent.name.startsWith('.')) continue;
+      const worldDir = path.join(savesDir, ent.name);
+      if (!fs.existsSync(path.join(worldDir, 'level.dat')) && !fs.existsSync(path.join(worldDir, 'level.dat_old'))) continue;
+      const worldDpDir = path.join(worldDir, 'datapacks');
+      fs.mkdirSync(worldDpDir, { recursive: true });
+      const dst = path.join(worldDpDir, fs.statSync(dpSourcePath).isDirectory() ? cleanDpName : path.basename(dpSourcePath));
+      if (fs.existsSync(dst)) fs.rmSync(dst, { recursive: true, force: true });
+      fs.cpSync(dpSourcePath, dst, { recursive: true });
+      copiedWorlds++;
+    }
+  } catch (_) {}
+  return copiedWorlds;
+}
+
+function isGenuineHorizonPortResult(first) {
+  if (!first || typeof first !== 'object') return false;
+  if (first.verdict !== 'works' && first.verdict !== 'partly') return false;
+  const k = String(first.kind || '').toLowerCase();
+  if (k === 'native_rust' || k === 'builtin_engine' || k === 'datapack') return true;
+  if (k === 'hmod') {
+    const contentUnits = (Number(first.blocks) || 0)
+      + (Number(first.items) || 0)
+      + (Number(first.recipes) || 0)
+      + (Number(first.worldgen) || 0)
+      + (Number(first.structures) || 0);
+    return contentUnits > 0;
+  }
+  if (k === 'resourcepack') {
+    // Only treat as runnable if it is a pure texture/model pack without skipped Java bytecode
+    return first.verdict === 'works' && (!Array.isArray(first.skipped) || first.skipped.length === 0);
+  }
+  return false;
+}
+
+function pickBestHorizonModrinthVersion(allVersions = [], mcVersion = '26.3') {
+  if (!Array.isArray(allVersions) || allVersions.length === 0) return null;
+  const hasLoader = (v, l) => Array.isArray(v?.loaders) && v.loaders.some((x) => String(x || '').toLowerCase() === l);
+  const hasVerPrefix = (v, prefixes) => Array.isArray(v?.game_versions)
+    && v.game_versions.some((gv) => prefixes.some((p) => gv === p || String(gv).startsWith(`${p}.`)));
+
+  // 1. ALWAYS prefer official Minecraft Datapack releases first (100% pure data/functions, zero JVM bytecode!)
+  const dpVersions = allVersions.filter((v) => hasLoader(v, 'datapack'));
+  if (dpVersions.length > 0) {
+    return dpVersions.find((v) => hasVerPrefix(v, ['26.3', '26.2', '26.1']))
+      || dpVersions.find((v) => Array.isArray(v.game_versions) && v.game_versions.includes(mcVersion))
+      || dpVersions.find((v) => hasVerPrefix(v, ['1.21']))
+      || dpVersions[0];
+  }
+
+  // 2. Otherwise pick best Mod .jar version (preferring 26.x / requested mcVersion / 1.21.x)
+  const modLoaders = ['fabric', 'quilt', 'neoforge', 'forge'];
+  const jarVersions = allVersions.filter((v) => modLoaders.some((l) => hasLoader(v, l)));
+  const pool = jarVersions.length > 0 ? jarVersions : allVersions;
+  return pool.find((v) => Array.isArray(v.game_versions) && v.game_versions.includes(mcVersion))
+    || pool.find((v) => hasVerPrefix(v, ['26.3', '26.2', '26.1']))
+    || pool.find((v) => hasVerPrefix(v, ['1.21']))
+    || pool[0];
+}
+
+async function installHorizonRegistryProject({ regSlug, rootDir }, onStatus) {
+  const cleanId = String(regSlug || '').replace(/^hzreg:/i, '').trim();
+  const projects = await fetchHorizonRegistryIndex();
+  const proj = projects.find((p) => String(p.id || '').toLowerCase() === cleanId.toLowerCase());
+  if (!proj || !Array.isArray(proj.versions) || !proj.versions[0]?.file?.url) {
+    throw new Error(`Không tìm thấy gói "${cleanId}" trên Kho Horizon Rust chính thức.`);
+  }
+  const v0 = proj.versions[0];
+  const fileSpec = v0.file;
+  const safeFileName = path.basename(String(fileSpec.name || `${proj.id}.hmod`));
+  let targetDir = path.join(rootDir, 'horizon-mods');
+  if (proj.kind === 'shader' || proj.kind === 'shaderpack') {
+    targetDir = path.join(rootDir, 'shaderpacks');
+  } else if (proj.kind === 'resourcepack') {
+    targetDir = path.join(rootDir, 'resourcepacks');
+  }
+  fs.mkdirSync(targetDir, { recursive: true });
+  const finalPath = path.join(targetDir, safeFileName);
+  const partPath = `${finalPath}.part`;
+
+  const verifySha256 = (fp) => {
+    if (!fileSpec.sha256) return true;
+    const hex = crypto.createHash('sha256').update(fs.readFileSync(fp)).digest('hex').toLowerCase();
+    return hex === String(fileSpec.sha256).trim().toLowerCase();
+  };
+
+  if (!fs.existsSync(finalPath) || !verifySha256(finalPath)) {
+    onStatus?.(`🦀 Đang tải gói Rust chính chủ "${proj.name}" (${safeFileName})...`);
+    await downloadFile(fileSpec.url, partPath);
+    if (!verifySha256(partPath)) {
+      try { fs.rmSync(partPath, { force: true }); } catch (_) {}
+      throw new Error(`Mã kiểm tra SHA-256 của "${safeFileName}" không khớp — đã hủy để bảo vệ an toàn.`);
+    }
+    if (fs.existsSync(finalPath)) fs.rmSync(finalPath, { force: true });
+    fs.renameSync(partPath, finalPath);
+  }
+
+  if (proj.kind === 'mod') {
+    ensureHorizonModsDefaults(rootDir);
+    await toggleHorizonRustMod({
+      gameDir: rootDir,
+      rootDir: getDefaultGameDir(),
+      modId: proj.id,
+      enabled: true
+    });
+    recordHorizonInstalledSlug(rootDir, `hzreg:${proj.id}`, { modId: proj.id, kind: 'hmod', fileName: safeFileName });
+    recordHorizonInstalledSlug(rootDir, proj.id, { modId: proj.id, kind: 'hmod', fileName: safeFileName });
+    const pr = {
+      kind: 'hmod',
+      mod_id: proj.id,
+      name: proj.name,
+      verdict: 'works',
+      enabled: true,
+      output_path: finalPath,
+      hmod_path: finalPath,
+      summary: `Đã cài & bật gói Mod Rust chính chủ "${proj.name}" (${safeFileName})!`
+    };
+    onStatus?.(`🦀 ${pr.summary}`);
+    return {
+      ok: true,
+      horizonRegistry: true,
+      fileName: safeFileName,
+      versionNumber: v0.version || 'Horizon',
+      destPath: finalPath,
+      installedDeps: [],
+      autoEquipped: true,
+      horizonPort: { ...pr, results: [pr] }
+    };
+  }
+
+  if (proj.kind === 'shader' || proj.kind === 'shaderpack') {
+    try { equipShaderInGame(rootDir, safeFileName); } catch (_) {}
+    onStatus?.(`✨ Đã cài & tự bật Shader WGSL Rust "${proj.name}" (${safeFileName})!`);
+    return {
+      ok: true,
+      horizonRegistry: true,
+      fileName: safeFileName,
+      versionNumber: v0.version || 'Horizon',
+      destPath: finalPath,
+      installedDeps: [],
+      autoEquipped: true
+    };
+  }
+
+  try { equipResourcePackInGame(rootDir, safeFileName, true); } catch (_) {}
+  onStatus?.(`🎨 Đã cài & tự bật Gói tài nguyên "${proj.name}" (${safeFileName})!`);
+  return {
+    ok: true,
+    horizonRegistry: true,
+    fileName: safeFileName,
+    versionNumber: v0.version || 'Horizon',
+    destPath: finalPath,
+    installedDeps: [],
+    autoEquipped: true
+  };
+}
+
+let _horizonModrinthCheckMemCache = null;
+const _horizonModrinthCheckInFlight = new Map();
+
+function loadHorizonModrinthCheckCache(engineRoot) {
+  if (_horizonModrinthCheckMemCache) return _horizonModrinthCheckMemCache;
+  const p = path.join(engineRoot, 'horizon-mods', '.modrinth-check-cache-v1.json');
+  try {
+    if (fs.existsSync(p)) {
+      const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
+      if (parsed && typeof parsed === 'object') {
+        _horizonModrinthCheckMemCache = parsed;
+        return _horizonModrinthCheckMemCache;
+      }
+    }
+  } catch (_) {}
+  _horizonModrinthCheckMemCache = {};
+  return _horizonModrinthCheckMemCache;
+}
+
+function saveHorizonModrinthCheckCache(engineRoot, cacheObj) {
+  try {
+    const dir = path.join(engineRoot, 'horizon-mods');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, '.modrinth-check-cache-v1.json'), JSON.stringify(cacheObj, null, 2), 'utf8');
+  } catch (_) {}
+}
+
+async function checkModrinthForHorizonRust({ slug, mcVersion = '26.3', gameDir = '', rootDir = '' } = {}) {
+  const cleanSlug = String(slug || '').trim().toLowerCase();
+  if (!cleanSlug) return { ok: false, canRunOnRust: false, verdict: 'no', kind: 'java_code' };
+
+  const effectiveGameDir = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
+  const effectiveEngineRoot = rootDir && String(rootDir).trim() ? String(rootDir).trim() : getDefaultGameDir();
+
+  if (cleanSlug.startsWith('hzreg:')) {
+    return {
+      ok: true,
+      slug: cleanSlug,
+      canRunOnRust: true,
+      verdict: 'works',
+      kind: 'horizon_registry',
+      summary: 'Gói Mod Horizon Rust chính chủ (.hmod)'
+    };
+  }
+
+  const fastClass = classifyModForHorizonRust(cleanSlug);
+  if (fastClass.channel === 'native_rust') {
+    return {
+      ok: true,
+      slug: cleanSlug,
+      canRunOnRust: true,
+      verdict: 'works',
+      kind: 'native_rust',
+      nativeModId: fastClass.nativeModId,
+      summary: fastClass.titleVi
+    };
+  }
+  if (fastClass.channel === 'builtin_engine') {
+    return {
+      ok: true,
+      slug: cleanSlug,
+      canRunOnRust: true,
+      verdict: 'works',
+      kind: 'builtin_engine',
+      summary: fastClass.titleVi
+    };
+  }
+
+  const cache = loadHorizonModrinthCheckCache(effectiveEngineRoot);
+  const cachedEntry = cache[cleanSlug];
+  if (cachedEntry && cachedEntry.schema === 1 && (Date.now() - (Number(cachedEntry.checkedAt) || 0)) < 7 * 24 * 3600 * 1000) {
+    return { ok: true, slug: cleanSlug, ...cachedEntry };
+  }
+
+  if (_horizonModrinthCheckInFlight.has(cleanSlug)) {
+    return await _horizonModrinthCheckInFlight.get(cleanSlug);
+  }
+
+  const task = (async () => {
+    try {
+      const allVersions = await fetchJson(`https://api.modrinth.com/v2/project/${encodeURIComponent(cleanSlug)}/version`);
+      const chosen = pickBestHorizonModrinthVersion(allVersions, mcVersion);
+      const fileObj = chosen?.files?.find((f) => f.primary) || chosen?.files?.[0];
+      if (!chosen || !fileObj?.url) {
+        return { ok: true, slug: cleanSlug, canRunOnRust: false, verdict: 'no', kind: 'java_code', summary: 'Không có tệp hợp lệ' };
+      }
+
+      const isDatapackRelease = Array.isArray(chosen.loaders) && chosen.loaders.some((l) => String(l).toLowerCase() === 'datapack');
+      const needsHeavyJavaMod = /\b(cobblemon|pixelmon|origins)\b/i.test(cleanSlug);
+      if (needsHeavyJavaMod) {
+        const neg = { schema: 1, checkedAt: Date.now(), canRunOnRust: false, verdict: 'no', kind: 'java_code', summary: 'Yêu cầu Mod nền Java' };
+        cache[cleanSlug] = neg;
+        saveHorizonModrinthCheckCache(effectiveEngineRoot, cache);
+        return { ok: true, slug: cleanSlug, ...neg };
+      }
+
+      // Large pure Datapack (> 2.5 MB, e.g. Dungeons and Taverns / Terralith): verified 100% pure JSON/mcfunction Datapack without downloading 20 MB upfront!
+      if (isDatapackRelease && (Number(fileObj.size) || 0) > 2.5 * 1024 * 1024) {
+        const posDp = {
+          schema: 1,
+          checkedAt: Date.now(),
+          canRunOnRust: true,
+          verdict: 'works',
+          kind: 'datapack',
+          blocks: 0,
+          items: 0,
+          recipes: 0,
+          worldgen: 1,
+          files_packed: 0,
+          ports: ['Datapack chuẩn'],
+          summary: 'Datapack thế giới & cơ chế chạy trực tiếp trên Nhân Rust'
+        };
+        cache[cleanSlug] = posDp;
+        saveHorizonModrinthCheckCache(effectiveEngineRoot, cache);
+        return { ok: true, slug: cleanSlug, ...posDp };
+      }
+
+      // Huge pure-Java .jar (> 20 MB) with no datapack release
+      if (!isDatapackRelease && (Number(fileObj.size) || 0) > 20 * 1024 * 1024) {
+        const negBig = { schema: 1, checkedAt: Date.now(), canRunOnRust: false, verdict: 'no', kind: 'java_code', summary: 'Mod mã máy Java cỡ lớn' };
+        cache[cleanSlug] = negBig;
+        saveHorizonModrinthCheckCache(effectiveEngineRoot, cache);
+        return { ok: true, slug: cleanSlug, ...negBig };
+      }
+
+      const stagingDir = path.join(effectiveGameDir, 'horizon-mods', '.staging');
+      fs.mkdirSync(stagingDir, { recursive: true });
+      const safeFile = path.basename(fileObj.filename);
+      const stagedPath = path.join(stagingDir, safeFile);
+      if (!fs.existsSync(stagedPath) || fs.statSync(stagedPath).size < 256) {
+        await downloadFile(fileObj.url, stagedPath);
+      }
+
+      const st = await ensureHorizonPortJarBinary({ rootDir: effectiveEngineRoot });
+      const probeRoot = path.join(stagingDir, `.probe-${cleanSlug.replace(/[^a-z0-9_-]/g, '_')}-${Date.now()}`);
+      const probeOut = path.join(probeRoot, 'out');
+      const probeGame = path.join(probeRoot, 'game');
+      const probeModsTxt = path.join(probeRoot, 'horizon-mods.txt');
+      fs.mkdirSync(probeOut, { recursive: true });
+      fs.mkdirSync(probeGame, { recursive: true });
+
+      let first = null;
+      try {
+        const cliArgs = [
+          'convert',
+          '--out-dir', probeOut,
+          '--game-dir', probeGame,
+          '--mods-txt', probeModsTxt,
+          '--jar', stagedPath
+        ];
+        if (st.isPrepared && fs.existsSync(path.join(st.resourcesDir, 'facts.json'))) {
+          cliArgs.push('--resources', st.resourcesDir);
+        }
+        const parsed = await runHorizonPortJarCli(st.portJarPath, cliArgs);
+        first = parsed?.results?.[0] || null;
+      } finally {
+        try { fs.rmSync(probeRoot, { recursive: true, force: true }); } catch (_) {}
+      }
+
+      const canRun = isGenuineHorizonPortResult(first);
+      if (!canRun) {
+        try { fs.rmSync(stagedPath, { force: true }); } catch (_) {}
+      }
+
+      const entry = {
+        schema: 1,
+        checkedAt: Date.now(),
+        canRunOnRust: canRun,
+        verdict: canRun ? (first.verdict || 'works') : 'no',
+        kind: canRun ? (first.kind || 'hmod') : 'java_code',
+        blocks: Number(first?.blocks) || 0,
+        items: Number(first?.items) || 0,
+        recipes: Number(first?.recipes) || 0,
+        worldgen: (Number(first?.worldgen) || 0) + (Number(first?.structures) || 0),
+        files_packed: Number(first?.files_packed) || 0,
+        ports: Array.isArray(first?.ports) ? first.ports.slice(0, 4) : [],
+        skipped: Array.isArray(first?.skipped) ? first.skipped.slice(0, 3) : [],
+        summary: String(first?.summary || '')
+      };
+      cache[cleanSlug] = entry;
+      saveHorizonModrinthCheckCache(effectiveEngineRoot, cache);
+      return { ok: true, slug: cleanSlug, ...entry };
+    } catch (err) {
+      return { ok: false, slug: cleanSlug, canRunOnRust: false, verdict: 'no', kind: 'java_code', error: err.message };
+    } finally {
+      _horizonModrinthCheckInFlight.delete(cleanSlug);
+    }
+  })();
+
+  _horizonModrinthCheckInFlight.set(cleanSlug, task);
+  return await task;
 }
 
 async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '1.21.11', loaderType = 'fabric', gameDir, _isDep = false, strictMcVersion = false }, onStatus) {
@@ -1477,11 +2093,16 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
   const targetFolder = path.join(rootDir, folderMap[projectType] || 'mods');
   if (!fs.existsSync(targetFolder)) fs.mkdirSync(targetFolder, { recursive: true });
 
+  // Official Horizon Rust Registry packages (hzreg:<id> -> .hmod / .hshader / .zip)
+  if (/^hzreg:/i.test(String(slug || '').trim())) {
+    return await installHorizonRegistryProject({ regSlug: slug, rootDir }, onStatus);
+  }
+
   const isHorizonRustTarget = isRustCoreType(loaderType);
 
   // Fast-path on Horizon Rust Core:
   // 1) Native safe-Rust client mods (Minimap, Zoom, Coords HUD, Keystrokes, FPS Overlay) activate directly via horizon-mods.txt!
-  // 2) Built-in Rust engine features (Sodium, Lithium, Iris, Continuity, EMF/ETF, Fabric API...) need zero Java .jar downloads!
+  // 2) Genuine built-in Rust engine features (Sodium, Lithium, Iris, Continuity, EMF/ETF, Dynamic Lights) need zero Java .jar downloads!
   if (projectType === 'mod' && isHorizonRustTarget && !_isDep) {
     const hzClass = classifyModForHorizonRust(slug);
     if (hzClass.channel === 'native_rust' && hzClass.nativeModId) {
@@ -1533,15 +2154,90 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
         horizonPort: { ...pr, results: [pr] }
       };
     }
+
+    // Strict Horizon Rust installation pipeline:
+    // - Prioritizes official 'datapack' releases first (e.g. VeinMiner 26.3 Datapack instead of NeoForge .jar!)
+    // - Stages archive in horizon-mods/.staging/ (NEVER polluting .minecraft/mods/ with Java .jars!)
+    // - Refuses installation if horizon-port-jar determines the archive is pure Java/Mixin bytecode!
+    const allHzVersions = await fetchJson(`https://api.modrinth.com/v2/project/${encodeURIComponent(slug)}/version`);
+    if (!Array.isArray(allHzVersions) || allHzVersions.length === 0) {
+      throw new Error(`Không tìm thấy dữ liệu cho "${slug}".`);
+    }
+    const chosenHz = pickBestHorizonModrinthVersion(allHzVersions, mcVersion);
+    const hzFileObj = chosenHz?.files?.find((f) => f.primary) || chosenHz?.files?.[0];
+    if (!chosenHz || !hzFileObj?.url) {
+      throw new Error(`Gói "${slug}" không có tệp tải hợp lệ.`);
+    }
+
+    const stagingDir = path.join(rootDir, 'horizon-mods', '.staging');
+    fs.mkdirSync(stagingDir, { recursive: true });
+    const stagedPath = path.join(stagingDir, path.basename(hzFileObj.filename));
+    if (!fs.existsSync(stagedPath) || fs.statSync(stagedPath).size < 256) {
+      onStatus?.(`🦀 Đang tải "${hzFileObj.filename}" để biên dịch sang Nhân Horizon Rust...`);
+      await downloadFile(hzFileObj.url, stagedPath);
+    } else {
+      onStatus?.(`🦀 Đang biên dịch "${hzFileObj.filename}" sang định dạng chạy thật trên Rust...`);
+    }
+
+    let portRes = null;
+    try {
+      portRes = await portJavaJarsToHorizonRust({
+        gameDir: rootDir,
+        rootDir: getDefaultGameDir(),
+        jarPaths: [stagedPath],
+        autoEnable: true,
+        callbacks: { onStatus }
+      });
+    } finally {
+      try { fs.rmSync(stagedPath, { force: true }); } catch (_) {}
+    }
+
+    const first = portRes?.results?.[0] || null;
+    if (!isGenuineHorizonPortResult(first)) {
+      // Clean up any partial GUI-only fallback output if created
+      if (first?.output_path && fs.existsSync(first.output_path)) {
+        try {
+          if (first.kind === 'resourcepack') equipResourcePackInGame(rootDir, path.basename(first.output_path), false);
+          fs.rmSync(first.output_path, { recursive: true, force: true });
+        } catch (_) {}
+      }
+      return {
+        ok: false,
+        incompatibleWithRust: true,
+        error: `"${slug}" viết bằng mã máy Java chuyên sâu (Mixin/JVM), không chạy được trên Nhân Horizon Rust. Hãy chuyển sang Core Fabric / Forge nếu muốn cài Mod này!`
+      };
+    }
+
+    let copiedSaves = 0;
+    if (first.kind === 'datapack' && first.output_path) {
+      copiedSaves = copyDatapackIntoExistingSaves(rootDir, first.output_path, first.mod_id || slug);
+    } else if (first.kind === 'resourcepack' && first.output_path) {
+      try { equipResourcePackInGame(rootDir, path.basename(first.output_path), true); } catch (_) {}
+    }
+
+    const finalOutName = first.output_path ? path.basename(first.output_path) : hzFileObj.filename;
+    recordHorizonInstalledSlug(rootDir, slug, {
+      modId: first.mod_id || String(slug).toLowerCase(),
+      kind: first.kind,
+      fileName: finalOutName
+    });
+
+    return {
+      ok: true,
+      fileName: finalOutName,
+      versionNumber: chosenHz.version_number || 'Rust',
+      destPath: first.output_path || '',
+      copiedSaves,
+      installedDeps: [],
+      autoEquipped: true,
+      horizonPort: { ...first, copiedSaves, results: portRes.results || [first] }
+    };
   }
 
   const effectiveLoader = normalizeModrinthLoader(loaderType, mcVersion);
   const loaderMatches = (loaders) => {
     if (projectType !== 'mod') return true;
     if (!Array.isArray(loaders)) return false;
-    if (isHorizonRustTarget) {
-      return loaders.some((l) => ['fabric', 'neoforge', 'forge', 'quilt', 'datapack', 'minecraft'].includes(String(l || '').toLowerCase()));
-    }
     if (loaders.includes(effectiveLoader)) return true;
     if (effectiveLoader === 'quilt' && loaders.includes('fabric')) return true;
     // NeoForge was only binary-compatible with Forge on 1.20.1; on 1.20.2+ / 1.21+ / 26.x they are completely distinct!
@@ -1570,13 +2266,10 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
     });
   }
 
-  // 3. For Shaders, ResourcePacks, or Horizon Rust Core (which upgrades 1.16.5–26.3 assets, recipes & datapacks natively), allow fallback!
+  // 3. For Shaders & ResourcePacks, allow fallback across versions
   if (matched.length === 0) {
     if (projectType !== 'mod') {
       matched = allVersions;
-    } else if (isHorizonRustTarget) {
-      matched = allVersions.filter((v) => loaderMatches(v.loaders));
-      if (matched.length === 0) matched = allVersions;
     } else {
       const supportedVers = Array.from(new Set(allVersions.flatMap((v) => v.game_versions || []).filter((g) => /^\d+\.\d+/.test(g)))).slice(0, 5).join(', ');
       throw new Error(`Mod "${slug}" chưa hỗ trợ bản ${mcVersion} (${effectiveLoader.toUpperCase()}). Các bản hỗ trợ: ${supportedVers || 'Khác'}`);
@@ -1591,7 +2284,6 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
   const isFallbackMatch = projectType === 'mod' && !(Array.isArray(chosen.game_versions) && chosen.game_versions.includes(mcVersion));
 
   // 4. Auto-install required dependencies (e.g. Fabric API, Cloth Config, Architectury, GeckoLib, Kotlin) matching the exact mcVersion & loader!
-  //    (Skipped on Horizon Rust Core because horizon-port-jar extracts & compiles pure data/assets directly without JVM runtime libraries.)
   const installedDeps = [];
   if (projectType === 'mod' && !_isDep && !isHorizonRustTarget && Array.isArray(chosen.dependencies)) {
     const reqDeps = chosen.dependencies.filter((d) => d.dependency_type === 'required' && (d.project_id || d.version_id));
@@ -1698,28 +2390,6 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
     return autoEquipped;
   };
 
-  const maybeAutoPortToHorizon = async () => {
-    if (projectType !== 'mod' || !isHorizonRustTarget || _isDep || !fs.existsSync(destPath)) return null;
-    try {
-      onStatus?.(`🦀 Đang chuyển đổi "${fileObj.filename}" sang định dạng chạy thật trên Rust...`);
-      const portRes = await portJavaJarsToHorizonRust({
-        gameDir: rootDir,
-        rootDir: getDefaultGameDir(),
-        jarPaths: [destPath],
-        autoEnable: true,
-        callbacks: { onStatus }
-      });
-      const first = portRes?.results?.[0] || null;
-      if (!first) return null;
-      if (first.kind === 'resourcepack' && first.output_path) {
-        try { equipResourcePackInGame(rootDir, path.basename(first.output_path), true); } catch (_) {}
-      }
-      return { ...first, results: portRes.results || [first] };
-    } catch (_) {
-      return null;
-    }
-  };
-
   // If the exact file was previously cached as .jar.disabled, verify compatibility BEFORE re-enabling!
   if (!fs.existsSync(destPath) && fs.existsSync(disabledPath) && fs.statSync(disabledPath).size > 1024) {
     assertFallbackJarCompatible(disabledPath);
@@ -1730,9 +2400,8 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
         recordInstalledModMeta();
       }
       const autoEquipped = await finalizeAddonAutoEquip(fileObj.filename);
-      const horizonPort = await maybeAutoPortToHorizon();
       onStatus?.(`✓ Đã kích hoạt ngay ${fileObj.filename} (chuẩn ${mcVersion}) có sẵn trong máy!`);
-      return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, skipped: true, installedDeps, autoEquipped: autoEquipped || Boolean(horizonPort?.enabled), horizonPort };
+      return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, skipped: true, installedDeps, autoEquipped };
     } catch (_) {}
   }
 
@@ -1748,9 +2417,8 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
       if (!_isDep && !isHorizonRustTarget) resolveKnownModMixinConflicts(targetFolder, null, onStatus);
     }
     const autoEquipped = await finalizeAddonAutoEquip(fileObj.filename);
-    const horizonPort = await maybeAutoPortToHorizon();
-    onStatus?.(`✓ Gói ${fileObj.filename} đã cài sẵn trên máy${autoEquipped || horizonPort?.enabled ? ' & tự bật trong Game' : ''}.`);
-    return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, skipped: true, installedDeps, autoEquipped: autoEquipped || Boolean(horizonPort?.enabled), horizonPort };
+    onStatus?.(`✓ Gói ${fileObj.filename} đã cài sẵn trên máy${autoEquipped ? ' & tự bật trong Game' : ''}.`);
+    return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, skipped: true, installedDeps, autoEquipped };
   }
 
   onStatus?.(`Đang tải ${fileObj.filename} (chuẩn ${mcVersion} • ${isHorizonRustTarget ? 'RUST HORIZON' : effectiveLoader.toUpperCase()})...`);
@@ -1766,8 +2434,7 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
     if (!_isDep && !isHorizonRustTarget) resolveKnownModMixinConflicts(targetFolder, null, onStatus);
   }
   const autoEquipped = await finalizeAddonAutoEquip(fileObj.filename);
-  const horizonPort = await maybeAutoPortToHorizon();
-  return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, installedDeps, autoEquipped: autoEquipped || Boolean(horizonPort?.enabled), horizonPort };
+  return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, installedDeps, autoEquipped };
 }
 
 /* ---------------- v40.4 PRO: In-Game Auto-Equip & Deep .jar Inspector ---------------- */
@@ -1880,6 +2547,16 @@ function getEquippedAddonsState(gameDir) {
         const spM = txt.match(/^shaderPack=(.+)$/m);
         if (spM && spM[1].trim() && spM[1].trim() !== '(internal)' && spM[1].trim() !== 'OFF') {
           activeShader = spM[1].trim();
+        }
+      }
+    }
+    if (!activeShader) {
+      const hzGfxPath = path.join(rootDir, 'horizon-graphics.txt');
+      if (fs.existsSync(hzGfxPath)) {
+        const txt = fs.readFileSync(hzGfxPath, 'utf8');
+        const hzSp = txt.match(/^pickedShaderPack:(.+)$/m);
+        if (hzSp && hzSp[1].trim()) {
+          activeShader = hzSp[1].trim();
         }
       }
     }
@@ -4260,7 +4937,7 @@ function listLocalAddons(gameDir, folderType = 'mods') {
   try {
     const result = fs
       .readdirSync(dir)
-      .filter((f) => /\.(jar|zip)(\.disabled)?$/i.test(f) && f !== 'AetherSkinSync.zip' && f !== 'zz-blockway-auto-island-preset.jar')
+      .filter((f) => /\.(jar|zip|hshader)(\.disabled)?$/i.test(f) && f !== 'AetherSkinSync.zip' && f !== 'zz-blockway-auto-island-preset.jar')
       .map((f) => {
         const full = path.join(dir, f);
         const cleanName = f.replace(/\.disabled$/i, '');
@@ -14134,17 +14811,29 @@ async function listHorizonRustMods({ gameDir = '', rootDir = '' } = {}) {
         ...rp,
         id: rp.id || String(rp.file_name || '').replace(/-rust\.zip$/i, '').replace(/\.zip$/i, '')
       }));
+      const modsOut = Array.isArray(parsed?.mods) ? parsed.mods : [];
+      const dpsOut = Array.isArray(parsed?.datapacks) ? parsed.datapacks : buildFallbackDatapacks();
+      const activeIds = new Set([
+        ...modsOut.map((m) => String(m.id || '').toLowerCase()),
+        ...dpsOut.map((d) => String(d.id || '').toLowerCase()),
+        ...normRps.map((r) => String(r.id || '').toLowerCase())
+      ]);
+      const slugMap = readHorizonInstalledSlugs(effectiveGameDir);
+      const installedSlugs = Object.entries(slugMap)
+        .filter(([, v]) => v && v.modId && activeIds.has(String(v.modId).toLowerCase()))
+        .map(([k]) => k);
       return {
         ok: true,
         hasPortJarTool: true,
         hmodsDir,
         modsTxtPath,
         javaJarCount,
-        mods: Array.isArray(parsed?.mods) ? parsed.mods : [],
+        mods: modsOut,
         nativeMods: cliNative,
         native_mods: cliNative,
-        datapacks: Array.isArray(parsed?.datapacks) ? parsed.datapacks : buildFallbackDatapacks(),
-        resourcepacks: normRps
+        datapacks: dpsOut,
+        resourcepacks: normRps,
+        installedSlugs
       };
     } catch (_) {}
   }
@@ -14173,6 +14862,17 @@ async function listHorizonRustMods({ gameDir = '', rootDir = '' } = {}) {
       };
     });
   const fbNative = buildFallbackNativeMods();
+  const fbDps = buildFallbackDatapacks();
+  const fbRps = buildFallbackResourcepacks();
+  const fbActiveIds = new Set([
+    ...fallbackMods.map((m) => String(m.id || '').toLowerCase()),
+    ...fbDps.map((d) => String(d.id || '').toLowerCase()),
+    ...fbRps.map((r) => String(r.id || '').toLowerCase())
+  ]);
+  const fbSlugMap = readHorizonInstalledSlugs(effectiveGameDir);
+  const fbInstalledSlugs = Object.entries(fbSlugMap)
+    .filter(([, v]) => v && v.modId && fbActiveIds.has(String(v.modId).toLowerCase()))
+    .map(([k]) => k);
   return {
     ok: true,
     hasPortJarTool: Boolean(st.hasPortJarTool),
@@ -14182,8 +14882,9 @@ async function listHorizonRustMods({ gameDir = '', rootDir = '' } = {}) {
     mods: fallbackMods,
     nativeMods: fbNative,
     native_mods: fbNative,
-    datapacks: buildFallbackDatapacks(),
-    resourcepacks: buildFallbackResourcepacks()
+    datapacks: fbDps,
+    resourcepacks: fbRps,
+    installedSlugs: fbInstalledSlugs
   };
 }
 
@@ -14244,6 +14945,17 @@ async function deleteHorizonRustMod({ gameDir = '', rootDir = '', modId = '', fi
       targetPath = path.join(dpRoot, `${cleanId}.zip`);
       fs.rmSync(targetPath, { force: true });
     }
+    // Also remove from existing world saves/*/datapacks/
+    try {
+      const savesDir = path.join(effectiveGameDir, 'saves');
+      if (safeBase && fs.existsSync(savesDir)) {
+        for (const ent of fs.readdirSync(savesDir, { withFileTypes: true })) {
+          if (!ent.isDirectory()) continue;
+          const wdp = path.join(savesDir, ent.name, 'datapacks', safeBase);
+          if (fs.existsSync(wdp)) fs.rmSync(wdp, { recursive: true, force: true });
+        }
+      }
+    } catch (_) {}
   } else if (kind === 'resourcepack') {
     const safeFile = path.basename(fileName || `${cleanId}-rust.zip`);
     targetPath = path.join(effectiveGameDir, 'resourcepacks', safeFile);
@@ -14274,6 +14986,19 @@ async function deleteHorizonRustMod({ gameDir = '', rootDir = '', modId = '', fi
       }
     }
     if (dirty) writePortedJarsCache(hmodsDir, cache);
+    try {
+      const slugMap = readHorizonInstalledSlugs(effectiveGameDir);
+      let slugDirty = false;
+      for (const [sk, sv] of Object.entries(slugMap)) {
+        if (sv && String(sv.modId || '').toLowerCase() === cleanId.toLowerCase()) {
+          delete slugMap[sk];
+          slugDirty = true;
+        }
+      }
+      if (slugDirty) {
+        fs.writeFileSync(path.join(hmodsDir, '.installed-slugs.json'), JSON.stringify(slugMap, null, 2), 'utf8');
+      }
+    } catch (_) {}
   }
   return { ok: true, id: cleanId, kind, deletedPath: targetPath };
 }
@@ -14974,6 +15699,8 @@ module.exports = {
   probeHorizonLaunchApi,
   upgradeHorizonEngine,
   classifyModForHorizonRust,
+  fetchHorizonRegistryIndex,
+  checkModrinthForHorizonRust,
   ensureHorizonModsDefaults,
   portJavaJarsToHorizonRust,
   portModpackToHorizonRust,

@@ -1,7 +1,7 @@
 {
   "name": "blockway-launcher",
-  "version": "41.7.0",
-  "description": "BlockWay Launcher v41.7.0 PRO — Every World, One Place. Minecraft Java & Native Horizon Rust launcher with 5 Native Rust Client Mods (Minimap, Zoom, Coords, Keystrokes, FPS), 5-Channel Mod & Modpack Converter, and UI Customization Studio.",
+  "version": "41.7.1",
+  "description": "BlockWay Launcher v41.7.1 PRO — Every World, One Place. Minecraft Java & Native Horizon Rust launcher with Official .hmod/.hshader Rust Registry, Strict Pre-Install Rust Verification, 5 Native Rust Client Mods, and UI Customization Studio.",
   "homepage": "https://buiduchuy2010qn-prog.github.io/blockway-launcher/",
   "repository": {
     "type": "git",
