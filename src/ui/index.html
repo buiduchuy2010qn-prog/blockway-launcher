@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>BlockWay Launcher v41.5.1 PRO — Every World, One Place</title>
+  <title>BlockWay Launcher v41.6.0 PRO — Every World, One Place</title>
   <link rel="icon" href="app-icon.ico" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="layout-v33.css" />
@@ -23,7 +23,7 @@
         </div>
         <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
           <span>🔄 Kiểm tra cập nhật</span>
-          <strong id="titlebarUpdateVer">v41.5.1</strong>
+          <strong id="titlebarUpdateVer">v41.6.0</strong>
         </button>
       </div>
 
@@ -979,6 +979,9 @@
               <button class="btn-sync-skin is-ok" id="btnModsOptifineHub" title="Trang bị 1-Click trọn bộ tính năng OptiFine (Shader, Zoom phím C, Đuốc sáng hang, Nối kính, Fresh Animations) hoặc cài tệp OptiFine.jar">
                 🔆 Bộ Chuẩn OptiFine
               </button>
+              <button class="btn-sync-skin is-ok" id="btnHorizonPortJarHub" title="Dịch ngược tài nguyên, khối, vật phẩm, công thức &amp; worldgen từ Mod .jar Java sang gói .hmod chạy thật 100% bằng Rust (horizon-port-jar.exe)">
+                🦀 Dịch Mod .jar → .hmod
+              </button>
               <button class="btn-sync-skin" id="btnOpenModsFolder">📂 Mở Thư Mục</button>
               <button class="btn-sync-skin hidden" id="btnModsVisualBoost" title="Mở Kho Làm Đẹp 0% Lag: Lửa thấp PvP, Viền quặng phát sáng, Hoạt ảnh sinh vật, Âm thanh 3D &amp; Tăng tốc tải Chunk">🎨 Làm Đẹp 0% Lag</button>
               <button class="btn-sync-skin is-turbo hidden" id="btnModsTurboSmooth" title="Mở Turbo Smooth Core™">⚡ Can Thiệp File Mượt</button>
@@ -1056,6 +1059,44 @@
                 <button class="mqt-chip" data-mcat="library" data-mquery="" data-mtype="mod">📚 Thư Viện (Fabric API/GeckoLib)</button>
                 <button class="mqt-chip" data-mcat="" data-mquery="" data-mtype="shader">✨ Top Shaders Bóng Đổ</button>
               </div>
+            </div>
+          </div>
+
+          <div id="horizonRustModStudioCard" class="horizon-rust-studio-card hidden">
+            <div class="hrs-head">
+              <div class="hrs-head-left">
+                <span class="hrs-crab-icon">🦀</span>
+                <div>
+                  <div class="hrs-title-row">
+                    <strong>Trình Dịch Mod Java (.jar) → Horizon Rust (.hmod) Chạy Thật 100%</strong>
+                    <span class="hrs-compiler-badge" id="horizonPortJarBadge">horizon-port-jar.exe • Rust Native</span>
+                  </div>
+                  <p>Biên dịch trực tiếp bằng Rust (<code>horizon-port-pack</code> + <code>horizon-mods</code>): khối vuông, vật phẩm, mô hình 3D, kết cấu PNG, công thức chế tạo (<code>1.16.5–26.3</code>), tab Sáng Tạo &amp; quần xã sinh vật thành gói <code>.hmod</code> nạp thẳng vào <code>horizon-client.exe</code>.</p>
+                </div>
+              </div>
+              <button type="button" class="vtype-btn" id="btnCloseHorizonRustStudio" title="Thu gọn bảng Dịch Mod Rust">✕ Đóng</button>
+            </div>
+            <div class="hrs-actions">
+              <button type="button" class="btn-fps-boost-1click" id="btnHorizonScanAllJars" title="Quét toàn bộ tệp .jar trong thư mục mods/ và biên dịch sang .hmod chạy thật bằng Rust">
+                <span>⚡ Quét &amp; Dịch toàn bộ mods/*.jar → .hmod</span>
+              </button>
+              <button type="button" class="btn-sync-skin is-ok" id="btnHorizonPickJarFiles" title="Chọn 1 hoặc nhiều tệp Mod .jar bất kỳ trên máy để dịch sang .hmod">
+                📂 Chọn tệp .jar lẻ → .hmod
+              </button>
+              <button type="button" class="btn-sync-skin" id="btnHorizonRefreshHmods" title="Làm mới danh sách các gói .hmod đang có trong horizon-mods/">
+                🔄 Làm mới
+              </button>
+              <button type="button" class="btn-sync-skin" id="btnHorizonOpenHmodsFolder" title="Mở thư mục .minecraft/horizon-mods chứa các gói .hmod thật">
+                📁 Mở thư mục horizon-mods/
+              </button>
+            </div>
+            <div id="horizonPortReportBox" class="hrs-report-box hidden"></div>
+            <div class="hrs-hmod-section">
+              <div class="hrs-hmod-head">
+                <strong id="horizonHmodsCountTitle">📦 Gói .hmod Rust đang cài (0)</strong>
+                <span>Tự nạp qua <code>horizon-mods.txt</code> khi bấm CHƠI NGAY trên Core Horizon</span>
+              </div>
+              <div id="horizonHmodsList" class="hrs-hmod-list"></div>
             </div>
           </div>
 
@@ -1723,7 +1764,7 @@
               </div>
             </div>
             <div class="console-terminal" id="consoleOutput">
-              <div class="log-entry info">[BlockWay Launcher v41.5.1 PRO] Sẵn sàng khởi chạy.</div>
+              <div class="log-entry info">[BlockWay Launcher v41.6.0 PRO] Sẵn sàng khởi chạy.</div>
             </div>
           </div>
         </section>
@@ -1745,7 +1786,7 @@
                 📦 GitHub Repo
               </button>
               <button class="btn-sync-skin" id="btnCheckUpdate">
-                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v41.5.1</span>)
+                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v41.6.0</span>)
               </button>
             </div>
           </div>

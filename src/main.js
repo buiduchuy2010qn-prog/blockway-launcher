@@ -48,7 +48,8 @@ const {
   getVisualBoostStatus, toggleVisualBoostPack,
   exportPlayerPrefsSnapshot, importPlayerPrefsSnapshot,
   getWorldgenBoostStatus, installWorldgenBoostPack,
-  getHorizonEngineStatus, ensureHorizonEnginePrepared, upgradeHorizonEngine
+  getHorizonEngineStatus, ensureHorizonEnginePrepared, upgradeHorizonEngine,
+  portJavaJarsToHorizonRust, listHorizonRustMods, toggleHorizonRustMod, deleteHorizonRustMod
 } = require('./launcher-engine');
 const {
   loginWithMicrosoftModal,
@@ -1704,6 +1705,97 @@ ipcMain.handle('horizon:upgrade', async (_e, options = {}) => {
         onProgress: (p) => mainWindow?.webContents.send('mc:progress', p)
       }
     });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:port-jars', async (_e, options = {}) => {
+  try {
+    return await portJavaJarsToHorizonRust({
+      gameDir: options?.gameDir || '',
+      rootDir: options?.rootDir || '',
+      jarPaths: Array.isArray(options?.jarPaths) ? options.jarPaths : [],
+      scanModsDir: Boolean(options?.scanModsDir),
+      autoEnable: options?.autoEnable !== false,
+      callbacks: {
+        onStatus: (msg) => mainWindow?.webContents.send('mc:status', msg),
+        onProgress: (p) => mainWindow?.webContents.send('mc:progress', p)
+      }
+    });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:pick-jars', async (_e, options = {}) => {
+  try {
+    const picked = await dialog.showOpenDialog(mainWindow, {
+      title: 'Chọn tệp Mod Java (.jar) để biên dịch sang .hmod (Rust)',
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Minecraft Java Mod (.jar)', extensions: ['jar'] }]
+    });
+    if (picked.canceled || !Array.isArray(picked.filePaths) || picked.filePaths.length === 0) {
+      return { ok: false, canceled: true };
+    }
+    return await portJavaJarsToHorizonRust({
+      gameDir: options?.gameDir || '',
+      rootDir: options?.rootDir || '',
+      jarPaths: picked.filePaths,
+      autoEnable: options?.autoEnable !== false,
+      callbacks: {
+        onStatus: (msg) => mainWindow?.webContents.send('mc:status', msg),
+        onProgress: (p) => mainWindow?.webContents.send('mc:progress', p)
+      }
+    });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:list-hmods', async (_e, options = {}) => {
+  try {
+    const gameDir = typeof options === 'string' ? options : (options?.gameDir || '');
+    const rootDir = typeof options === 'object' && options ? (options.rootDir || '') : '';
+    return await listHorizonRustMods({ gameDir, rootDir });
+  } catch (err) {
+    return { ok: false, error: err.message, mods: [] };
+  }
+});
+
+ipcMain.handle('horizon:toggle-hmod', async (_e, options = {}) => {
+  try {
+    return await toggleHorizonRustMod({
+      gameDir: options?.gameDir || '',
+      rootDir: options?.rootDir || '',
+      modId: options?.modId || '',
+      enabled: Boolean(options?.enabled)
+    });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:delete-hmod', async (_e, options = {}) => {
+  try {
+    return await deleteHorizonRustMod({
+      gameDir: options?.gameDir || '',
+      rootDir: options?.rootDir || '',
+      modId: options?.modId || '',
+      fileName: options?.fileName || ''
+    });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:open-hmods-dir', async (_e, gameDir = '') => {
+  try {
+    const base = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
+    const hmodsDir = path.join(base, 'horizon-mods');
+    fs.mkdirSync(hmodsDir, { recursive: true });
+    await shell.openPath(hmodsDir);
+    return { ok: true, path: hmodsDir };
   } catch (err) {
     return { ok: false, error: err.message };
   }

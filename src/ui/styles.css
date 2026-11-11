@@ -5504,6 +5504,217 @@ html:not([data-theme="prism"]):not([data-theme="sakura"]) .aether-feedback-banne
   display: none !important;
 }
 
+/* ============================================================================
+   v41.6.0 PRO — HORIZON RUST .JAR -> .HMOD COMPILER STUDIO
+   ============================================================================ */
+.horizon-rust-studio-card {
+  background: var(--bg-card);
+  border: 1.5px solid rgba(16, 185, 129, 0.38);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.horizon-rust-studio-card.hidden {
+  display: none !important;
+}
+
+.hrs-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hrs-head-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.hrs-crab-icon {
+  font-size: 22px;
+  line-height: 1;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 10px;
+  padding: 7px 8px;
+}
+
+.hrs-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.hrs-title-row strong {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.hrs-compiler-badge {
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.hrs-head-left p {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.hrs-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hrs-report-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border-col);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.hrs-report-box.hidden {
+  display: none !important;
+}
+
+.hrs-report-summary {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.hrs-report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 7px;
+  max-height: 185px;
+  overflow-y: auto;
+}
+
+.hrs-report-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-col);
+  border-radius: 8px;
+  padding: 7px 9px;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hrs-hmod-section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.hrs-hmod-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.hrs-hmod-head strong {
+  color: var(--text-main);
+  font-size: 12.5px;
+}
+
+.hrs-hmod-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 8px;
+  max-height: 230px;
+  overflow-y: auto;
+}
+
+.hmod-item-row {
+  background: var(--bg-input);
+  border: 1px solid var(--border-col);
+  border-radius: 10px;
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hmod-item-row.is-enabled {
+  border-color: rgba(16, 185, 129, 0.42);
+}
+
+.hmod-item-meta {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hmod-item-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hmod-item-stats {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hmod-verdict-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.hmod-verdict-badge.is-works {
+  background: rgba(16, 185, 129, 0.16);
+  color: #059669;
+}
+
+.hmod-verdict-badge.is-partly {
+  background: rgba(245, 158, 11, 0.16);
+  color: #d97706;
+}
+
+.hmod-verdict-badge.is-no {
+  background: rgba(148, 163, 184, 0.18);
+  color: var(--text-muted);
+}
+
+
 
 
 

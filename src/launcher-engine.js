@@ -730,6 +730,12 @@ async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
         });
       }
       rustList.push({
+        version: 'horizon-port-jars',
+        stable: true,
+        kind: 'horizon-port-jars',
+        displayLabel: `🧩 Công cụ dịch Mod .jar sang .hmod chạy thật bằng Rust${st.hasPortJarTool ? ' ✓ (horizon-port-jar.exe)' : ' (Tự tải từ GitHub)'}`
+      });
+      rustList.push({
         version: 'horizon-upgrade-core',
         stable: true,
         kind: 'blockway-rust-upgrade',
@@ -1073,7 +1079,7 @@ async function searchModrinth({
         const baseParts = String(mcVersion).split('-')[0].split('.');
         const familyPrefix = baseParts.length >= 2 ? `${baseParts[0]}.${baseParts[1]}` : mcVersion;
         const verGroup = new Set([mcVersion]);
-        if (familyPrefix === '1.21') {
+        if (familyPrefix === '1.21' || (isRustCoreType(loaderType) && /^2[6-9]\./.test(familyPrefix))) {
           ['1.21.11', '1.21.5', '1.21.4', '1.21.3', '1.21.1', '1.21'].forEach((v) => verGroup.add(v));
         } else if (familyPrefix === '1.20') {
           ['1.20.6', '1.20.4', '1.20.2', '1.20.1', '1.20'].forEach((v) => verGroup.add(v));
@@ -1088,7 +1094,9 @@ async function searchModrinth({
       }
     }
     if (projectType === 'mod' && !allVersions) {
-      if (effectiveLoader === 'quilt') {
+      if (isRustCoreType(loaderType)) {
+        f.push(['categories:fabric', 'categories:neoforge', 'categories:forge', 'categories:quilt', 'categories:datapack']);
+      } else if (effectiveLoader === 'quilt') {
         f.push(['categories:quilt', 'categories:fabric']);
       } else if (effectiveLoader === 'forge') {
         f.push(['categories:forge', 'categories:neoforge']);
@@ -1379,10 +1387,14 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
   const targetFolder = path.join(rootDir, folderMap[projectType] || 'mods');
   if (!fs.existsSync(targetFolder)) fs.mkdirSync(targetFolder, { recursive: true });
 
+  const isHorizonRustTarget = isRustCoreType(loaderType);
   const effectiveLoader = normalizeModrinthLoader(loaderType, mcVersion);
   const loaderMatches = (loaders) => {
     if (projectType !== 'mod') return true;
     if (!Array.isArray(loaders)) return false;
+    if (isHorizonRustTarget) {
+      return loaders.some((l) => ['fabric', 'neoforge', 'forge', 'quilt', 'datapack'].includes(String(l || '').toLowerCase()));
+    }
     if (loaders.includes(effectiveLoader)) return true;
     if (effectiveLoader === 'quilt' && loaders.includes('fabric')) return true;
     // NeoForge was only binary-compatible with Forge on 1.20.1; on 1.20.2+ / 1.21+ / 26.x they are completely distinct!
@@ -1429,8 +1441,9 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
   const isFallbackMatch = projectType === 'mod' && !(Array.isArray(chosen.game_versions) && chosen.game_versions.includes(mcVersion));
 
   // 4. Auto-install required dependencies (e.g. Fabric API, Cloth Config, Architectury, GeckoLib, Kotlin) matching the exact mcVersion & loader!
+  //    (Skipped on Horizon Rust Core because horizon-port-jar extracts & compiles pure data/assets directly into .hmod without JVM runtime libraries.)
   const installedDeps = [];
-  if (projectType === 'mod' && !_isDep && Array.isArray(chosen.dependencies)) {
+  if (projectType === 'mod' && !_isDep && !isHorizonRustTarget && Array.isArray(chosen.dependencies)) {
     const reqDeps = chosen.dependencies.filter((d) => d.dependency_type === 'required' && (d.project_id || d.version_id));
     for (const dep of reqDeps) {
       try {
@@ -1536,6 +1549,23 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
     return autoEquipped;
   };
 
+  const maybeAutoPortToHorizon = async () => {
+    if (projectType !== 'mod' || !isHorizonRustTarget || _isDep || !fs.existsSync(destPath)) return null;
+    try {
+      onStatus?.(`🦀 Đang dịch ngược & đóng gói "${fileObj.filename}" sang .hmod bằng trình biên dịch Rust...`);
+      const portRes = await portJavaJarsToHorizonRust({
+        gameDir: rootDir,
+        rootDir: getDefaultGameDir(),
+        jarPaths: [destPath],
+        autoEnable: true,
+        callbacks: { onStatus }
+      });
+      return portRes?.results?.[0] || null;
+    } catch (_) {
+      return null;
+    }
+  };
+
   // If the exact file was previously cached as .jar.disabled, verify compatibility BEFORE re-enabling!
   if (!fs.existsSync(destPath) && fs.existsSync(disabledPath) && fs.statSync(disabledPath).size > 1024) {
     assertFallbackJarCompatible(disabledPath);
@@ -1546,8 +1576,9 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
         recordInstalledModMeta();
       }
       const autoEquipped = await finalizeAddonAutoEquip(fileObj.filename);
+      const horizonPort = await maybeAutoPortToHorizon();
       onStatus?.(`✓ Đã kích hoạt ngay ${fileObj.filename} (chuẩn ${mcVersion}) có sẵn trong máy!`);
-      return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, skipped: true, installedDeps, autoEquipped };
+      return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, skipped: true, installedDeps, autoEquipped: autoEquipped || Boolean(horizonPort?.enabled), horizonPort };
     } catch (_) {}
   }
 
@@ -1563,8 +1594,9 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
       if (!_isDep) resolveKnownModMixinConflicts(targetDir, null, onStatus);
     }
     const autoEquipped = await finalizeAddonAutoEquip(fileObj.filename);
-    onStatus?.(`✓ Gói ${fileObj.filename} đã cài sẵn trên máy${autoEquipped ? ' & tự bật trong Game' : ''}.`);
-    return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, skipped: true, installedDeps, autoEquipped };
+    const horizonPort = await maybeAutoPortToHorizon();
+    onStatus?.(`✓ Gói ${fileObj.filename} đã cài sẵn trên máy${autoEquipped || horizonPort?.enabled ? ' & tự bật trong Game' : ''}.`);
+    return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, skipped: true, installedDeps, autoEquipped: autoEquipped || Boolean(horizonPort?.enabled), horizonPort };
   }
 
   onStatus?.(`Đang tải ${fileObj.filename} (chuẩn ${mcVersion} • ${effectiveLoader.toUpperCase()})...`);
@@ -1580,7 +1612,8 @@ async function installModrinthProject({ slug, projectType = 'mod', mcVersion = '
     if (!_isDep) resolveKnownModMixinConflicts(targetDir, null, onStatus);
   }
   const autoEquipped = await finalizeAddonAutoEquip(fileObj.filename);
-  return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, installedDeps, autoEquipped };
+  const horizonPort = await maybeAutoPortToHorizon();
+  return { ok: true, fileName: fileObj.filename, versionNumber: chosen.version_number, destPath, installedDeps, autoEquipped: autoEquipped || Boolean(horizonPort?.enabled), horizonPort };
 }
 
 /* ---------------- v40.4 PRO: In-Game Auto-Equip & Deep .jar Inspector ---------------- */
@@ -13016,6 +13049,7 @@ function getHorizonPlatformSpec(platform = process.platform, arch = process.arch
       clientBin: 'horizon-client.exe',
       prepareBin: 'horizon-prepare.exe',
       serverBin: 'horizon-server.exe',
+      portJarBin: 'horizon-port-jar.exe',
       supported: true
     };
   }
@@ -13028,6 +13062,7 @@ function getHorizonPlatformSpec(platform = process.platform, arch = process.arch
       clientBin: 'horizon-client',
       prepareBin: 'horizon-prepare',
       serverBin: 'horizon-server',
+      portJarBin: 'horizon-port-jar',
       supported: true
     };
   }
@@ -13038,6 +13073,7 @@ function getHorizonPlatformSpec(platform = process.platform, arch = process.arch
     clientBin: 'horizon-client',
     prepareBin: 'horizon-prepare',
     serverBin: 'horizon-server',
+    portJarBin: 'horizon-port-jar',
     supported: arch === 'x64'
   };
 }
@@ -13108,7 +13144,7 @@ function fetchJsonShortTimeout(url, timeoutMs = 4500, redirectsLeft = 5) {
     try {
       const req = https.get(
         url,
-        { agent: httpsKeepAliveAgent, headers: { 'User-Agent': 'BlockWay-Launcher/41.5' }, timeout: timeoutMs },
+        { agent: httpsKeepAliveAgent, headers: { 'User-Agent': 'BlockWay-Launcher/41.6' }, timeout: timeoutMs },
         (res) => {
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
             res.resume();
@@ -13160,9 +13196,13 @@ function getHorizonEngineStatus(gameDir = '') {
   const clientPath = path.join(engineRoot, spec.clientBin);
   const preparePath = path.join(engineRoot, spec.prepareBin);
   const serverPath = path.join(engineRoot, spec.serverBin);
+  const portJarPath = path.join(engineRoot, spec.portJarBin || (process.platform === 'win32' ? 'horizon-port-jar.exe' : 'horizon-port-jar'));
   const lockPath = path.join(engineRoot, 'research-lock.json');
   const buildMetaPath = path.join(engineRoot, 'blockway-rust-build.json');
   const engineInstalled = fs.existsSync(clientPath) && fs.existsSync(preparePath) && fs.existsSync(lockPath);
+  const hasPortJarTool = fs.existsSync(portJarPath);
+  const hmodsDir = path.join(rootDir, 'horizon-mods');
+  const modsTxtPath = path.join(rootDir, 'horizon-mods.txt');
 
   let targetMcVersion = '26.3';
   let javaMajor = 25;
@@ -13212,6 +13252,10 @@ function getHorizonEngineStatus(gameDir = '') {
     clientPath,
     preparePath,
     serverPath,
+    portJarPath,
+    hasPortJarTool,
+    hmodsDir,
+    modsTxtPath,
     lockData,
     graphicsApi
   };
@@ -13315,7 +13359,8 @@ async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } =
   }
 
   const remoteCommit = String(remoteManifest.commit || '').trim();
-  const alreadyLatest = st.engineInstalled && st.isBlockWayRust && remoteCommit && st.buildCommit === remoteCommit;
+  const needsPortJar = Boolean(remoteManifest.hasPortJar) && !st.hasPortJarTool;
+  const alreadyLatest = st.engineInstalled && st.isBlockWayRust && remoteCommit && st.buildCommit === remoteCommit && !needsPortJar;
   if (alreadyLatest) {
     return {
       ok: true,
@@ -13330,7 +13375,8 @@ async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } =
   fs.mkdirSync(st.baseHorizonDir, { recursive: true });
   const archivePath = path.join(st.baseHorizonDir, `blockway-${spec.assetName}`);
   const downloadUrl = String(
-    remoteManifest.download_url
+    remoteManifest.downloadUrl
+    || remoteManifest.download_url
     || `https://github.com/${BLOCKWAY_RUST_REPO}/releases/download/latest/${spec.assetName}`
   );
 
@@ -13378,6 +13424,370 @@ async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } =
     status: finalSt,
     message: `🦀 Đã nâng cấp thành công Nhân BlockWay Rust mới nhất từ GitHub (#${(finalSt.buildCommit || remoteCommit).slice(0, 7)})!`
   };
+}
+
+function runHorizonPortJarCli(portJarPath, cliArgs, timeoutMs = 120000) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(portJarPath, [...cliArgs, '--json'], {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    let stdout = '';
+    let stderr = '';
+    const timer = setTimeout(() => {
+      try { proc.kill(); } catch (_) {}
+      reject(new Error('Quá thời gian chạy trình biên dịch Rust horizon-port-jar.'));
+    }, timeoutMs);
+    proc.stdout?.setEncoding('utf8');
+    proc.stderr?.setEncoding('utf8');
+    proc.stdout?.on('data', (chunk) => { stdout += chunk; });
+    proc.stderr?.on('data', (chunk) => { stderr += chunk; });
+    proc.on('error', (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+    proc.on('close', (code) => {
+      clearTimeout(timer);
+      const trimmed = String(stdout || '').trim();
+      const lines = trimmed ? trimmed.split(/\r?\n/) : [];
+      const jsonLine = [...lines].reverse().find((l) => l.trim().startsWith('{')) || trimmed;
+      try {
+        const parsed = JSON.parse(jsonLine);
+        if (parsed && typeof parsed === 'object') {
+          return resolve(parsed);
+        }
+      } catch (_) {}
+      if (code !== 0) {
+        return reject(new Error(String(stderr || stdout || `horizon-port-jar exited with code ${code}`).trim()));
+      }
+      resolve({ ok: true });
+    });
+  });
+}
+
+async function ensureHorizonPortJarBinary({ rootDir, callbacks = {} } = {}) {
+  const effectiveRoot = rootDir && String(rootDir).trim() ? String(rootDir).trim() : getDefaultGameDir();
+  let st = getHorizonEngineStatus(effectiveRoot);
+  if (st.hasPortJarTool && fs.existsSync(st.portJarPath)) {
+    return st;
+  }
+  callbacks.onStatus?.('🦀 Đang tải công cụ biên dịch Mod Rust chính chủ (horizon-port-jar.exe) từ GitHub...');
+  const upRes = await upgradeHorizonEngine({ rootDir: effectiveRoot, force: true, callbacks });
+  st = upRes?.status || getHorizonEngineStatus(effectiveRoot);
+  if (!st.hasPortJarTool || !fs.existsSync(st.portJarPath)) {
+    throw new Error(
+      upRes?.message
+      || 'Chưa tìm thấy trình biên dịch horizon-port-jar.exe. Kho GitHub BlockWay Rust có thể đang hoàn tất biên dịch — vui lòng thử lại sau ít phút!'
+    );
+  }
+  return st;
+}
+
+function readPortedJarsCache(hmodsDir) {
+  try {
+    const p = path.join(hmodsDir, '.ported-jars-cache.json');
+    if (fs.existsSync(p)) {
+      const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch (_) {}
+  return {};
+}
+
+function writePortedJarsCache(hmodsDir, cacheObj) {
+  try {
+    fs.mkdirSync(hmodsDir, { recursive: true });
+    fs.writeFileSync(path.join(hmodsDir, '.ported-jars-cache.json'), JSON.stringify(cacheObj, null, 2), 'utf8');
+  } catch (_) {}
+}
+
+async function portJavaJarsToHorizonRust({
+  gameDir = '',
+  rootDir = '',
+  jarPaths = [],
+  scanModsDir = false,
+  autoEnable = true,
+  onlyUncached = false,
+  callbacks = {}
+} = {}) {
+  const effectiveGameDir = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
+  const effectiveEngineRoot = rootDir && String(rootDir).trim() ? String(rootDir).trim() : getDefaultGameDir();
+  const hmodsDir = path.join(effectiveGameDir, 'horizon-mods');
+  const modsTxtPath = path.join(effectiveGameDir, 'horizon-mods.txt');
+  const javaModsDir = path.join(effectiveGameDir, 'mods');
+
+  let candidateJars = [];
+  if (Array.isArray(jarPaths) && jarPaths.length > 0) {
+    candidateJars = jarPaths
+      .map((p) => String(p || '').trim())
+      .filter((p) => p && /\.jar$/i.test(p) && fs.existsSync(p));
+  } else if (scanModsDir || jarPaths.length === 0) {
+    if (fs.existsSync(javaModsDir)) {
+      candidateJars = fs.readdirSync(javaModsDir)
+        .filter((f) => /\.jar$/i.test(f))
+        .sort()
+        .map((f) => path.join(javaModsDir, f));
+    }
+  }
+
+  if (candidateJars.length === 0) {
+    return {
+      ok: true,
+      engine: 'blockway-rust',
+      total: 0,
+      ported: 0,
+      works: 0,
+      partly: 0,
+      skipped_code_only: 0,
+      results: [],
+      hmodsDir,
+      message: 'Chưa có tệp Mod .jar nào trong thư mục mods/ để chuyển sang .hmod.'
+    };
+  }
+
+  const cache = readPortedJarsCache(hmodsDir);
+  if (onlyUncached) {
+    candidateJars = candidateJars.filter((jp) => {
+      try {
+        const st = fs.statSync(jp);
+        const key = path.basename(jp);
+        const prev = cache[key];
+        if (!prev || prev.size !== st.size || Math.floor(prev.mtimeMs) !== Math.floor(st.mtimeMs)) {
+          return true;
+        }
+        if (prev.modId && prev.verdict !== 'no') {
+          return !fs.existsSync(path.join(hmodsDir, `${prev.modId}.hmod`));
+        }
+        return false;
+      } catch (_) {
+        return false;
+      }
+    });
+    if (candidateJars.length === 0) {
+      return {
+        ok: true,
+        engine: 'blockway-rust',
+        total: 0,
+        ported: 0,
+        works: 0,
+        partly: 0,
+        skipped_code_only: 0,
+        cachedAll: true,
+        results: [],
+        hmodsDir
+      };
+    }
+  }
+
+  const st = await ensureHorizonPortJarBinary({ rootDir: effectiveEngineRoot, callbacks });
+  fs.mkdirSync(hmodsDir, { recursive: true });
+
+  const cliArgs = [
+    'convert',
+    '--out-dir', hmodsDir,
+    '--mods-txt', modsTxtPath
+  ];
+  if (autoEnable) cliArgs.push('--enable');
+  if (st.isPrepared && fs.existsSync(path.join(st.resourcesDir, 'facts.json'))) {
+    cliArgs.push('--resources', st.resourcesDir);
+  }
+  for (const jp of candidateJars) {
+    cliArgs.push('--jar', jp);
+  }
+
+  callbacks.onStatus?.(`🦀 Đang biên dịch ${candidateJars.length} tệp Mod .jar sang .hmod bằng Rust (horizon-port-jar.exe)...`);
+  const parsed = await runHorizonPortJarCli(st.portJarPath, cliArgs);
+  if (parsed?.ok === false) {
+    throw new Error(parsed.error || 'Lỗi khi chạy horizon-port-jar.exe');
+  }
+
+  const results = Array.isArray(parsed?.results) ? parsed.results : [];
+  for (const r of results) {
+    try {
+      if (r?.jar_path && fs.existsSync(r.jar_path)) {
+        const fStat = fs.statSync(r.jar_path);
+        cache[path.basename(r.jar_path)] = {
+          size: fStat.size,
+          mtimeMs: Math.floor(fStat.mtimeMs),
+          verdict: r.verdict || 'no',
+          modId: r.mod_id || ''
+        };
+      }
+    } catch (_) {}
+  }
+  writePortedJarsCache(hmodsDir, cache);
+
+  return {
+    ok: true,
+    engine: 'blockway-rust',
+    portJarPath: st.portJarPath,
+    hmodsDir,
+    modsTxtPath,
+    total: Number(parsed?.total ?? results.length),
+    ported: Number(parsed?.ported ?? 0),
+    works: Number(parsed?.works ?? 0),
+    partly: Number(parsed?.partly ?? 0),
+    skipped_code_only: Number(parsed?.skipped_code_only ?? 0),
+    results
+  };
+}
+
+async function listHorizonRustMods({ gameDir = '', rootDir = '' } = {}) {
+  const effectiveGameDir = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
+  const effectiveEngineRoot = rootDir && String(rootDir).trim() ? String(rootDir).trim() : getDefaultGameDir();
+  const hmodsDir = path.join(effectiveGameDir, 'horizon-mods');
+  const modsTxtPath = path.join(effectiveGameDir, 'horizon-mods.txt');
+  const st = getHorizonEngineStatus(effectiveEngineRoot);
+  const javaModsDir = path.join(effectiveGameDir, 'mods');
+  let javaJarCount = 0;
+  try {
+    if (fs.existsSync(javaModsDir)) {
+      javaJarCount = fs.readdirSync(javaModsDir).filter((f) => /\.jar$/i.test(f)).length;
+    }
+  } catch (_) {}
+
+  if (!fs.existsSync(hmodsDir)) {
+    return {
+      ok: true,
+      hasPortJarTool: st.hasPortJarTool,
+      hmodsDir,
+      modsTxtPath,
+      javaJarCount,
+      mods: []
+    };
+  }
+
+  const entries = fs.readdirSync(hmodsDir);
+  const hasAnyHmod = entries.some((f) => /\.hmod$/i.test(f) || fs.existsSync(path.join(hmodsDir, f, 'horizon-mod.toml')));
+  if (!hasAnyHmod) {
+    return {
+      ok: true,
+      hasPortJarTool: st.hasPortJarTool,
+      hmodsDir,
+      modsTxtPath,
+      javaJarCount,
+      mods: []
+    };
+  }
+
+  if (st.hasPortJarTool && fs.existsSync(st.portJarPath)) {
+    const parsed = await runHorizonPortJarCli(st.portJarPath, [
+      'list',
+      '--out-dir', hmodsDir,
+      '--mods-txt', modsTxtPath
+    ]);
+    return {
+      ok: true,
+      hasPortJarTool: true,
+      hmodsDir,
+      modsTxtPath,
+      javaJarCount,
+      mods: Array.isArray(parsed?.mods) ? parsed.mods : []
+    };
+  }
+
+  // Minimal directory listing before horizon-port-jar.exe is downloaded
+  const enabledIds = new Set();
+  try {
+    if (fs.existsSync(modsTxtPath)) {
+      for (const line of fs.readFileSync(modsTxtPath, 'utf8').split(/\r?\n/)) {
+        const m = line.trim().match(/^mod\.([a-z0-9_]+):true$/);
+        if (m) enabledIds.add(m[1]);
+      }
+    }
+  } catch (_) {}
+  const fallbackMods = entries
+    .filter((f) => /\.hmod$/i.test(f))
+    .map((f) => {
+      const full = path.join(hmodsDir, f);
+      const id = f.replace(/\.hmod$/i, '');
+      return {
+        id,
+        name: id,
+        version: '',
+        description: '',
+        api: '0.2',
+        file_name: f,
+        path: full,
+        size_bytes: fs.existsSync(full) ? fs.statSync(full).size : 0,
+        enabled: enabledIds.has(id),
+        blocks: 0,
+        items: 0,
+        creative_tabs: 0,
+        files: 0,
+        namespaces: [id]
+      };
+    });
+  return {
+    ok: true,
+    hasPortJarTool: false,
+    hmodsDir,
+    modsTxtPath,
+    javaJarCount,
+    mods: fallbackMods
+  };
+}
+
+async function toggleHorizonRustMod({ gameDir = '', rootDir = '', modId = '', enabled = true } = {}) {
+  const cleanId = String(modId || '').trim();
+  if (!cleanId) throw new Error('Thiếu mã định danh Mod (.hmod).');
+  const effectiveGameDir = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
+  const effectiveEngineRoot = rootDir && String(rootDir).trim() ? String(rootDir).trim() : getDefaultGameDir();
+  const hmodsDir = path.join(effectiveGameDir, 'horizon-mods');
+  const modsTxtPath = path.join(effectiveGameDir, 'horizon-mods.txt');
+  const st = getHorizonEngineStatus(effectiveEngineRoot);
+
+  if (st.hasPortJarTool && fs.existsSync(st.portJarPath)) {
+    const res = await runHorizonPortJarCli(st.portJarPath, [
+      'toggle',
+      '--mods-txt', modsTxtPath,
+      '--out-dir', hmodsDir,
+      '--id', cleanId,
+      enabled ? '--enable' : '--disable'
+    ]);
+    return {
+      ok: Boolean(res?.ok !== false),
+      id: cleanId,
+      enabled: Boolean(res?.enabled),
+      clash: res?.clash || null
+    };
+  }
+
+  const raw = fs.existsSync(modsTxtPath) ? fs.readFileSync(modsTxtPath, 'utf8') : '';
+  const kept = raw
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith(`mod.${cleanId}:`));
+  if (enabled) kept.unshift(`mod.${cleanId}:true`);
+  fs.mkdirSync(path.dirname(modsTxtPath), { recursive: true });
+  fs.writeFileSync(modsTxtPath, kept.length ? `${kept.join('\n')}\n` : '', 'utf8');
+  return { ok: true, id: cleanId, enabled: Boolean(enabled), clash: null };
+}
+
+async function deleteHorizonRustMod({ gameDir = '', rootDir = '', modId = '', fileName = '' } = {}) {
+  const effectiveGameDir = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
+  const hmodsDir = path.join(effectiveGameDir, 'horizon-mods');
+  const cleanId = String(modId || '').trim() || String(fileName || '').replace(/\.hmod$/i, '').trim();
+  const targetName = fileName && String(fileName).trim() ? path.basename(String(fileName).trim()) : `${cleanId}.hmod`;
+  const targetPath = path.join(hmodsDir, targetName);
+  if (fs.existsSync(targetPath)) {
+    fs.rmSync(targetPath, { recursive: true, force: true });
+  }
+  if (cleanId) {
+    try {
+      await toggleHorizonRustMod({ gameDir: effectiveGameDir, rootDir, modId: cleanId, enabled: false });
+    } catch (_) {}
+    const cache = readPortedJarsCache(hmodsDir);
+    let dirty = false;
+    for (const [k, v] of Object.entries(cache)) {
+      if (v && v.modId === cleanId) {
+        delete cache[k];
+        dirty = true;
+      }
+    }
+    if (dirty) writePortedJarsCache(hmodsDir, cache);
+  }
+  return { ok: true, id: cleanId, deletedPath: targetPath };
 }
 
 async function ensureHorizonEnginePrepared({ rootDir, callbacks = {}, autoUpgrade = true } = {}) {
@@ -13710,6 +14120,23 @@ async function launchHorizonRustClient({
   } = config;
 
   const hz = await ensureHorizonEnginePrepared({ rootDir, callbacks });
+
+  // Auto-compile any newly added Java .jar mods in <gameDirectory>/mods/ into real Rust .hmod packages before launch!
+  if (hz.hasPortJarTool) {
+    try {
+      const autoPort = await portJavaJarsToHorizonRust({
+        gameDir: gameDirectory,
+        rootDir,
+        scanModsDir: true,
+        onlyUncached: true,
+        autoEnable: true,
+        callbacks
+      });
+      if (autoPort?.ported > 0) {
+        callbacks.onStatus?.(`🦀 Đã tự động dịch ${autoPort.ported} Mod .jar mới sang gói .hmod chạy thật bằng Rust!`);
+      }
+    } catch (_) {}
+  }
 
   const rawName = (authorization?.name || username || 'Player').replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 16);
   const safeName = (rawName && rawName.length >= 1 && rawName.toLowerCase() !== 'player')
@@ -14057,6 +14484,10 @@ module.exports = {
   getHorizonEngineStatus,
   probeHorizonLaunchApi,
   upgradeHorizonEngine,
+  portJavaJarsToHorizonRust,
+  listHorizonRustMods,
+  toggleHorizonRustMod,
+  deleteHorizonRustMod,
   ensureHorizonEnginePrepared,
   launchHorizonRustClient,
   applyGentleSmoothOptions,

@@ -184,10 +184,16 @@ contextBridge.exposeInMainWorld('aetherAPI', {
   getWorldgenBoostStatus: (params) => ipcRenderer.invoke('worldgenBoost:status', params),
   installWorldgenBoostPack: (params) => ipcRenderer.invoke('worldgenBoost:install', params),
 
-  // v41.5.0 PRO — 🦀 BlockWay Rust Multi-Version Engine & GitHub Self-Upgrading Core
+  // v41.6.0 PRO — 🦀 BlockWay Rust Multi-Version Engine, GitHub Self-Upgrading Core & Native Rust .jar -> .hmod Compiler
   getHorizonStatus: (gameDir) => ipcRenderer.invoke('horizon:status', gameDir),
   prepareHorizonEngine: (gameDir) => ipcRenderer.invoke('horizon:prepare', gameDir),
   upgradeHorizonEngine: (gameDir, force = true) => ipcRenderer.invoke('horizon:upgrade', { gameDir, force }),
+  portJavaJarsToHorizon: (params) => ipcRenderer.invoke('horizon:port-jars', params),
+  pickAndPortJarsToHorizon: (params) => ipcRenderer.invoke('horizon:pick-jars', params),
+  listHorizonHmods: (params) => ipcRenderer.invoke('horizon:list-hmods', params),
+  toggleHorizonHmod: (params) => ipcRenderer.invoke('horizon:toggle-hmod', params),
+  deleteHorizonHmod: (params) => ipcRenderer.invoke('horizon:delete-hmod', params),
+  openHorizonHmodsFolder: (gameDir) => ipcRenderer.invoke('horizon:open-hmods-dir', gameDir),
 
   checkForUpdate: () => ipcRenderer.invoke('updater:check'),
   installUpdateNow: (downloadUrl, latestVersion) => ipcRenderer.invoke('updater:install-now', downloadUrl, latestVersion),

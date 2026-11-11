@@ -2500,6 +2500,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   };
   document.getElementById('loaderVersionSelect').onchange = async (e) => {
     const val = e.target.value;
+    if (val === 'horizon-port-jars') {
+      const fallbackVal = state.selectedLoaderVersion && !['horizon-upgrade-core', 'horizon-port-jars'].includes(state.selectedLoaderVersion)
+        ? state.selectedLoaderVersion
+        : 'horizon-auto';
+      if ([...selEl.options].some((o) => o.value === fallbackVal)) selEl.value = fallbackVal;
+      if (typeof switchMainTab === 'function') switchMainTab('mods');
+      if (typeof window.openHorizonRustModStudio === 'function') {
+        await window.openHorizonRustModStudio(false);
+      }
+      return;
+    }
     if (val === 'horizon-upgrade-core') {
       const selEl = e.target;
       const fallbackVal = state.selectedLoaderVersion && state.selectedLoaderVersion !== 'horizon-upgrade-core'

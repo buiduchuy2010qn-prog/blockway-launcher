@@ -1,27 +1,27 @@
 {
-  "version": "41.5.1",
-  "releasedAt": "2026-11-11T07:06:45.760Z",
-  "notes": "v41.5.1 PRO: Gop tron bo Nhan Rust da phien ban tuy bien tren GitHub (1.16.5 -> 26.3, buiduchuy2010qn-prog/blockway-rust-engine) va tu dong nang cap OTA truc tiep vao Core Horizon duy nhat (khung 8 Core chuan 4x2, 0% patch .exe).",
+  "version": "41.6.0",
+  "releasedAt": "2026-11-11T10:45:14.465Z",
+  "notes": "v41.6.0 PRO: Bo sung trinh bien dich nguoc Mod Java (.jar) sang goi Horizon Rust (.hmod) chay that 100% bang Rust (horizon-port-jar.exe, 1.16.5 -> 26.3), tu dong dich khi tai Mod tu Modrinth & truoc khi khoi chay trong Core Horizon duy nhat (8 Core chuan 4x2).",
   "files": {
     "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "f628d67662b78b5e8d99e0482c6ca0d79c85509ef6862f39fdc89f0fcb22a060",
-      "size": 602126
+      "sha256": "fafb83264425e296d3d32a6f72389f02848725ad749bb647e8464911b13eed09",
+      "size": 617995
     },
     "src/main.js": {
-      "sha256": "1284cf6ee719c0dfdce87ecefdde0c1392b281ea49c65d2d2b5e540b3fc7b3b5",
-      "size": 107542
+      "sha256": "017cdb29ec525fa020a9d1af885377fa29a3f9cbd517fb02de3258dbdf84c097",
+      "size": 110843
     },
     "src/microsoft-auth.js": {
       "sha256": "5e5f01aaf586a6bad099dcb4961256a935165c31aaa9608fae0e8c19c3165673",
       "size": 73767
     },
     "src/preload.js": {
-      "sha256": "27bd7d4c3b797918a43adb074cb81308112b49580e82861673b659f0ca99468a",
-      "size": 15452
+      "sha256": "5a78ca8408b2690bbfd6371f70a690ac3bc50dca6bfec45e1131675f6ab5611a",
+      "size": 16013
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -40,8 +40,8 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "78d71d49e8cab033692512b38d815d891fc2ef16def5be88907fb0c59fa84f7b",
-      "size": 232932
+      "sha256": "825701cc58082619099869928faa77027da3a689d7a4b8f1a8619e0fcea49375",
+      "size": 236021
     },
     "src/ui/installer-eula.txt": {
       "sha256": "b58a7a3604dcb1f2ade5c99b228d2868e1da70eaa0a92ee7409b1edd2822b82f",
@@ -56,8 +56,8 @@
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "5e510ad18c3b28a019b1dd0df6aa17175a436c983b965492117e0f0e2247edcc",
-      "size": 176124
+      "sha256": "32cc64794acf79021316364e2e1a0f2044c22fb96c6ac1c1f1262fb060693af2",
+      "size": 176693
     },
     "src/ui/seeds/badlands-gold-oasis-icon.png": {
       "sha256": "86e4da30e57f18e9fae9624206b8cdf7a3c7f652f5a46e5d7fa9fc0fd80363df",
@@ -128,12 +128,12 @@
       "size": 479194
     },
     "src/ui/store-features.js": {
-      "sha256": "b8d7e3e11c23f31aa5c9b6096690d304b9cd1b31791bc3dbd04a26a7c74b998c",
-      "size": 472565
+      "sha256": "d600d8fc66553d3bb3de118acbfd1ad50b59e4584a86bfa455b6396bbe66eefa",
+      "size": 489142
     },
     "src/ui/styles.css": {
-      "sha256": "d8b05493837dfd1ed504d85153b483388faab93400bae101821c1f836d0fb2a4",
-      "size": 119072
+      "sha256": "74b04bd4b399faeb3185f90020a1e1c4b7cb2730ebf27f0b09771a6dddb41209",
+      "size": 123118
     },
     "src/world-creator.js": {
       "sha256": "cc92428d7107c040d1dd61f8953c93fd57bab290a335307ea06cc68939612aac",
