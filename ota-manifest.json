@@ -1,6 +1,6 @@
 {
   "version": "41.5.0",
-  "releasedAt": "2026-11-11T06:47:03.302Z",
+  "releasedAt": "2026-11-11T07:00:02.312Z",
   "notes": "v41.5.0 PRO: Bo sung Core BlockWay Rust da phien ban that (1.16.5 -> 26.3) bien dich 100% tu ma nguon Rust tren GitHub (buiduchuy2010qn-prog/blockway-rust-engine), xoa bo 100% patch nhi phan .exe va tich hop tu dong nang cap OTA Nhan Rust.",
   "files": {
     "src/aether-cloud-auth.js": {
@@ -8,8 +8,8 @@
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "60efccc718043bc442a52dacadca66a34a8439d4afd2d889faa29255ef645b5a",
-      "size": 604070
+      "sha256": "868b625e38c77ed284a1121c95aeea321dc8edd538e6fd4098a97c3e87fc2ae6",
+      "size": 604081
     },
     "src/main.js": {
       "sha256": "1284cf6ee719c0dfdce87ecefdde0c1392b281ea49c65d2d2b5e540b3fc7b3b5",

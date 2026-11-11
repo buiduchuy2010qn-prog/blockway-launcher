@@ -13134,7 +13134,7 @@ function probeHorizonLaunchApi(clientPath) {
     });
     const parsed = JSON.parse(String(raw || '{}'));
     const opts = Array.isArray(parsed?.options) ? parsed.options : [];
-    const supportsMcVersion = opts.some((o) => String(o?.flag || '').startsWith('--mc-version'));
+    const supportsMcVersion = opts.some((o) => String(o?.name || o?.flag || '').startsWith('--mc-version'));
     const info = {
       ok: true,
       isBlockWayRust: parsed?.engine === 'blockway-rust' || supportsMcVersion,
