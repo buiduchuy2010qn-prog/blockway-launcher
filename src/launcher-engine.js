@@ -8,7 +8,7 @@ const os = require('os');
 const crypto = require('crypto');
 const zlib = require('zlib');
 const net = require('net');
-const { execSync, exec, spawn } = require('child_process');
+const { execSync, execFileSync, exec, spawn } = require('child_process');
 const msAuth = require('./microsoft-auth');
 const worldCreator = require('./world-creator');
 
@@ -622,9 +622,14 @@ async function fetchVersionManifest() {
   };
 }
 
+function isRustCoreType(loaderType) {
+  const t = String(loaderType || '').toLowerCase().trim();
+  return t === 'horizon' || t === 'blockway-rust';
+}
+
 function normalizeModrinthLoader(loaderType, mcVersion = '') {
   const raw = String(loaderType || '').toLowerCase().trim();
-  if (!raw || raw === 'vanilla' || raw === 'legacyfabric' || raw === 'horizon') return 'fabric';
+  if (!raw || raw === 'vanilla' || raw === 'legacyfabric' || isRustCoreType(raw)) return 'fabric';
   if (raw === 'optifine') {
     return (mcVersion && compareMcVersions(mcVersion, '1.14') < 0) ? 'forge' : 'fabric';
   }
@@ -680,21 +685,80 @@ function isMcVersionPre114(mcVersion) {
   return compareMcVersions(v, '1.14') < 0;
 }
 
-function isMcVersionRustHorizonSupported(mcVersion) {
+function isMcVersionRustHorizonSupported(mcVersion, loaderType = '') {
   const v = String(mcVersion || '').trim();
   if (!v) return false;
   if (/^([2-9]\d)\./.test(v)) return true;
-  return compareMcVersions(v, '1.20.2') >= 0;
+  const minVer = String(loaderType || '').toLowerCase().trim() === 'blockway-rust' ? '1.16.5' : '1.20.2';
+  return compareMcVersions(v, minVer) >= 0;
 }
 
 async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
   if (loaderType === 'vanilla') return [];
 
+  if (loaderType === 'blockway-rust') {
+    const st = getHorizonEngineStatus(gameDir || getDefaultGameDir());
+    const commitBadge = st.buildCommit ? ` • GitHub #${st.buildCommit.slice(0, 7)}` : '';
+    const readySuffix = st.isPrepared
+      ? ` ✓ (Đã sẵn sàng${commitBadge})`
+      : ' (Tự tải từ GitHub BlockWay)';
+    const verLabel = String(mcVersion || '1.21.11');
+    if (isMcVersionRustHorizonSupported(verLabel, 'blockway-rust')) {
+      return [
+        {
+          version: 'horizon-auto',
+          stable: true,
+          kind: 'blockway-rust',
+          displayLabel: `🦀 BlockWay Rust (${verLabel}) • Tự động (Vulkan / DirectX 12)${readySuffix}`
+        },
+        {
+          version: 'horizon-vulkan',
+          stable: true,
+          kind: 'blockway-rust',
+          displayLabel: `🌋 BlockWay Rust (${verLabel}) • Ép xung Vulkan API (FPS cao nhất)`
+        },
+        {
+          version: 'horizon-dx12',
+          stable: true,
+          kind: 'blockway-rust',
+          displayLabel: `💠 BlockWay Rust (${verLabel}) • DirectX 12 (Tương thích iGPU Intel/AMD)`
+        },
+        {
+          version: 'horizon-upgrade-core',
+          stable: true,
+          kind: 'blockway-rust-upgrade',
+          displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Rust mới nhất từ GitHub${commitBadge}`
+        }
+      ];
+    }
+    return [
+      {
+        version: 'horizon-switch-1.21.11',
+        stable: true,
+        kind: 'blockway-rust',
+        displayLabel: `🦀 Chuyển sang Minecraft 1.21.11 (Thuần mã nguồn BlockWay Rust)${readySuffix}`
+      },
+      {
+        version: 'horizon-switch-26.3',
+        stable: true,
+        kind: 'blockway-rust',
+        displayLabel: `🦀 Chuyển sang Minecraft 26.3 (Thuần mã nguồn BlockWay Rust)${readySuffix}`
+      },
+      {
+        version: 'horizon-upgrade-core',
+        stable: true,
+        kind: 'blockway-rust-upgrade',
+        displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Rust mới nhất từ GitHub${commitBadge}`
+      }
+    ];
+  }
+
   if (loaderType === 'horizon') {
     const st = getHorizonEngineStatus(gameDir || getDefaultGameDir());
-    const readySuffix = st.isPrepared ? ' ✓ (Đã sẵn sàng)' : ' (Tự động cài 1-Click)';
+    const commitBadge = st.buildCommit ? ` • GitHub #${st.buildCommit.slice(0, 7)}` : '';
+    const readySuffix = st.isPrepared ? ` ✓ (Đã sẵn sàng${commitBadge})` : ' (Tự động cài 1-Click)';
     const verLabel = String(mcVersion || '1.21.4');
-    if (isMcVersionRustHorizonSupported(verLabel)) {
+    if (isMcVersionRustHorizonSupported(verLabel, 'horizon')) {
       const rustList = [
         {
           version: 'horizon-auto',
@@ -723,6 +787,12 @@ async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
           displayLabel: `☕ Chế độ Hybrid Java (${verLabel}) • Dùng khi muốn nạp Mod .jar Fabric`
         });
       }
+      rustList.push({
+        version: 'horizon-upgrade-core',
+        stable: true,
+        kind: 'blockway-rust-upgrade',
+        displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Rust mới nhất từ GitHub${commitBadge}`
+      });
       return rustList;
     }
     const isPre114 = isMcVersionPre114(verLabel);
@@ -747,6 +817,12 @@ async function fetchLoaderVersions(mcVersion, loaderType, gameDir = '') {
         stable: true,
         kind: 'horizon',
         displayLabel: `🦀 Chuyển sang Rust Native 26.3 (Thuần mã máy Rust • Vulkan / DX12)${readySuffix}`
+      },
+      {
+        version: 'horizon-upgrade-core',
+        stable: true,
+        kind: 'blockway-rust-upgrade',
+        displayLabel: `🔄 Kiểm tra & Nâng cấp Nhân Rust mới nhất từ GitHub${commitBadge}`
       }
     ];
   }
@@ -931,7 +1007,7 @@ function installLegacyForgeFromInstaller(gameDir, installerJar) {
 
 async function prepareCustomLoaderJson(gameDir, mcVersion, loaderType, loaderVersion, onStatus) {
   if (loaderType === 'vanilla') return null;
-  if (loaderType === 'horizon') return { type: 'horizonRust', loaderVersion: loaderVersion || 'horizon-auto' };
+  if (isRustCoreType(loaderType)) return { type: 'horizonRust', loaderVersion: loaderVersion || 'horizon-auto' };
 
   if (loaderType === 'optifine') {
     if (loaderVersion && loaderVersion !== 'Auto-Shader-Zoom') {
@@ -4535,7 +4611,7 @@ function syncActive3DSkinIntoGame(rootDir, username, skinDataUrl, mcVersion = '1
 
     const optsPath = path.join(rootDir, 'options.txt');
     const packId = 'file/AetherSkinSync.zip';
-    const useCslPerPlayer = loaderType === 'horizon' || (loaderType !== 'vanilla' && hasEnabledCustomSkinLoaderMod(rootDir));
+    const useCslPerPlayer = isRustCoreType(loaderType) || (loaderType !== 'vanilla' && hasEnabledCustomSkinLoaderMod(rootDir));
 
     // v40.7 PRO: When CustomSkinLoader is active on a modded loader, detach AetherSkinSync.zip from options.txt
     // so offline friends NEVER all turn into clones of your Steve/Alex skin — CustomSkinLoader renders each player's own skin!
@@ -4748,23 +4824,29 @@ async function launchMinecraft(config, callbacks = {}) {
     }
   } catch (_) {}
 
-  const isHorizonSelected = String(loaderType || '').toLowerCase() === 'horizon';
+  const normalizedCore = String(loaderType || '').toLowerCase().trim();
+  const isBlockWayRustSelected = normalizedCore === 'blockway-rust';
+  const isHorizonSelected = isRustCoreType(normalizedCore);
+  const resolvedRustMcVersion = loaderVersion === 'horizon-switch-26.3'
+    ? '26.3'
+    : (loaderVersion === 'horizon-switch-1.21.11' ? '1.21.11' : String(mcVersion || '26.3'));
   const isRustHorizonLaunch = isHorizonSelected && (
-    (isMcVersionRustHorizonSupported(mcVersion) && !['horizon-hybrid-java', 'horizon-hybrid-turbo', 'horizon-hybrid-esports'].includes(String(loaderVersion || '')))
+    (isMcVersionRustHorizonSupported(resolvedRustMcVersion, normalizedCore) && !['horizon-hybrid-java', 'horizon-hybrid-turbo', 'horizon-hybrid-esports'].includes(String(loaderVersion || '')))
     || loaderVersion === 'horizon-switch-26.3'
+    || loaderVersion === 'horizon-switch-1.21.11'
   );
   if (isRustHorizonLaunch) {
     if (!(serverIp && serverIp.trim()) && !(effectiveWorldFolder && String(effectiveWorldFolder).trim()) && autoCreateWorld && typeof autoCreateWorld === 'object') {
       const wantCreate = autoCreateWorld.force || !worldCreator.savesHasWorlds(gameDirectory);
       if (wantCreate && worldCreator.supportsQuickWorldCreation('26.3')) {
         try {
-          callbacks.onStatus?.('🌍 Đang tạo sẵn thế giới mới cho Engine Rust Horizon...');
+          callbacks.onStatus?.('🌍 Đang tạo sẵn thế giới mới cho Nhân Rust...');
           const created = await worldCreator.createQuickWorld({
             rootDir,
             gameDirectory,
             mcVersion: '26.3',
-            displayMcVersion: loaderVersion === 'horizon-switch-26.3' ? '26.3' : String(mcVersion || '26.3'),
-            loaderType: 'horizon',
+            displayMcVersion: resolvedRustMcVersion,
+            loaderType: isBlockWayRustSelected ? 'blockway-rust' : 'horizon',
             levelName: autoCreateWorld.levelName || config.packName || 'Thế giới mới',
             gameMode: autoCreateWorld.gameMode,
             difficulty: autoCreateWorld.difficulty,
@@ -4786,7 +4868,7 @@ async function launchMinecraft(config, callbacks = {}) {
       }
     }
     return await launchHorizonRustClient({
-      config: { ...config, mcVersion: '26.3', requestedMcVersion: String(mcVersion || '26.3') },
+      config: { ...config, mcVersion: '26.3', requestedMcVersion: resolvedRustMcVersion, loaderType: normalizedCore },
       rootDir,
       gameDirectory,
       skinRoot,
@@ -5573,7 +5655,7 @@ const CF_GAME_ID = 432;
 const CF_CLASS = { modpack: 4471, mod: 6, resourcepack: 12, world: 17, shader: 6552, datapack: 6945 };
 const CF_LOADER_TYPE = { 1: 'forge', 4: 'fabric', 5: 'quilt', 6: 'neoforge' };
 const CF_LOADER_ID = { forge: 1, fabric: 4, quilt: 5, neoforge: 6 };
-const SUPPORTED_LOADERS = ['vanilla', 'fabric', 'forge', 'neoforge', 'quilt', 'legacyfabric', 'horizon'];
+const SUPPORTED_LOADERS = ['vanilla', 'fabric', 'forge', 'neoforge', 'quilt', 'legacyfabric', 'horizon', 'blockway-rust'];
 const INSTANCE_META_FILE = 'blockway-instance.json';
 
 let cfApiKey = null;
@@ -11522,8 +11604,8 @@ async function createStandaloneQuickWorld({
     : rootDir;
   let targetMc = worldCreator.supportsQuickWorldCreation(mcVersion) ? mcVersion : '1.21.4';
   if (
-    String(loaderType || '').toLowerCase() === 'horizon' &&
-    isMcVersionRustHorizonSupported(targetMc) &&
+    isRustCoreType(loaderType) &&
+    isMcVersionRustHorizonSupported(targetMc, loaderType) &&
     !fs.existsSync(path.join(rootDir, 'versions', targetMc, `${targetMc}.jar`)) &&
     fs.existsSync(path.join(rootDir, 'versions', '26.3', '26.3.jar'))
   ) {
@@ -13032,6 +13114,92 @@ function isHorizonResourcesDirReady(resourcesDir) {
   }
 }
 
+const BLOCKWAY_RUST_REPO = 'buiduchuy2010qn-prog/blockway-rust-engine';
+const _horizonLaunchApiCache = new Map();
+let _lastAutoRustUpgradeCheckMs = 0;
+
+function probeHorizonLaunchApi(clientPath) {
+  const fallback = { ok: false, isBlockWayRust: false, supportsMcVersion: false, supportedMcVersions: [] };
+  try {
+    if (!clientPath || !fs.existsSync(clientPath)) return fallback;
+    const st = fs.statSync(clientPath);
+    const cacheKey = `${clientPath}::${st.size}::${Math.floor(st.mtimeMs)}`;
+    if (_horizonLaunchApiCache.has(cacheKey)) {
+      return _horizonLaunchApiCache.get(cacheKey);
+    }
+    const raw = execFileSync(clientPath, ['--launch-api'], {
+      encoding: 'utf8',
+      timeout: 4500,
+      windowsHide: true
+    });
+    const parsed = JSON.parse(String(raw || '{}'));
+    const opts = Array.isArray(parsed?.options) ? parsed.options : [];
+    const supportsMcVersion = opts.some((o) => String(o?.flag || '').startsWith('--mc-version'));
+    const info = {
+      ok: true,
+      isBlockWayRust: parsed?.engine === 'blockway-rust' || supportsMcVersion,
+      supportsMcVersion,
+      supportedMcVersions: Array.isArray(parsed?.supported_mc_versions) ? parsed.supported_mc_versions : []
+    };
+    _horizonLaunchApiCache.set(cacheKey, info);
+    return info;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+function fetchJsonShortTimeout(url, timeoutMs = 4500, redirectsLeft = 5) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (val) => {
+      if (!settled) {
+        settled = true;
+        resolve(val);
+      }
+    };
+    try {
+      const req = https.get(
+        url,
+        { agent: httpsKeepAliveAgent, headers: { 'User-Agent': 'BlockWay-Launcher/41.5' }, timeout: timeoutMs },
+        (res) => {
+          if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            res.resume();
+            if (redirectsLeft <= 0) return done(null);
+            const nextUrl = res.headers.location.startsWith('http')
+              ? res.headers.location
+              : new URL(res.headers.location, url).toString();
+            return fetchJsonShortTimeout(nextUrl, timeoutMs, redirectsLeft - 1).then(done);
+          }
+          if (res.statusCode !== 200) {
+            res.resume();
+            return done(null);
+          }
+          let body = '';
+          res.setEncoding('utf8');
+          res.on('data', (c) => {
+            if (body.length < 512 * 1024) body += c;
+          });
+          res.on('end', () => {
+            try {
+              done(JSON.parse(body));
+            } catch (_) {
+              done(null);
+            }
+          });
+          res.on('error', () => done(null));
+        }
+      );
+      req.on('timeout', () => {
+        try { req.destroy(); } catch (_) {}
+        done(null);
+      });
+      req.on('error', () => done(null));
+    } catch (_) {
+      done(null);
+    }
+  });
+}
+
 function getHorizonEngineStatus(gameDir = '') {
   const rootDir = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
   const spec = getHorizonPlatformSpec();
@@ -13045,6 +13213,7 @@ function getHorizonEngineStatus(gameDir = '') {
   const preparePath = path.join(engineRoot, spec.prepareBin);
   const serverPath = path.join(engineRoot, spec.serverBin);
   const lockPath = path.join(engineRoot, 'research-lock.json');
+  const buildMetaPath = path.join(engineRoot, 'blockway-rust-build.json');
   const engineInstalled = fs.existsSync(clientPath) && fs.existsSync(preparePath) && fs.existsSync(lockPath);
 
   let targetMcVersion = '26.3';
@@ -13055,6 +13224,13 @@ function getHorizonEngineStatus(gameDir = '') {
       lockData = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
       if (lockData?.minecraft?.version) targetMcVersion = String(lockData.minecraft.version);
       if (lockData?.minecraft?.java_major) javaMajor = Number(lockData.minecraft.java_major) || 25;
+    } catch (_) {}
+  }
+
+  let buildMeta = null;
+  if (fs.existsSync(buildMetaPath)) {
+    try {
+      buildMeta = JSON.parse(fs.readFileSync(buildMetaPath, 'utf8'));
     } catch (_) {}
   }
 
@@ -13075,6 +13251,11 @@ function getHorizonEngineStatus(gameDir = '') {
     supported: spec.supported,
     engineInstalled,
     isPrepared,
+    isBlockWayRust: Boolean(buildMeta && buildMeta.engine === 'blockway-rust'),
+    buildCommit: String(buildMeta?.commit || ''),
+    buildMeta,
+    buildMetaPath,
+    sourceRepo: `https://github.com/${BLOCKWAY_RUST_REPO}`,
     targetMcVersion,
     javaMajor,
     baseHorizonDir,
@@ -13166,7 +13347,92 @@ function isMojangLibraryAllowedOnHost(lib) {
   return allowed;
 }
 
-async function ensureHorizonEnginePrepared({ rootDir, callbacks = {} } = {}) {
+async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } = {}) {
+  const effectiveRoot = rootDir && String(rootDir).trim() ? String(rootDir).trim() : getDefaultGameDir();
+  const spec = getHorizonPlatformSpec();
+  if (!spec.supported || process.platform !== 'win32' || process.arch !== 'x64') {
+    return { ok: false, skipped: true, reason: 'platform_not_published_yet' };
+  }
+
+  const st = getHorizonEngineStatus(effectiveRoot);
+  const manifestUrl = `https://github.com/${BLOCKWAY_RUST_REPO}/releases/download/latest/blockway-rust-manifest.json`;
+  const remoteManifest = await fetchJsonShortTimeout(manifestUrl, force ? 12000 : 3800);
+  if (!remoteManifest || typeof remoteManifest !== 'object') {
+    return {
+      ok: false,
+      skipped: !force,
+      reason: 'manifest_unavailable',
+      message: 'Kho GitHub BlockWay Rust hiện đang biên dịch gói Release mới hoặc chưa có mạng. Vui lòng thử lại sau ít phút!'
+    };
+  }
+
+  const remoteCommit = String(remoteManifest.commit || '').trim();
+  const alreadyLatest = st.engineInstalled && st.isBlockWayRust && remoteCommit && st.buildCommit === remoteCommit;
+  if (alreadyLatest) {
+    return {
+      ok: true,
+      upgraded: false,
+      upToDate: true,
+      commit: remoteCommit,
+      status: st,
+      message: `✓ Nhân BlockWay Rust trên máy đã là bản mới nhất từ GitHub (#${remoteCommit.slice(0, 7)})!`
+    };
+  }
+
+  fs.mkdirSync(st.baseHorizonDir, { recursive: true });
+  const archivePath = path.join(st.baseHorizonDir, `blockway-${spec.assetName}`);
+  const downloadUrl = String(
+    remoteManifest.download_url
+    || `https://github.com/${BLOCKWAY_RUST_REPO}/releases/download/latest/${spec.assetName}`
+  );
+
+  callbacks.onStatus?.(`🦀 Đang nâng cấp Nhân BlockWay Rust chính chủ từ GitHub (#${remoteCommit.slice(0, 7) || 'latest'})...`);
+  await downloadFileWithProgress(downloadUrl, archivePath, (p) => {
+    callbacks.onProgress?.({ type: 'horizon-upgrade', task: p.task, total: p.total, percent: p.percent });
+    callbacks.onStatus?.(
+      `🦀 Đang tải Nhân BlockWay Rust từ GitHub: ${p.percent}% (${(p.task / 1048576).toFixed(1)} / ${(p.total / 1048576).toFixed(1)} MB)...`
+    );
+  });
+
+  if (!fs.existsSync(archivePath) || fs.statSync(archivePath).size < 5 * 1024 * 1024) {
+    try { fs.unlinkSync(archivePath); } catch (_) {}
+    throw new Error('Gói nâng cấp Nhân BlockWay Rust tải về không hợp lệ.');
+  }
+
+  callbacks.onStatus?.('🦀 Đang cập nhật mã máy BlockWay Rust (giữ nguyên tài nguyên game đã chuẩn bị)...');
+  const AdmZip = PackZip || require('adm-zip');
+  const zip = new AdmZip(archivePath);
+  zip.extractAllTo(st.baseHorizonDir, true);
+  try { fs.unlinkSync(archivePath); } catch (_) {}
+
+  _horizonLaunchApiCache.clear();
+  const updatedStatus = getHorizonEngineStatus(effectiveRoot);
+  if (updatedStatus.engineRoot && fs.existsSync(updatedStatus.engineRoot)) {
+    try {
+      const mergedMeta = {
+        ...(updatedStatus.buildMeta || {}),
+        engine: 'blockway-rust',
+        commit: remoteCommit || updatedStatus.buildCommit,
+        sha256: remoteManifest.sha256 || '',
+        built_at: remoteManifest.built_at || updatedStatus.buildMeta?.built_at || new Date().toISOString(),
+        source_repo: `https://github.com/${BLOCKWAY_RUST_REPO}`
+      };
+      fs.writeFileSync(path.join(updatedStatus.engineRoot, 'blockway-rust-build.json'), JSON.stringify(mergedMeta, null, 2), 'utf8');
+    } catch (_) {}
+  }
+
+  const finalSt = getHorizonEngineStatus(effectiveRoot);
+  return {
+    ok: true,
+    upgraded: true,
+    upToDate: true,
+    commit: finalSt.buildCommit || remoteCommit,
+    status: finalSt,
+    message: `🦀 Đã nâng cấp thành công Nhân BlockWay Rust mới nhất từ GitHub (#${(finalSt.buildCommit || remoteCommit).slice(0, 7)})!`
+  };
+}
+
+async function ensureHorizonEnginePrepared({ rootDir, callbacks = {}, autoUpgrade = true } = {}) {
   const effectiveRoot = rootDir && String(rootDir).trim() ? String(rootDir).trim() : getDefaultGameDir();
   const spec = getHorizonPlatformSpec();
   if (!spec.supported) {
@@ -13175,23 +13441,24 @@ async function ensureHorizonEnginePrepared({ rootDir, callbacks = {} } = {}) {
 
   let st = getHorizonEngineStatus(effectiveRoot);
 
-  // 1. Download & Extract Horizon Engine binary bundle if not installed yet
+  // 1. Download & Extract BlockWay Rust Engine binary bundle from our GitHub repo (with upstream fallback)
   if (!st.engineInstalled) {
     fs.mkdirSync(st.baseHorizonDir, { recursive: true });
     const archivePath = path.join(st.baseHorizonDir, spec.assetName);
     const candidateUrls = [
+      `https://github.com/${BLOCKWAY_RUST_REPO}/releases/download/latest/${spec.assetName}`,
       `https://github.com/horizon-rust/horizon/releases/download/nightly/${spec.assetName}`,
       `https://github.com/horizon-rust/horizon/releases/download/v0.2.97/${spec.assetName}`
     ];
 
-    callbacks.onStatus?.('🦀 Đang tải gói nhân Engine Rust Horizon (Vulkan / DirectX 12 • ~35MB)...');
+    callbacks.onStatus?.('🦀 Đang tải gói Nhân BlockWay Rust đa phiên bản từ GitHub (Vulkan / DirectX 12)...');
     let downloadedOk = false;
     let lastErr = null;
     for (const url of candidateUrls) {
       try {
         await downloadFileWithProgress(url, archivePath, (p) => {
           callbacks.onProgress?.({ type: 'horizon-engine', task: p.task, total: p.total, percent: p.percent });
-          callbacks.onStatus?.(`🦀 Đang tải Engine Rust Horizon: ${p.percent}% (${(p.task / 1048576).toFixed(1)} / ${(p.total / 1048576).toFixed(1)} MB)...`);
+          callbacks.onStatus?.(`🦀 Đang tải Nhân BlockWay Rust: ${p.percent}% (${(p.task / 1048576).toFixed(1)} / ${(p.total / 1048576).toFixed(1)} MB)...`);
         });
         if (fs.existsSync(archivePath) && fs.statSync(archivePath).size > 5 * 1024 * 1024) {
           downloadedOk = true;
@@ -13202,10 +13469,10 @@ async function ensureHorizonEnginePrepared({ rootDir, callbacks = {} } = {}) {
       }
     }
     if (!downloadedOk) {
-      throw new Error(`Không tải được gói Engine Rust Horizon từ GitHub: ${lastErr?.message || 'Lỗi kết nối mạng'}`);
+      throw new Error(`Không tải được gói Nhân BlockWay Rust từ GitHub: ${lastErr?.message || 'Lỗi kết nối mạng'}`);
     }
 
-    callbacks.onStatus?.('🦀 Đang giải nén Engine Rust Horizon (Vulkan / DirectX 12)...');
+    callbacks.onStatus?.('🦀 Đang giải nén Nhân BlockWay Rust (Vulkan / DirectX 12)...');
     if (spec.isTarGz) {
       execSync(`tar -xzf "${archivePath}" -C "${st.baseHorizonDir}"`, { stdio: 'ignore' });
     } else {
@@ -13214,6 +13481,7 @@ async function ensureHorizonEnginePrepared({ rootDir, callbacks = {} } = {}) {
       zip.extractAllTo(st.baseHorizonDir, true);
     }
     try { fs.unlinkSync(archivePath); } catch (_) {}
+    _horizonLaunchApiCache.clear();
 
     st = getHorizonEngineStatus(effectiveRoot);
     if (process.platform !== 'win32') {
@@ -13222,8 +13490,22 @@ async function ensureHorizonEnginePrepared({ rootDir, callbacks = {} } = {}) {
       }
     }
     if (!st.engineInstalled) {
-      throw new Error('Giải nén Engine Rust Horizon chưa hoàn tất (thiếu horizon-client hoặc research-lock.json).');
+      throw new Error('Giải nén Nhân BlockWay Rust chưa hoàn tất (thiếu horizon-client hoặc research-lock.json).');
     }
+  } else if (
+    autoUpgrade
+    && process.platform === 'win32'
+    && process.arch === 'x64'
+    && (!st.isBlockWayRust || Date.now() - _lastAutoRustUpgradeCheckMs > 10 * 60 * 1000)
+  ) {
+    // 1b. Self-upgrading OTA Core check against buiduchuy2010qn-prog/blockway-rust-engine Releases
+    _lastAutoRustUpgradeCheckMs = Date.now();
+    try {
+      const upRes = await upgradeHorizonEngine({ rootDir: effectiveRoot, force: false, callbacks });
+      if (upRes?.upgraded) {
+        st = upRes.status || getHorizonEngineStatus(effectiveRoot);
+      }
+    } catch (_) {}
   }
 
   // 2. If resources are already prepared and valid, return immediately (< 1ms)
@@ -13609,6 +13891,10 @@ async function launchHorizonRustClient({
 
   const displayMcVer = String(config.requestedMcVersion || hz.targetMcVersion || '26.3');
   const targetDataVerId = worldCreator.getMcDataVersionId(displayMcVer, 5023);
+  const apiInfo = probeHorizonLaunchApi(hz.clientPath);
+  if (apiInfo.supportsMcVersion) {
+    args.push('--mc-version', displayMcVer, '--pregen');
+  }
 
   if (serverIp && String(serverIp).trim()) {
     args.push('--quickPlayMultiplayer', String(serverIp).trim());
@@ -13631,7 +13917,7 @@ async function launchHorizonRustClient({
     }
   }
 
-  // 4. Environment variables (HORIZON_HOME, offline Skin/Cape env vars, strip software-render overrides)
+  // 4. Environment variables (HORIZON_HOME, BLOCKWAY_MC_VERSION, offline Skin/Cape env vars)
   const env = { ...process.env };
   for (const stripKey of [
     'LIBGL_ALWAYS_SOFTWARE',
@@ -13646,6 +13932,7 @@ async function launchHorizonRustClient({
   env.HORIZON_PLAYER_NAME = safeName;
   env.HORIZON_OLDER_SERVERS = '1';
   env.HORIZON_TELEMETRY_URL = 'off';
+  env.BLOCKWAY_MC_VERSION = displayMcVer;
 
   const cleanSkinKey = (authorization?.name || username || 'StevePlayer').replace(/[^a-zA-Z0-9_]/g, '') || 'StevePlayer';
   const localSkinFile = path.join(skinRoot, 'CustomSkinLoader', 'LocalSkin', 'skins', `${cleanSkinKey}.png`);
@@ -13658,7 +13945,8 @@ async function launchHorizonRustClient({
     env.HORIZON_OFFLINE_CAPE = localCapeFile;
   }
 
-  callbacks.onStatus?.(`🦀 Đang phóng Engine Rust Horizon (MC ${displayMcVer} • ${desiredGfx.toUpperCase()} • Nhân vật: ${safeName})...`);
+  const coreTitleLabel = String(config.loaderType || '').toLowerCase() === 'blockway-rust' ? 'Nhân BlockWay Rust' : 'Engine Rust Horizon';
+  callbacks.onStatus?.(`🦀 Đang phóng ${coreTitleLabel} (MC ${displayMcVer} • ${desiredGfx.toUpperCase()} • Nhân vật: ${safeName})...`);
 
   // Clean up any leftover .datafix staging folders (prevents os error 145 on world upgrade) & empty ghost world folders
   try {
@@ -13703,97 +13991,6 @@ async function launchHorizonRustClient({
     }
   } catch (_) {}
 
-  try {
-    const safeVerBytes = Buffer.from(displayMcVer.slice(0, 16), 'utf8');
-    const verLen = safeVerBytes.length;
-    const strRva = 0x433f297; // fileOff 70509719 (inside /rustc/<sha>/)
-    if (verLen > 0 && fs.existsSync(hz.clientPath)) {
-      const fd = fs.openSync(hz.clientPath, 'r+');
-      try {
-        // Self-heal --help banner if an earlier build overwrote 'Minecraft' at 71136069..71136077
-        const helpChk = Buffer.alloc(9);
-        fs.readSync(fd, helpChk, 0, 9, 71136069);
-        if (helpChk[0] === 0x4d && helpChk[8] === 0x74 && helpChk.toString('ascii') !== 'Minecraft') {
-          fs.writeSync(fd, Buffer.from('inecraf', 'ascii'), 0, 7, 71136070);
-        }
-        const sig = Buffer.alloc(9);
-        fs.readSync(fd, sig, 0, 9, 76550544);
-        const rustcPfx = Buffer.alloc(7);
-        fs.readSync(fd, rustcPfx, 0, 7, 70509712);
-        if (sig.toString('latin1') === '\x08Horizon ' && rustcPfx.toString('ascii') === '/rustc/') {
-          // 1. Write selected version string into .rdata slot
-          fs.writeSync(fd, safeVerBytes, 0, verLen, 70509719);
-
-          // 2. Title screen slice ("Horizon <ver> (Rust)") at 76550528
-          const fatPtr = Buffer.alloc(16);
-          fatPtr.writeBigUInt64LE(0x140000000n + BigInt(strRva), 0);
-          fatPtr.writeBigUInt64LE(BigInt(verLen), 8);
-          fs.writeSync(fd, fatPtr, 0, 16, 76550528);
-
-          const writeI32 = (off, val) => {
-            const b = Buffer.alloc(4);
-            b.writeInt32LE(val, 0);
-            fs.writeSync(fd, b, 0, 4, off);
-          };
-          const checkBytes = (off, expectedHex) => {
-            const exp = Buffer.from(expectedHex, 'hex');
-            const got = Buffer.alloc(exp.length);
-            fs.readSync(fd, got, 0, exp.length, off);
-            return got.equals(exp);
-          };
-
-          // 3. F3 Debug Screen & Client Version Brand sites
-          for (const site of [
-            { off: 11869138, rva: 0xb527d2 },
-            { off: 18859336, rva: 0x11fd148 }
-          ]) {
-            if (checkBytes(site.off, '488d05') && checkBytes(site.off + 7, '488944242048c7442428')) {
-              writeI32(site.off + 3, strRva - (site.rva + 7));
-              writeI32(site.off + 17, verLen);
-            }
-          }
-
-          // 4. In-game /version command sites
-          for (const site of [
-            { off: 21184418, rva: 0x1434ba2 },
-            { off: 21184557, rva: 0x1434c2d }
-          ]) {
-            if (checkBytes(site.off, '488d15') && checkBytes(site.off + 14, '41b8')) {
-              writeI32(site.off + 3, strRva - (site.rva + 7));
-              writeI32(site.off + 16, verLen);
-            }
-          }
-
-          // 5. save.rs & world/server level.dat Version.Name writers (keeps saved map Phiên bản matching selected version!)
-          for (const site of [
-            { off: 33613928, rva: 0x200f468 },
-            { off: 58873817, rva: 0x38263d9 }
-          ]) {
-            if (checkBytes(site.off, '488d05') && checkBytes(site.off + 14, '488d05')) {
-              writeI32(site.off + 3, strRva - (site.rva + 7));
-              writeI32(site.off + 17, (strRva + verLen) - (site.rva + 21));
-            }
-          }
-
-          // 6. save.rs & world/server level.dat Version.Id writers + save.rs::downgraded_from version-mismatch guard
-          if (checkBytes(33614136, 'c785640a0000')) {
-            writeI32(33614142, targetDataVerId);
-          }
-          if (checkBytes(58874020, 'c78584010000')) {
-            writeI32(58874026, targetDataVerId);
-          }
-          for (const cmpImmOff of [34787880, 34787987, 34788001, 34788051, 34788096]) {
-            if (checkBytes(cmpImmOff - 2, '483d')) {
-              writeI32(cmpImmOff, targetDataVerId + 1);
-            }
-          }
-        }
-      } finally {
-        fs.closeSync(fd);
-      }
-    }
-  } catch (_) {}
-
   const spawnStartedAt = Date.now();
   const proc = spawn(hz.clientPath, args, {
     cwd: gameDirectory,
@@ -13815,7 +14012,7 @@ async function launchHorizonRustClient({
     if (!gameWindowNotified) {
       gameWindowNotified = true;
       callbacks.onGameWindowReady?.();
-      if (process.platform === 'win32' && proc.pid) {
+      if (!apiInfo.isBlockWayRust && process.platform === 'win32' && proc.pid) {
         try {
           const winTitle = `Minecraft ${displayMcVer} — Rust Horizon (${desiredGfx.toUpperCase()})`.replace(/'/g, "''");
           const psScript = [
@@ -13909,6 +14106,8 @@ async function launchHorizonRustClient({
 module.exports = {
   getHorizonPlatformSpec,
   getHorizonEngineStatus,
+  probeHorizonLaunchApi,
+  upgradeHorizonEngine,
   ensureHorizonEnginePrepared,
   launchHorizonRustClient,
   applyGentleSmoothOptions,

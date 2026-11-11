@@ -1,27 +1,27 @@
 {
-  "version": "41.4.1",
-  "releasedAt": "2026-11-10T22:55:57.846Z",
-  "notes": "v41.4.1 PRO: Dong bo DataVersion Id & kich hoat la chan chong lech phien ban (downgraded_from + BackupBeforeUpgrade) cho Rust Horizon da phien ban (1.20.2 -> 26.3), bao ve map 26.3 khong bi vao nham tu phien ban thap hon.",
+  "version": "41.5.0",
+  "releasedAt": "2026-11-11T06:47:03.302Z",
+  "notes": "v41.5.0 PRO: Bo sung Core BlockWay Rust da phien ban that (1.16.5 -> 26.3) bien dich 100% tu ma nguon Rust tren GitHub (buiduchuy2010qn-prog/blockway-rust-engine), xoa bo 100% patch nhi phan .exe va tich hop tu dong nang cap OTA Nhan Rust.",
   "files": {
     "src/aether-cloud-auth.js": {
       "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
       "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "e2ebdf12220fb51813c7a7cd146fb0800f8b083fc17d78749d71c92ebfde1c4e",
-      "size": 596009
+      "sha256": "60efccc718043bc442a52dacadca66a34a8439d4afd2d889faa29255ef645b5a",
+      "size": 604070
     },
     "src/main.js": {
-      "sha256": "810a5850cedf57ac3ea52bb0aae09b0666b28610292a926a8a45145e9217132c",
-      "size": 106824
+      "sha256": "1284cf6ee719c0dfdce87ecefdde0c1392b281ea49c65d2d2b5e540b3fc7b3b5",
+      "size": 107542
     },
     "src/microsoft-auth.js": {
       "sha256": "5e5f01aaf586a6bad099dcb4961256a935165c31aaa9608fae0e8c19c3165673",
       "size": 73767
     },
     "src/preload.js": {
-      "sha256": "484fc7f20bf7b6705267a9594b45617846c3b6e59e195422fe4e25061e6b817f",
-      "size": 15341
+      "sha256": "27bd7d4c3b797918a43adb074cb81308112b49580e82861673b659f0ca99468a",
+      "size": 15452
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -40,8 +40,12 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "0e88d48e82bbb4046adb0beb455ca0dd0e745409c6699c9f0189fc5853025a51",
-      "size": 232830
+      "sha256": "52f707e884cf07c6d13070affa14f8a30ebbe3650123820c57ab392ed30fbd59",
+      "size": 234401
+    },
+    "src/ui/installer-eula.txt": {
+      "sha256": "b58a7a3604dcb1f2ade5c99b228d2868e1da70eaa0a92ee7409b1edd2822b82f",
+      "size": 1700
     },
     "src/ui/layout-v33.css": {
       "sha256": "fcdfc3fae773758f97b6faa254bc42c740322a5e48843d1e1697181ab572d576",
@@ -52,40 +56,72 @@
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "15712fd3f008c0014d361635189943a62343548c29c2c9e2a31b80089aa47579",
-      "size": 173716
+      "sha256": "f2d3a1a5c5ddfd337266b72004b199bd2a0c2de3ab339d30f3835d5b6914d6ff",
+      "size": 176556
     },
     "src/ui/seeds/badlands-gold-oasis-icon.png": {
       "sha256": "86e4da30e57f18e9fae9624206b8cdf7a3c7f652f5a46e5d7fa9fc0fd80363df",
       "size": 13491
     },
+    "src/ui/seeds/badlands-gold-oasis.jpg": {
+      "sha256": "9d6c49bc55cb44b1558eb2fa955912b3c3171c5c0934040f63b9c63675a2192c",
+      "size": 68466
+    },
     "src/ui/seeds/cherry-ring-mountain-icon.png": {
       "sha256": "8c07667c72aa440edab3219d3ed5d228328ac98080467352b0435b6a7fa8b342",
       "size": 13696
+    },
+    "src/ui/seeds/cherry-ring-mountain.jpg": {
+      "sha256": "0ebcd50ab7bc7e8cde5b039305387eb5425dbe756190862cbb481bd0c3fd7ef8",
+      "size": 92726
     },
     "src/ui/seeds/coral-castaway-island-icon.png": {
       "sha256": "7b6cab8d3775c259d1907185eb4d59bb0ebcf354ba2dc2761cdc48ab2ab4de45",
       "size": 13520
     },
+    "src/ui/seeds/coral-castaway-island.jpg": {
+      "sha256": "1586a11c07b90ea4697a01a7e48f54e86b4bdffc8370dafa999b90b572a88b44",
+      "size": 78999
+    },
     "src/ui/seeds/ice-spikes-frozen-kingdom-icon.png": {
       "sha256": "e48e180561c1e613ed37bc2f16f980c24e68c80a45fa881d4e81d805a1e91676",
       "size": 12866
+    },
+    "src/ui/seeds/ice-spikes-frozen-kingdom.jpg": {
+      "sha256": "145846d66d7f0d4944aa6e4484e478f419cb55f36c83a88e83431b9e399bcafb",
+      "size": 65663
     },
     "src/ui/seeds/lush-cave-ancient-taiga-icon.png": {
       "sha256": "50eb170f00e3df9407f9edd0583b07ff343dee7e690dbe2e919f4a2572144ccf",
       "size": 11544
     },
+    "src/ui/seeds/lush-cave-ancient-taiga.jpg": {
+      "sha256": "b0b98d5ca192ef32065cd0fd8151555b9c45dd0359d3fd6cef81d4c65d46ef87",
+      "size": 52750
+    },
     "src/ui/seeds/mansion-village-ancient-icon.png": {
       "sha256": "ce25b32b83e487f9fad905aa7d5da9ec20cfacde6cabf0b339c228e87360282b",
       "size": 10399
+    },
+    "src/ui/seeds/mansion-village-ancient.jpg": {
+      "sha256": "958178cf220e414cb3dc4704a9bde48e85a6a5c063facde72da32d7aece336c3",
+      "size": 44315
     },
     "src/ui/seeds/mushroom-safe-island-icon.png": {
       "sha256": "6b1f73cf1511c56ceb8a5597935e883b630203debe339851b2cd7e889f3e8fd9",
       "size": 13526
     },
+    "src/ui/seeds/mushroom-safe-island.jpg": {
+      "sha256": "50aa99d86b2f8782396bd49683b9416ab379823a7dc7ccce7c3b7ae8a3b518a5",
+      "size": 66336
+    },
     "src/ui/seeds/speedrun-bastion-fortress-icon.png": {
       "sha256": "82cdb456a39acb5c4059bc834ae82f171f6b2b5029c6613b39af186be60711cb",
       "size": 13073
+    },
+    "src/ui/seeds/speedrun-bastion-fortress.jpg": {
+      "sha256": "7a1edf063b183583ff2212b2c2142da2530fadd52c58c73d9a96e111f57e925e",
+      "size": 66535
     },
     "src/ui/skinview3d.bundle.js": {
       "sha256": "0e7591e4dc81003fcfa20d82873b7c2f78131726430a3e24d6a3bb755c508abe",
@@ -102,10 +138,6 @@
     "src/world-creator.js": {
       "sha256": "cc92428d7107c040d1dd61f8953c93fd57bab290a335307ea06cc68939612aac",
       "size": 53533
-    },
-    "package.json": {
-      "sha256": "74cadc41afbbf916f0b3abbead97fe23d806680d39338583c9c0224859c59a7d",
-      "size": 2660
     }
   }
 }

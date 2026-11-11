@@ -48,7 +48,7 @@ const {
   getVisualBoostStatus, toggleVisualBoostPack,
   exportPlayerPrefsSnapshot, importPlayerPrefsSnapshot,
   getWorldgenBoostStatus, installWorldgenBoostPack,
-  getHorizonEngineStatus, ensureHorizonEnginePrepared
+  getHorizonEngineStatus, ensureHorizonEnginePrepared, upgradeHorizonEngine
 } = require('./launcher-engine');
 const {
   loginWithMicrosoftModal,
@@ -1679,11 +1679,31 @@ ipcMain.handle('horizon:status', async (_e, gameDir) => {
 
 ipcMain.handle('horizon:prepare', async (_e, options) => {
   try {
-    return await ensureHorizonEnginePrepared(
-      options || {},
-      (msg) => mainWindow?.webContents.send('launch:status', msg),
-      (pct) => mainWindow?.webContents.send('launch:progress', { percent: pct })
-    );
+    const rootDir = typeof options === 'string' ? options : options?.gameDir;
+    return await ensureHorizonEnginePrepared({
+      rootDir,
+      callbacks: {
+        onStatus: (msg) => mainWindow?.webContents.send('mc:status', msg),
+        onProgress: (p) => mainWindow?.webContents.send('mc:progress', p)
+      }
+    });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('horizon:upgrade', async (_e, options = {}) => {
+  try {
+    const rootDir = typeof options === 'string' ? options : options?.gameDir;
+    const force = typeof options === 'object' && options !== null ? Boolean(options.force) : true;
+    return await upgradeHorizonEngine({
+      rootDir,
+      force,
+      callbacks: {
+        onStatus: (msg) => mainWindow?.webContents.send('mc:status', msg),
+        onProgress: (p) => mainWindow?.webContents.send('mc:progress', p)
+      }
+    });
   } catch (err) {
     return { ok: false, error: err.message };
   }

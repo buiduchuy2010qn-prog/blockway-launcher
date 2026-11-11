@@ -184,9 +184,10 @@ contextBridge.exposeInMainWorld('aetherAPI', {
   getWorldgenBoostStatus: (params) => ipcRenderer.invoke('worldgenBoost:status', params),
   installWorldgenBoostPack: (params) => ipcRenderer.invoke('worldgenBoost:install', params),
 
-  // v41.3.0 PRO — 🦀 Rust Horizon Engine (Minecraft 26.3 Vulkan / DirectX 12 Native)
+  // v41.5.0 PRO — 🦀 BlockWay Rust Multi-Version Engine & GitHub Self-Upgrading Core
   getHorizonStatus: (gameDir) => ipcRenderer.invoke('horizon:status', gameDir),
   prepareHorizonEngine: (gameDir) => ipcRenderer.invoke('horizon:prepare', gameDir),
+  upgradeHorizonEngine: (gameDir, force = true) => ipcRenderer.invoke('horizon:upgrade', { gameDir, force }),
 
   checkForUpdate: () => ipcRenderer.invoke('updater:check'),
   installUpdateNow: (downloadUrl, latestVersion) => ipcRenderer.invoke('updater:install-now', downloadUrl, latestVersion),
