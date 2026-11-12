@@ -1,10 +1,10 @@
 {
-  "version": "41.8.0",
-  "releasedAt": "2026-11-11T14:10:18.277Z",
-  "notes": "v41.8.0 PRO: Gia co bao mat IPC/safeStorage/CSRF/Zip-Slip & OTA SHA-256 fail-closed, tinh chinh phan cap mau giao dien Sakura, bo sung package-lock.json + npm ci + bo kiem thu tu dong npm test, va dong bo tai lieu chuan thuc te.",
+  "version": "41.8.1",
+  "releasedAt": "2026-11-12T06:53:38.273Z",
+  "notes": "v41.8.1 PRO — Kiểm thử trực quan & đồng bộ toàn diện 9 phân hệ: sửa hiển thị icon nút Sakura, chống tràn thanh công cụ Modpack/Co-op, icon SVG gốc cho 5 tiện ích Rust không phụ thuộc CDN, chống cắt nhãn thẻ Mod & hoàn thiện GitHub Release CI.",
   "files": {
     "package.json": {
-      "sha256": "5da2788643c7b7c7566953112768703899a1835c65c743fd872ad09d8259fbf0",
+      "sha256": "9669d49293b166d3fb46b1264f38f81c4be53f78469722ea0db79d1b1fd0bd31",
       "size": 2602
     },
     "src/aether-cloud-auth.js": {
@@ -12,8 +12,8 @@
       "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "e3911ffd29209840f421203ecfdf941486cbd778b310f5fb9bb6934e6c092688",
-      "size": 656925
+      "sha256": "6db73915506f52558f1e1c92ba30237eed237dd0c6d11240073fe74ca83d7ff8",
+      "size": 658143
     },
     "src/main.js": {
       "sha256": "d387d8d8949227c24946ab136b3e1fc81833efde1cbcc47da78d47b021557752",
@@ -44,16 +44,16 @@
       "size": 703070
     },
     "src/ui/index.html": {
-      "sha256": "28cd4a16a41cf34818d3ed88f596bea6907609ce04a42b709a6edf93295ddf9a",
-      "size": 240981
+      "sha256": "54997b2bd2f417ce58cae23d2c0f6552d92deea421e79c01b4ab405a44d18cb9",
+      "size": 240886
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
       "size": 1682
     },
     "src/ui/layout-v33.css": {
-      "sha256": "60cb1463c525c71affe1fe3c8f1583b1dd7c3a7205cf854e60ede6cad499408c",
-      "size": 265993
+      "sha256": "368a3a55f10320a0bd54e44bf7d807abd010e933612245e4ca5a665880ade8fa",
+      "size": 266091
     },
     "src/ui/minecraft-logo.png": {
       "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37",
@@ -132,8 +132,8 @@
       "size": 477198
     },
     "src/ui/store-features.js": {
-      "sha256": "66ce4f3ea55eb8afcde597e8c80d9482ceefdb11a90c2c7b57ab4a766e889a1b",
-      "size": 518634
+      "sha256": "552edfd7b304de1fc749522f9e63a18f804d3626cb98205596b641456858fb4a",
+      "size": 520087
     },
     "src/ui/styles.css": {
       "sha256": "7b942245d70a9cc56ab3107a4c67ed64da15e619a7d6b0402457148403961048",

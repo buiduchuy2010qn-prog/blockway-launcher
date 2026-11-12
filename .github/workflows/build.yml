@@ -103,20 +103,20 @@ jobs:
       - name: Build release notes from ota-manifest.json
         id: notes
         run: |
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-            const ota = JSON.parse(fs.readFileSync('./ota-manifest.json', 'utf8'));
-            const body = [
-              '### 📦 BlockWay Launcher v' + pkg.version + ' PRO — Every World, One Place (Windows & Linux)',
-              '',
-              '- **📝 Điểm mới bản này:** ' + (ota.notes || pkg.description),
-              '- **🦀 8 Core Loaders (Java & Native Horizon Rust):** Hỗ trợ đầy đủ Vanilla, OptiFine, Fabric, Forge, NeoForge, Quilt, Legacy Fabric và **Horizon Rust** (Vulkan / DirectX 12, kho `.hmod` & `.hshader` WGSL chính thức, tự kiểm định tương thích trước khi cài).',
-              '- **🔒 Kiến trúc Bảo mật & Cập nhật OTA SHA-256:** Electron `contextIsolation` + `sandbox`, xác thực nguồn gọi IPC, mã hóa token tài khoản qua `safeStorage` (DPAPI / Keyring) và cập nhật delta OTA kiểm định SHA-256 kèm rollback nguyên tử.',
-              '- **🐧 Hỗ trợ Windows (`.exe` Setup / Portable) & Linux (`.AppImage` / `.deb`):** Quy trình build tái lập `npm ci` + kiểm thử tự động `npm test`.'
-            ].join('\n');
-            fs.writeFileSync('RELEASE_BODY.md', body, 'utf8');
-          "
+          node << 'EOF'
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+          const ota = JSON.parse(fs.readFileSync('./ota-manifest.json', 'utf8'));
+          const body = [
+            '### 📦 BlockWay Launcher v' + pkg.version + ' PRO — Every World, One Place (Windows & Linux)',
+            '',
+            '- **📝 Điểm mới bản này:** ' + (ota.notes || pkg.description),
+            '- **🦀 8 Core Loaders (Java & Native Horizon Rust):** Hỗ trợ đầy đủ Vanilla, OptiFine, Fabric, Forge, NeoForge, Quilt, Legacy Fabric và **Horizon Rust** (Vulkan / DirectX 12, kho `.hmod` & `.hshader` WGSL chính thức, tự kiểm định tương thích trước khi cài).',
+            '- **🔒 Kiến trúc Bảo mật & Cập nhật OTA SHA-256:** Electron `contextIsolation` + `sandbox`, xác thực nguồn gọi IPC, mã hóa token tài khoản qua `safeStorage` (DPAPI / Keyring) và cập nhật delta OTA kiểm định SHA-256 kèm rollback nguyên tử.',
+            '- **🐧 Hỗ trợ Windows (`.exe` Setup / Portable) & Linux (`.AppImage` / `.deb`):** Quy trình build tái lập `npm ci` + kiểm thử tự động `npm test`.'
+          ].join('\n');
+          fs.writeFileSync('RELEASE_BODY.md', body, 'utf8');
+          EOF
 
       - name: Download Windows & Linux Artifacts
         uses: actions/download-artifact@v4

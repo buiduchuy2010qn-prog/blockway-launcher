@@ -1306,13 +1306,14 @@ async function searchModrinth({
 
     // On default Horizon Mod Store (offset 0, no search query, All/Utility category), also surface the 5 built-in 100% Native Rust client utilities!
     if (projectType === 'mod' && !allVersions && !cleanQuery && (!cleanCat || cleanCat === 'utility')) {
+      const mkRustSvgIcon = (bg1, bg2, glyphSvg) => `data:image/svg+xml;base64,${Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${bg1}"/><stop offset="100%" stop-color="${bg2}"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#g)"/>${glyphSvg}</svg>`, 'utf8').toString('base64')}`;
       const nativeShowcaseCards = [
         {
           projectId: 'hz-native-minimap',
           slug: 'xaeros-minimap',
           title: 'Bản Đồ Thu Nhỏ (Minimap Rust Gốc)',
           description: 'Bản đồ địa hình thời gian thực góc màn hình viết 100% bằng Rust: xoay theo hướng nhìn, hiển thị tọa độ & đổi mức phóng bằng phím B.',
-          iconUrl: 'https://cdn.modrinth.com/data/1bokaNcj/4570ed7f5621be5ea4eb8bf2226f5d5ef6bf96db.png',
+          iconUrl: mkRustSvgIcon('#0284c7', '#10b981', '<circle cx="32" cy="32" r="18" fill="none" stroke="#fff" stroke-width="3.5"/><polygon points="32,17 37,33 32,30 27,33" fill="#fde047"/><circle cx="32" cy="32" r="2.5" fill="#fff"/>'),
           downloads: 120200000,
           follows: 0,
           author: 'BlockWay Rust',
@@ -1328,7 +1329,7 @@ async function searchModrinth({
           slug: 'zoomify',
           title: 'Ống Nhòm Phóng To (Zoom Phím Z Rust)',
           description: 'Giữ phím Z để phóng to tầm nhìn siêu mượt + lăn chuột chỉnh độ phóng từ 1.5x đến 16x chạy trực tiếp trên Nhân Rust.',
-          iconUrl: 'https://cdn.modrinth.com/data/w7ThoJFB/c08d3dc4aa7e8c02df0b712a988b8b19c530ad19_96.webp',
+          iconUrl: mkRustSvgIcon('#6366f1', '#ec4899', '<circle cx="28" cy="28" r="12" fill="none" stroke="#fff" stroke-width="4"/><line x1="37" y1="37" x2="48" y2="48" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/><path d="M24 28h8M28 24v8" stroke="#fde047" stroke-width="3" stroke-linecap="round"/>'),
           downloads: 42500000,
           follows: 0,
           author: 'BlockWay Rust',
@@ -1344,7 +1345,7 @@ async function searchModrinth({
           slug: 'minihud',
           title: 'Tọa Độ XYZ & Quần Xã (Coords HUD Rust)',
           description: 'Hiển thị tọa độ X Y Z, hướng Đông/Tây/Nam/Bắc và tên quần xã (Biome) gọn nhẹ ngay góc màn hình bằng Rust.',
-          iconUrl: 'https://cdn.modrinth.com/data/UMxybHE8/icon.png',
+          iconUrl: mkRustSvgIcon('#ea580c', '#f59e0b', '<path d="M32 14c-8.3 0-15 6.5-15 14.5C17 39 32 50 32 50s15-11 15-21.5C47 20.5 40.3 14 32 14z" fill="none" stroke="#fff" stroke-width="3.6"/><circle cx="32" cy="28" r="5" fill="#fff"/>'),
           downloads: 29400000,
           follows: 0,
           author: 'BlockWay Rust',
@@ -1360,7 +1361,7 @@ async function searchModrinth({
           slug: 'clean-keystrokes',
           title: 'Bàn Phím PvP & CPS (Keystrokes Rust)',
           description: 'Hiển thị trực quan cụm phím W A S D, Nhảy, Chuột Trái/Phải và tốc độ nhấp chuột CPS dành cho PvP / BedWars.',
-          iconUrl: 'https://cdn.modrinth.com/data/YhBn6624/84bc5260e7ae1a52ab667d70a76b79c18a35016b.png',
+          iconUrl: mkRustSvgIcon('#7c3aed', '#db2777', '<rect x="26" y="15" width="12" height="12" rx="3" fill="#fff"/><rect x="12" y="31" width="12" height="12" rx="3" fill="#fff"/><rect x="26" y="31" width="12" height="12" rx="3" fill="#fde047"/><rect x="40" y="31" width="12" height="12" rx="3" fill="#fff"/>'),
           downloads: 8500000,
           follows: 0,
           author: 'BlockWay Rust',
@@ -1376,7 +1377,7 @@ async function searchModrinth({
           slug: 'betterf3',
           title: 'Đồng Hồ FPS Trực Tiếp (FPS Overlay Rust)',
           description: 'Hiển thị số khung hình/giây (FPS) thời gian thực và mức FPS thấp nhất ở góc màn hình không tốn tài nguyên.',
-          iconUrl: 'https://cdn.modrinth.com/data/8shC1gFX/69c2ef660bfac82d1bc43778133ef637f929f08f.png',
+          iconUrl: mkRustSvgIcon('#059669', '#0284c7', '<polygon points="35,13 19,35 30,35 28,51 45,28 33,28" fill="#fde047" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>'),
           downloads: 54100000,
           follows: 0,
           author: 'BlockWay Rust',

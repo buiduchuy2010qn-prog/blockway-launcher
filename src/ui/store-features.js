@@ -803,7 +803,10 @@ function classifyModCardForHorizonUI(itemOrSlug) {
   return { kind: 'needs_probe' };
 }
 
+let _modStoreLoadSeq = 0;
+
 async function loadModrinthStore(append = false) {
+  const reqSeq = ++_modStoreLoadSeq;
   const grid = document.getElementById('modrinthResultsGrid');
   const localWrap = document.getElementById('localAddonsWrap');
   const studioCard = document.getElementById('horizonRustModStudioCard');
@@ -858,10 +861,11 @@ async function loadModrinthStore(append = false) {
   const activeVer = target.mcVersion || '1.21.4';
   const activeCore = target.core || 'fabric';
 
+  const reqProjectType = state.activeModStoreType;
   const query = document.getElementById('modSearchInput')?.value.trim() || '';
   const res = await window.aetherAPI.searchModrinth({
     query,
-    projectType: state.activeModStoreType,
+    projectType: reqProjectType,
     mcVersion: activeVer,
     loaderType: activeCore,
     category: state.modCategory || '',
@@ -870,6 +874,7 @@ async function loadModrinthStore(append = false) {
     limit: pageSize,
     allVersions: Boolean(state.modAllVersions)
   });
+  if (reqSeq !== _modStoreLoadSeq || state.activeModStoreType !== reqProjectType) return;
 
   if (!res?.ok || (!res.hits?.length && !append)) {
     grid.innerHTML = '<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--text-muted);">Không tìm thấy kết quả phù hợp. Hãy bấm nút <strong>"Full Kho (Mọi Bản)"</strong> ở góc phải hoặc thử từ khóa khác!</div>';
@@ -891,7 +896,8 @@ async function loadModrinthStore(append = false) {
   }
 
   const folderMap = { mod: 'mods', shader: 'shaderpacks', resourcepack: 'resourcepacks' };
-  const localCheck = await window.aetherAPI.listLocalAddons(target.dir, folderMap[state.activeModStoreType] || 'mods');
+  const localCheck = await window.aetherAPI.listLocalAddons(target.dir, folderMap[reqProjectType] || 'mods');
+  if (reqSeq !== _modStoreLoadSeq || state.activeModStoreType !== reqProjectType) return;
   const localItems = (localCheck?.items || []).filter((i) => i.enabled);
 
   const TAG_VI_MAP = {
@@ -1425,9 +1431,10 @@ async function loadModrinthStore(append = false) {
     const pickedLoader = state.activeModStoreType === 'mod'
       ? (userCore === 'horizon' ? [] : (loaderCats.includes(activeLoaderKey) ? [activeLoaderKey] : loaderCats.slice(0, 2)))
       : [];
-    const orderedCats = [...pickedLoader, ...featureCats].slice(0, 3);
+    const maxTagCount = (userCore === 'horizon' || featureCats.includes('horizon-rust')) ? 2 : 3;
+    const orderedCats = [...pickedLoader, ...featureCats].slice(0, maxTagCount);
     const tags = orderedCats
-      .map((key) => `<span class="mod-tag">${TAG_VI_MAP[key] || key}</span>`)
+      .map((key) => `<span class="mod-tag">${escapeHtml(TAG_VI_MAP[key] || key)}</span>`)
       .join('');
     const slugLower = (item.slug || '').toLowerCase();
 
@@ -1617,7 +1624,11 @@ async function loadModrinthStore(append = false) {
         ? `${viDesc}\n\n[Mô tả gốc]: ${item.description}`
         : viDesc
     );
-    const safeIconUrl = /^https?:\/\//i.test(String(item.iconUrl || '')) ? escapeHtml(item.iconUrl) : '';
+    const fallbackSvgIcon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMyNTYzZWIiLz48cGF0aCBkPSJNMzIgMTZsMTQgOHYxNmwtMTQgOC0xNC04VjI0eiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjMuNSIvPjwvc3ZnPg==';
+    const rawIconStr = String(item.iconUrl || '').trim();
+    const safeIconUrl = /^(https?:\/\/|data:image\/(?:svg\+xml|png|jpeg|webp);base64,)/i.test(rawIconStr)
+      ? escapeHtml(rawIconStr)
+      : fallbackSvgIcon;
     const safeTitle = escapeHtml(item.title);
     const safeAuthor = escapeHtml(item.author || 'Creator');
     const safeSlug = escapeHtml(item.slug);
@@ -9787,6 +9798,15 @@ function initV412PowerSuiteUI() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  // Global CSP-safe fallback for any expired/404 remote mod, pack, or skin thumbnail
+  document.addEventListener('error', (ev) => {
+    const t = ev.target;
+    if (t && t.tagName === 'IMG' && !t.dataset.bwFallbackApplied) {
+      t.dataset.bwFallbackApplied = '1';
+      t.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMzMzQxNTUiLz48cGF0aCBkPSJNMzIgMTZsMTQgOHYxNmwtMTQgOC0xNC04VjI0eiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZThlOGYwIiBzdHJva2Utd2lkdGg9IjMuNSIvPjwvc3ZnPg==';
+    }
+  }, true);
+
   initCoopHubUI();
   initV402FeaturesUI();
   initV406FeaturesUI();

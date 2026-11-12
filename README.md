@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v41.8.0 PRO — Every World, One Place (`blockway-launcher`)
+# ⚡ BlockWay Launcher v41.8.1 PRO — Every World, One Place (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.8.0_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.8.1_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-8_Core_Loaders_+_Horizon_Rust-f97316?style=for-the-badge" alt="8 Core Loaders" /></a>
 </p>
 
@@ -16,7 +16,7 @@
 
 ---
 
-## ✨ Điểm mới trong `v41.8.0 PRO` (Bảo mật • Độ ổn định • Giao diện • Kiểm thử tự động)
+## ✨ Điểm mới trong `v41.8.1 PRO` (Bảo mật • Độ ổn định • Giao diện • Kiểm thử tự động)
 
 1. **🔒 Gia cố Bảo mật toàn diện (`P0 Security Hardening`):**
    - **Khóa nguồn gọi IPC (`assertTrustedIpcSender`):** Mọi kênh `ipcMain.handle` và `ipcMain.on` xác thực chặt `event.sender === mainWindow.webContents`, từ chối subframe và nguồn không phải `file://`.
@@ -24,7 +24,7 @@
    - **Mã hóa khóa tài khoản trên ổ cứng (`Electron safeStorage`):** Tự động mã hóa `accessToken` / `refreshToken` (Microsoft & Cloud) trong `aether-config-v5.json` và khóa API CurseForge thông qua cơ chế bảo mật gốc của hệ điều hành (Windows DPAPI / Linux Secret Service).
    - **Xác thực CSRF/State OAuth2 & Làm sạch `innerHTML`:** Bổ sung tham số `state` ngẫu nhiên 128-bit kiểm tra hằng thời gian (`crypto.timingSafeEqual`) cho luồng đăng nhập Microsoft loopback & cổng Web Cloud nội bộ; chuẩn hóa `escapeHtml` trên toàn bộ giao diện.
    - **Cập nhật OTA kiểm định SHA-256 chặt chẽ (`Fail-Closed`):** Đồng bộ bộ đọc bảng băm `ota-manifest.json` (bao gồm cả `package.json` và toàn bộ `src/**/*`), hủy cập nhật kèm cơ chế khôi phục nguyên tử (atomic rollback) nếu bất kỳ tệp nào lệch mã băm SHA-256.
-2. **🦀 Nhân Horizon Rust & Kiểm định Mod trung thực 100% (`v41.7.x` → `v41.8.0`):**
+2. **🦀 Nhân Horizon Rust & Kiểm định Mod trung thực 100% (`v41.7.x` → `v41.8.1`):**
    - Tích hợp trực tiếp kho gói **`.hmod`** và Shader WGSL **`.hshader`** chính thức của Horizon Rust (kiểm tra SHA-256), đi kèm **5 tiện ích Rust gốc** (*Minimap, Zoom, Tọa độ, Keystrokes, FPS*) và trình biên dịch `horizon-port-jar.exe` chuyển khối vuông, vật phẩm, công thức & Datapack sang gói chạy thật trên nhân Rust.
    - **Chặn 100% cài giả:** Mọi Mod từ Modrinth được kiểm định trước khi mở nút cài; các Mod thuần mã máy Java Mixin được phân loại rõ ràng và gợi ý chuyển sang Core `Fabric` thay vì cài nhầm vào nhân Rust.
 3. **🎨 Tinh chỉnh Phân cấp Thị giác & Studio Giao diện (`P3 UI Polish`):**

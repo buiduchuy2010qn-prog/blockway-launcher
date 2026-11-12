@@ -3843,6 +3843,10 @@ html[data-theme="sakura"] #heroBanner #btnOpenMigrateModal {
   box-shadow: 0 2px 6px rgba(131, 24, 67, 0.08) !important;
 }
 
+html[data-theme="sakura"] #heroBanner #btnOpenMigrateModal svg {
+  color: #db2777 !important;
+}
+
 html[data-theme="sakura"] #heroBanner #btnOpenMigrateModal:hover {
   background: #fce7f3 !important;
   border-color: rgba(219, 39, 119, 0.52) !important;
@@ -9600,26 +9604,26 @@ html[data-theme="sakura"] .ds-sig-pill {
   flex: 1 1 220px !important;
 }
 
-/* Packs Tab: Fit all 7 top action buttons cleanly on 1 single row (no orphan button) */
+/* Packs Tab: Fit all top action buttons cleanly inside header card without overflow */
 #tab-packs .packs-header-actions {
   display: flex !important;
   align-items: center !important;
-  gap: 5px !important;
-  flex-wrap: nowrap !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
   width: 100% !important;
 }
 
 #tab-packs .packs-header-actions > button {
-  padding: 6px 8px !important;
-  font-size: 11.9px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
   white-space: nowrap !important;
-  flex: 1 1 auto !important;
+  flex: 0 1 auto !important;
   justify-content: center !important;
 }
 
-/* Servers Tab: Keep header actions on 1 row & Co-Op mode buttons side-by-side */
+/* Servers Tab: Keep header actions aligned & Co-Op mode buttons inside card bounds */
 #tab-servers > .subtab-header {
-  flex-wrap: nowrap !important;
+  flex-wrap: wrap !important;
 }
 
 #tab-servers > .subtab-header .subpage-title-block {
@@ -9632,13 +9636,13 @@ html[data-theme="sakura"] .ds-sig-pill {
   flex-direction: row !important;
   align-items: center !important;
   gap: 6px !important;
-  flex-wrap: nowrap !important;
+  flex-wrap: wrap !important;
 }
 
 .coop-mode-box .cmb-actions > button {
-  flex: 1 1 0 !important;
+  flex: 1 1 120px !important;
   padding: 7px 8px !important;
-  font-size: 12.4px !important;
+  font-size: 12.2px !important;
   white-space: nowrap !important;
   justify-content: center !important;
 }
