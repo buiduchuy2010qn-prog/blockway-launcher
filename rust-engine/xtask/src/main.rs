@@ -270,6 +270,8 @@ fn new_folder(out: &Path) -> Result<PathBuf, String> {
         .parent()
         .ok_or_else(|| "missing workspace root".to_string())?
         .to_path_buf();
+    let top_raw = git(&repo, &["rev-parse", "--show-toplevel"])?;
+    let top = PathBuf::from(String::from_utf8_lossy(&top_raw).trim());
     let prefix_raw = git(&repo, &["rev-parse", "--show-prefix"])?;
     let prefix = String::from_utf8_lossy(&prefix_raw)
         .trim()
@@ -289,7 +291,7 @@ fn new_folder(out: &Path) -> Result<PathBuf, String> {
     };
     let mut args = vec!["archive", "--format=tar", treeish.as_str()];
     args.extend(ARCHIVED);
-    extract(&git(&repo, &args)?, out)?;
+    extract(&git(&top, &args)?, out)?;
     Ok(repo)
 }
 

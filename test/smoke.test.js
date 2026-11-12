@@ -64,9 +64,21 @@ test('2. Version sync & OTA SHA-256 manifest integrity', () => {
     assert.ok(entry, `Missing ${f.rel} in ota-manifest.json`);
     assert.match(entry.sha256, /^[a-f0-9]{64}$/, `Invalid sha256 format for ${f.rel}`);
     const diskBuf = fs.readFileSync(f.full);
+    if (/\.(js|json|html|css|txt|svg|md|yml)$/i.test(f.rel)) {
+      assert.equal(
+        diskBuf.includes(0x0d),
+        false,
+        `Text file ${f.rel} must use pure LF line endings (zero \\r bytes) for deterministic OTA SHA-256`
+      );
+    }
     assert.ok(
       matchesExpectedTextOrBinSha(diskBuf, entry.sha256, f.rel),
       `SHA-256 mismatch for ${f.rel}`
+    );
+    assert.equal(
+      sha256Buffer(diskBuf),
+      entry.sha256,
+      `Exact byte-for-byte LF SHA-256 mismatch for ${f.rel}`
     );
   }
 });

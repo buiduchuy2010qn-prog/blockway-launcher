@@ -1,7 +1,7 @@
 {
   "name": "blockway-launcher",
-  "version": "42.2.0",
-  "description": "BlockWay Launcher v42.2.0 PRO — Pure Horizon Glass Unified Monorepo (Launcher + Native Rust Engine in one repo) • Every World, One Place. 8 Core Loaders, Native 26.3 Datapack Worldgen Guard, hardened IPC/OTA/safeStorage security, and Official Modrinth & Rust Registry.",
+  "version": "42.2.1",
+  "description": "BlockWay Launcher v42.2.1 PRO — Pure Horizon Glass Unified Monorepo (Launcher + Native Rust Engine in one repo) • Every World, One Place. 8 Core Loaders, Native 26.3 Datapack Worldgen Guard, hardened IPC/OTA/safeStorage security, and Official Modrinth & Rust Registry.",
   "homepage": "https://buiduchuy2010qn-prog.github.io/blockway-launcher/",
   "repository": {
     "type": "git",

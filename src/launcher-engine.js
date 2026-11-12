@@ -14564,7 +14564,19 @@ async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } =
     remoteManifest.downloadUrl
     || remoteManifest.download_url
     || `https://github.com/${BLOCKWAY_RUST_REPO}/releases/download/${BLOCKWAY_RUST_RELEASE_TAG}/${spec.assetName}`
-  );
+  ).trim();
+  let parsedDownloadUrl;
+  try {
+    parsedDownloadUrl = new URL(downloadUrl);
+  } catch (_) {
+    throw new Error('URL tải Nhân BlockWay Rust không hợp lệ.');
+  }
+  if (
+    parsedDownloadUrl.protocol !== 'https:'
+    || (parsedDownloadUrl.hostname !== 'github.com' && !parsedDownloadUrl.hostname.endsWith('.githubusercontent.com'))
+  ) {
+    throw new Error(`Chặn URL tải Nhân BlockWay Rust ngoài GitHub: ${parsedDownloadUrl.hostname}`);
+  }
 
   callbacks.onStatus?.(`🦀 Đang nâng cấp Nhân BlockWay Rust chính chủ từ GitHub (#${remoteCommit.slice(0, 7) || 'latest'})...`);
   await downloadFileWithProgress(downloadUrl, archivePath, (p) => {
@@ -14579,6 +14591,19 @@ async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } =
     throw new Error('Gói nâng cấp Nhân BlockWay Rust tải về không hợp lệ.');
   }
 
+  const expectedSha = String(remoteManifest.sha256 || '').trim().toLowerCase();
+  if (expectedSha) {
+    if (!/^[a-f0-9]{64}$/.test(expectedSha)) {
+      try { fs.unlinkSync(archivePath); } catch (_) {}
+      throw new Error('Mã băm SHA-256 trong manifest Nhân BlockWay Rust không hợp lệ.');
+    }
+    const actualSha = crypto.createHash('sha256').update(fs.readFileSync(archivePath)).digest('hex').toLowerCase();
+    if (actualSha !== expectedSha) {
+      try { fs.unlinkSync(archivePath); } catch (_) {}
+      throw new Error(`Mã băm SHA-256 gói Nhân BlockWay Rust không khớp (kỳ vọng ${expectedSha.slice(0, 12)}, thực tế ${actualSha.slice(0, 12)}).`);
+    }
+  }
+
   callbacks.onStatus?.('🦀 Đang cập nhật mã máy BlockWay Rust (giữ nguyên tài nguyên game đã chuẩn bị)...');
   extractZipSafely(archivePath, st.baseHorizonDir);
   try { fs.unlinkSync(archivePath); } catch (_) {}
@@ -14591,8 +14616,8 @@ async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } =
         ...(updatedStatus.buildMeta || {}),
         engine: 'blockway-rust',
         commit: remoteCommit || updatedStatus.buildCommit,
-        sha256: remoteManifest.sha256 || '',
-        built_at: remoteManifest.built_at || updatedStatus.buildMeta?.built_at || new Date().toISOString(),
+        sha256: expectedSha || '',
+        built_at: remoteManifest.builtAt || remoteManifest.built_at || updatedStatus.buildMeta?.builtAt || updatedStatus.buildMeta?.built_at || new Date().toISOString(),
         source_repo: `https://github.com/${BLOCKWAY_RUST_REPO}`
       };
       fs.writeFileSync(path.join(updatedStatus.engineRoot, 'blockway-rust-build.json'), JSON.stringify(mergedMeta, null, 2), 'utf8');

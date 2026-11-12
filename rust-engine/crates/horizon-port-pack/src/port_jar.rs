@@ -889,7 +889,8 @@ fn pack_declares_26_3_format(files: &BTreeMap<String, Vec<u8>>) -> bool {
     let Some(bytes) = files.get("pack.mcmeta") else {
         return false;
     };
-    let Ok(v) = serde_json::from_slice::<Value>(bytes) else {
+    let clean = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
+    let Ok(v) = serde_json::from_slice::<Value>(clean) else {
         return false;
     };
     let Some(pack) = v.get("pack") else {
@@ -913,30 +914,51 @@ fn needs_26_3_worldgen_upgrade(files: &BTreeMap<String, Vec<u8>>) -> bool {
         return false;
     }
     for (path, bytes) in files {
-        if !path.contains("/tags/")
-            && (path.contains("/worldgen/configured_feature/")
-                || path.contains("/worldgen/configured_carver/"))
-        {
-            return true;
-        }
         if !path.ends_with(".json") || !path.starts_with("data/") || path.contains("/tags/") {
             continue;
         }
-        let Ok(v) = serde_json::from_slice::<Value>(bytes) else {
+        if path.contains("/worldgen/configured_feature/")
+            || path.contains("/worldgen/configured_carver/")
+        {
+            return true;
+        }
+        let clean = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
+        let Ok(v) = serde_json::from_slice::<Value>(clean) else {
             continue;
         };
-        if path.contains("/worldgen/noise/") && v.get("firstOctave").is_some() && v.get("amplitudes").is_some() && v.get("base_amplitude").is_none() {
+        if path.contains("/worldgen/noise/")
+            && v.get("firstOctave").is_some()
+            && v.get("amplitudes").is_some()
+            && v.get("base_amplitude").is_none()
+        {
             return true;
         }
-        if path.contains("/worldgen/biome/") && v.get("spawners").is_some() {
+        if path.contains("/worldgen/biome/")
+            && (v.get("spawners").is_some()
+                || v.get("carvers").is_some_and(Value::is_object)
+                || v.pointer("/effects/sky_color").is_some())
+        {
             return true;
         }
-        if path.contains("/worldgen/noise_settings/") && v.get("surface_rule").is_some() {
+        if path.contains("/worldgen/noise_settings/")
+            && (v.get("surface_rule").is_some()
+                || (v.get("material_rule").is_none()
+                    && v.pointer("/noise/size_horizontal").is_some()))
+        {
             return true;
         }
         if path.contains("/worldgen/density_function/")
-            && let Ok(txt) = std::str::from_utf8(bytes)
-            && (txt.contains("\"argument1\"") || txt.contains("\"argument2\""))
+            && let Ok(txt) = std::str::from_utf8(clean)
+            && (txt.contains("\"argument\"")
+                || txt.contains("\"argument1\"")
+                || txt.contains("\"argument2\"")
+                || txt.contains("y_clamped_gradient")
+                || txt.contains("flat_cache")
+                || txt.contains("cache_2d")
+                || txt.contains("cache_once")
+                || txt.contains("cache_all_in_cell")
+                || txt.contains("shifted_noise")
+                || txt.contains("weird_scaled_sampler"))
         {
             return true;
         }

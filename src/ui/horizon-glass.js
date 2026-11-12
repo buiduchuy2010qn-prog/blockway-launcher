@@ -342,7 +342,9 @@
 
     const jumpBtn = document.getElementById('btnHzlCoreQuickJump');
     if (jumpBtn) {
-      jumpBtn.innerHTML = `<span>⚙ ${isRust ? 'Horizon Rust' : core.toUpperCase()} · ${ram} GB</span>`;
+      const span = document.createElement('span');
+      span.textContent = `⚙ ${isRust ? 'Horizon Rust' : core.toUpperCase()} · ${ram} GB`;
+      jumpBtn.replaceChildren(span);
     }
 
     const targetSel = document.getElementById('modTargetPackSelect');

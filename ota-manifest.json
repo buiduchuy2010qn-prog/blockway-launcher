@@ -1,31 +1,31 @@
 {
-  "version": "42.2.0",
-  "releasedAt": "2026-11-12T14:41:21.011Z",
-  "notes": "v42.1.0 PRO — Pure Horizon Glass Edition: Xếp toàn bộ mục điều hướng + Hồ sơ lên Thanh Kính Nổi phía trên, đặt danh sách 8 Core Loader sang Cột Kính Mờ bên trái, triệt tiêu ảnh nền Minecraft dư thừa ở Trang chủ & Sân khấu 3D, đồng bộ Kho Mod dạng hàng ngang chuẩn Horizon kèm Sticky Inspector.",
+  "version": "42.2.1",
+  "releasedAt": "2026-11-12T21:43:04.495Z",
+  "notes": "v42.2.1 PRO — Bản vá chuẩn hóa LF OTA SHA-256 & gia cố bảo mật: Chuẩn hóa toàn bộ mã nguồn về LF thuần tránh lệch mã băm giữa Windows/Linux, xác thực SHA-256 + tên miền GitHub trước khi giải nén nâng cấp Nhân Horizon Rust, thay thế innerHTML an toàn bằng DOM textContent, và sửa lỗi đóng gói monorepo xtask/26.3.",
   "files": {
     "package.json": {
-      "sha256": "7e017cc15277e1a4d00b246fcd393c140a94d010c8243c3547ddce0e1cfe8696",
+      "sha256": "20b72c71f023d4ba8006a29440df054391ddc1ba3d46f073572fb8f99e1da57d",
       "size": 2656
     },
     "src/aether-cloud-auth.js": {
-      "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
-      "size": 104
+      "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
+      "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "3903bf31d4cf8094854c6e7e670818547a94f522a907971a8211f064545c2d11",
-      "size": 687863
+      "sha256": "2d461156c219daf12e0018985786f2abdbd33b1b80122127076c87193f04c7c3",
+      "size": 672842
     },
     "src/main.js": {
-      "sha256": "83b6db4eb41330d9aa8e4427475cbeec34e30cf86cf2aff8b516fcfb53d4d0c7",
-      "size": 120326
+      "sha256": "3ca5c10f6e715b48a5b02749c5e325fb7d6e0889974906d8cb96d6ed77064ffc",
+      "size": 117157
     },
     "src/microsoft-auth.js": {
-      "sha256": "fa74a5d2934bcf6e1a10890f3fe001ac2259f2adb9e873610add4b6aacbdf5ce",
-      "size": 75294
+      "sha256": "7df3ec8fd3fab2e80ca80ccaf4e7b7466d7f9de16d23e44c3caa15965555bd7d",
+      "size": 73434
     },
     "src/preload.js": {
-      "sha256": "3f06caa589df0c4499646e8051ce60e40eb6b094992174b5c657f2a7bcbab463",
-      "size": 16286
+      "sha256": "33ef9d18dec91c4cd9efc878abb1204dcca12ce5ef7ef6000ff495bcabff03ef",
+      "size": 16077
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -68,52 +68,52 @@
       "size": 148516
     },
     "src/ui/fonts/OFL-BricolageGrotesque.txt": {
-      "sha256": "b2d8bb11b03bbc5bc27fc8f0bf66934c6628da30df0c681c684854b4fe678162",
-      "size": 4643
+      "sha256": "48de818101d5748210ac37ef4c5e0d725e2e0e9fe523d4ce0023eae508531b71",
+      "size": 4548
     },
     "src/ui/fonts/OFL-Geist.txt": {
-      "sha256": "b575251c79e87131200f86f3ef83a11aa0699a888ef5bba5d8f28f39cc7340c7",
-      "size": 4475
+      "sha256": "c683bfbcc7e087f5d37a54ef628f10387c451a83ddc459b151403a164ac46c90",
+      "size": 4383
     },
     "src/ui/horizon-glass.css": {
       "sha256": "ceb8fb1307ebd3bc8fba41fd4ca0546e78ebf0763089eb93ea25fd572c078a74",
       "size": 58053
     },
     "src/ui/horizon-glass.js": {
-      "sha256": "10cc403d074c5d72967ce5d4f39a25c4f490c9805caedf973cf96167fb5c7312",
-      "size": 24026
+      "sha256": "305fd4fb9b31b164181c86bee48d877ec9a7a393d7833312fa8ae2d665b285a5",
+      "size": 24100
     },
     "src/ui/index.html": {
-      "sha256": "7a1f2c9a2b920bdc7fa3e7682e2cd1a68eaca3f6b37987d9a70270e2dbf4e766",
-      "size": 240462
+      "sha256": "d847bb567b68064dcf5668e9809df1cbb644875a0e7d5f93b5076cecf62b7207",
+      "size": 238138
     },
     "src/ui/installer-eula.txt": {
-      "sha256": "b58a7a3604dcb1f2ade5c99b228d2868e1da70eaa0a92ee7409b1edd2822b82f",
-      "size": 1700
+      "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
+      "size": 1682
     },
     "src/ui/layout-v33.css": {
-      "sha256": "e9e168b34ec11cba52af13a7d241aa2b8e44cf40c03ffb8c6326d5910caf8895",
-      "size": 276748
+      "sha256": "368a3a55f10320a0bd54e44bf7d807abd010e933612245e4ca5a665880ade8fa",
+      "size": 266091
     },
     "src/ui/minecraft-logo.png": {
       "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37",
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "a4ca1973ded3488a2697dc26678d69f17103dd3d5c1ff3bb32ae5081d4445311",
-      "size": 185880
+      "sha256": "b79bcd4247025a5504d32066b9cadcb1d032141b1b8e8d0da89688263501731a",
+      "size": 182084
     },
     "src/ui/skinview3d.bundle.js": {
-      "sha256": "0e7591e4dc81003fcfa20d82873b7c2f78131726430a3e24d6a3bb755c508abe",
-      "size": 479194
+      "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",
+      "size": 477198
     },
     "src/ui/store-features.js": {
-      "sha256": "48c8e05a3563e10a568a453a26960eff87a733820f67f45e0fc9074782a9c810",
-      "size": 530790
+      "sha256": "654873fd9f76c159f0be2452cb3a8e9ec8ec69db0c0c53fb7053a4e0c2f358ac",
+      "size": 520968
     },
     "src/ui/styles.css": {
-      "sha256": "da8a4b0ee9f88da899aa85509f97490de1e551b7528f75da836a04c4e97c5b9c",
-      "size": 124726
+      "sha256": "7b942245d70a9cc56ab3107a4c67ed64da15e619a7d6b0402457148403961048",
+      "size": 118918
     },
     "src/ui/worlds-real/multiplayer.webp": {
       "sha256": "5462a5c8fed55375c8960d3aa12df33bee28a51806a22e750e7276d4987ccf31",
@@ -148,8 +148,8 @@
       "size": 376934
     },
     "src/world-creator.js": {
-      "sha256": "98657456fa8addd09f40140cb44ec05c73f221b3bac08b27b95fde50af7fff9f",
-      "size": 52378
+      "sha256": "c216831663a73387f7c3635ced07d173dcae43572669be92121b32918b958b98",
+      "size": 51112
     }
   }
 }
