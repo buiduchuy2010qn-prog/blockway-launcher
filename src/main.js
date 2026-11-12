@@ -504,12 +504,13 @@ function createWindow() {
     }
   } catch (_) {}
 
-  let savedTheme = 'lunar';
+  let savedTheme = 'horizon';
   let savedUiScale = 1.0;
   try {
     if (fs.existsSync(configPath)) {
       const rawCfg = JSON.parse(fs.readFileSync(configPath, 'utf8'));
       if (rawCfg && typeof rawCfg.theme === 'string') savedTheme = rawCfg.theme;
+      if (rawCfg && !rawCfg.uiV42HorizonGlassMigrated) savedTheme = 'horizon';
       if (rawCfg && Number.isFinite(Number(rawCfg.uiScale)) && Number(rawCfg.uiScale) >= 0.85 && Number(rawCfg.uiScale) <= 1.35) {
         savedUiScale = Number(rawCfg.uiScale);
       }
@@ -517,15 +518,17 @@ function createWindow() {
   } catch (_) {}
   global.__bwUserUiScale = savedUiScale;
   const themeBgMap = {
-    sakura: '#fdf2f7',
+    horizon: '#120d26',
+    sakura: '#f8dfe9',
     prism: '#eef3fa',
+    rust: '#0d0e14',
     mojang: '#101114',
     modrinth: '#0a100d',
     feather: '#07111b',
     cherry: '#13090f',
     lunar: '#0b0d12'
   };
-  const initialBgColor = themeBgMap[savedTheme] || '#0b0d12';
+  const initialBgColor = themeBgMap[savedTheme] || '#120d26';
 
   let workW = 1366;
   let workH = 840;

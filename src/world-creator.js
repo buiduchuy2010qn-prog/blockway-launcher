@@ -742,25 +742,6 @@ async function createQuickWorld({
       }, null, 2));
     } catch (_) {}
 
-    try {
-      const seedStr = seedBig.toString();
-      const matchedSeed = CURATED_SEEDS_VAULT.find((s) => s.seed === seedStr);
-      const previewAssetId = matchedSeed
-        ? matchedSeed.id
-        : ((worldType === 'skyblock' || worldType === 'oneblock') ? 'coral-castaway-island' : '');
-      if (previewAssetId) {
-        const seedsAssetDir = path.join(__dirname, 'ui', 'seeds');
-        const iconSrc = path.join(seedsAssetDir, `${previewAssetId}-icon.png`);
-        const bannerSrc = path.join(seedsAssetDir, `${previewAssetId}.jpg`);
-        if (fs.existsSync(iconSrc) && !fs.existsSync(path.join(worldDir, 'icon.png'))) {
-          fs.copyFileSync(iconSrc, path.join(worldDir, 'icon.png'));
-        }
-        if (fs.existsSync(bannerSrc) && !fs.existsSync(path.join(worldDir, 'blockway-preview.jpg'))) {
-          fs.copyFileSync(bannerSrc, path.join(worldDir, 'blockway-preview.jpg'));
-        }
-      }
-    } catch (_) {}
-
     return { ok: true, folderName, levelName: cleanName, worldType, seed: seedBig.toString(), worldDir };
   } catch (err) {
     return { ok: false, error: err.message || String(err) };
@@ -777,87 +758,87 @@ function savesHasWorlds(gameDirectory) {
   }
 }
 
-/* ==================== v40.7 PRO: CURATED SEED VAULT & WORLD NBT RESCUE ==================== */
+/* ==================== v42.0 PRO: REAL IN-GAME SCREENSHOT SEED VAULT & WORLD NBT RESCUE ==================== */
 const CURATED_SEEDS_VAULT = [
   {
-    id: 'cherry-ring-mountain',
-    title: '🌸 Thung Lũng Anh Đào Ôm Trọn Hồ Núi Tuyết',
+    id: 'valley-river-village',
+    title: '🏞️ Thung Lũng Làng Ven Sông & Đồi Rừng Xanh',
     seed: '1691256543523180978',
     category: 'scenic',
-    badge: 'Đẹp Nhất Xây Nhà',
+    badge: 'Ảnh Chụp In-Game Thật',
     coordsHint: 'Spawn gần X: 120, Z: 80',
-    previewImage: 'seeds/cherry-ring-mountain.jpg',
-    description: 'Vòng núi tuyết hùng vĩ khép kín bao quanh thung lũng hoa anh đào hồng rực, hồ nước trong vắt ở giữa và ngôi làng bình yên sát bên.'
+    previewImage: 'worlds-real/valley.webp',
+    description: 'Thung lũng sông uốn lượn bao quanh ngôi làng yên bình dưới chân đồi rừng xanh mướt, địa hình bằng phẳng lý tưởng để xây căn cứ.'
   },
   {
-    id: 'mushroom-safe-island',
-    title: '🍄 Quần Đảo Nấm Khổng Lồ (100% Không Quái Ban Đêm)',
+    id: 'savanna-sunset-village',
+    title: '🌅 Làng Thảo Nguyên Hoàng Hôn Bên Bờ Sông',
     seed: '-4270204629242599305',
     category: 'survival',
-    badge: 'An Toàn Tuyệt Đối',
-    coordsHint: 'Xuất hiện ngay trên Đảo Nấm',
-    previewImage: 'seeds/mushroom-safe-island.jpg',
-    description: 'Đảo Nấm rộng lớn nằm giữa đại dương ngay điểm xuất hiện — ban đêm không bao giờ tự sinh Zombie/Creeper, lý tưởng để xây đại căn cứ.'
+    badge: 'Khởi Đầu Êm Đềm',
+    coordsHint: 'Xuất hiện cạnh làng (X: 32, Z: -40)',
+    previewImage: 'worlds-real/sunset.jpg',
+    description: 'Ngôi làng thảo nguyên nằm trên sườn đồi thoai thoải sát dòng sông lớn, sẵn ruộng lúa và nhà dân làng ngay từ ngày đầu tiên.'
   },
   {
-    id: 'mansion-village-ancient',
-    title: '🏰 Biệt Thự Rừng + Làng Cổ + Thành Cổ Ngầm Sát Nhau',
+    id: 'acacia-plateau-village',
+    title: '🏡 Cao Nguyên Làng Acacia & Golem Bảo Vệ',
     seed: '5706378859201728440',
     category: 'adventure',
-    badge: 'Siêu Hiếm 3-Trong-1',
+    badge: 'An Toàn Xây Căn Cứ',
     coordsHint: 'Ngay sát điểm xuất hiện (X: 60, Z: 90)',
-    previewImage: 'seeds/mansion-village-ancient.jpg',
-    description: 'Vừa vào thế giới đã đứng trước tòa Biệt thự Woodland Mansion khổng lồ ghép liền với ngôi làng dân làng và thành cổ Ancient City sâu bên dưới.'
+    previewImage: 'worlds-real/village.jpg',
+    description: 'Quần thể làng rộng lớn trên cao nguyên thoáng đãng, có sẵn Iron Golem tuần tra, lò nung và hẻm núi khoáng sản ngay kế bên.'
   },
   {
-    id: 'coral-castaway-island',
-    title: '🏝️ Đảo Hoang San Hô Rực Rỡ & Kho Báu Tàu Đắm',
+    id: 'coral-reef-ocean',
+    title: '🐠 Vịnh San Hô Đại Dương Ấm & Kho Báu Biển',
     seed: '-3420545464665791887',
     category: 'island',
-    badge: 'Sinh Tồn Đảo Hoang',
-    coordsHint: 'Đảo chính tại X: 0, Z: 0',
-    previewImage: 'seeds/coral-castaway-island.jpg',
-    description: 'Thử thách sinh tồn trên hòn đảo nhỏ giữa vùng biển ấm rực rỡ san hô phát sáng ban đêm, bao quanh bởi xác tàu đắm và phế tích biển.'
+    badge: 'Sinh Tồn Biển Ấm',
+    coordsHint: 'Vịnh san hô tại X: 0, Z: 0',
+    previewImage: 'worlds-real/underwater.jpg',
+    description: 'Vùng biển ấm rực rỡ rạn san hô đa sắc màu cùng đàn cá nhiệt đới, bao quanh bởi xác tàu đắm và di tích đại dương cổ.'
   },
   {
-    id: 'ice-spikes-frozen-kingdom',
-    title: '❄️ Vương Quốc Gai Băng Cổ Đại & Làng Tuyết',
-    seed: '-7253978062019363248',
-    category: 'scenic',
-    badge: 'Cảnh Quan Kỳ Vĩ',
-    coordsHint: 'Gai băng tại X: -150, Z: 120',
-    previewImage: 'seeds/ice-spikes-frozen-kingdom.jpg',
-    description: 'Hàng trăm cột băng xanh cao vút nối liền rặng núi tuyết trắng xóa, có sẵn làng tuyết Igloo và cổng địa ngục cổ ngay gần điểm xuất hiện.'
-  },
-  {
-    id: 'badlands-gold-oasis',
-    title: '🏜️ Ốc Đảo Hẻm Núi Đỏ Giàu Vàng & Đền Sa Mạc',
-    seed: '8678942899319966093',
-    category: 'adventure',
-    badge: 'Giàu Tài Nguyên',
-    coordsHint: 'Ốc đảo tại X: 40, Z: -60',
-    previewImage: 'seeds/badlands-gold-oasis.jpg',
-    description: 'Sự giao thoa tuyệt đẹp giữa hồ nước xanh, làng sa mạc, Kim tự tháp chứa kho báu và dãy núi đất nung Badlands lộ thiên đầy mỏ vàng.'
-  },
-  {
-    id: 'speedrun-bastion-fortress',
-    title: '⚡ Hạt Giống Phá Đảo Thần Tốc (Làng Rèn + Pháo Đài Gần)',
+    id: 'crimson-nether-speedrun',
+    title: '🔥 Rừng Đỏ Crimson & Hồ Lava Phá Đảo Nhanh',
     seed: '-4530634556500121041',
     category: 'speedrun',
     badge: 'Speedrun Chuẩn',
-    coordsHint: 'Làng & Hồ Lava ngay cạnh Spawn',
-    previewImage: 'seeds/speedrun-bastion-fortress.jpg',
-    description: 'Có sẵn làng thợ rèn lấy sắt/đồ ăn và hồ dung nham dựng cổng Nether mở thẳng ra khu vực sát Pháo đài Nether Fortress và Bastion.'
+    coordsHint: 'Cổng Nether dẫn thẳng rừng Crimson',
+    previewImage: 'worlds-real/nether.jpg',
+    description: 'Hồ dung nham gần Spawn mở cổng thẳng vào rừng đỏ Crimson Forest giàu vàng và Piglin trao đổi Ender Pearl tốc độ cao.'
   },
   {
-    id: 'lush-cave-ancient-taiga',
-    title: '🌲 Rừng Tùng Cổ Thụ & Đại Hang Động Rêu Phát Sáng',
+    id: 'classic-survival-plains',
+    title: '⚔️ Thảo Nguyên Sinh Tồn Cổ Điển & Đêm Thử Thách',
+    seed: '8678942899319966093',
+    category: 'survival',
+    badge: 'Sinh Tồn Chuẩn',
+    coordsHint: 'Thung lũng tại X: 40, Z: -60',
+    previewImage: 'worlds-real/survival.jpg',
+    description: 'Địa hình thung lũng cỏ xanh xen kẽ sườn đồi thoáng rộng, cân bằng tài nguyên gỗ, đá, quặng sắt cho hành trình sinh tồn dài lâu.'
+  },
+  {
+    id: 'starry-night-hardcore',
+    title: '🌌 Bầu Trời Đêm Thảo Nguyên & Hành Trình Hardcore',
+    seed: '-7253978062019363248',
+    category: 'scenic',
+    badge: 'Thử Thách Hardcore',
+    coordsHint: 'Đồng bằng mở tại X: -120, Z: 95',
+    previewImage: 'worlds-real/night.jpg',
+    description: 'Tầm nhìn chân trời rộng mở dưới bầu trời đêm đầy sao, thích hợp cho thử thách 100 Ngày Hardcore hoặc xây dựng công trình lớn.'
+  },
+  {
+    id: 'coop-meadow-spawn',
+    title: '🤝 Đồng Cỏ Tổ Đội Chơi Chung Nhiều Người',
     seed: '7092092118958763650',
     category: 'scenic',
-    badge: 'Hang Động Tuyệt Đẹp',
-    coordsHint: 'Cửa hang lớn tại X: -80, Z: 40',
-    previewImage: 'seeds/lush-cave-ancient-taiga.jpg',
-    description: 'Rừng thông khổng lồ phủ rêu phong bên trên một quần thể hang động Lush Caves rực sáng quả mọng phát quang và cá kỳ nhông Axolotl.'
+    badge: 'Tối Ưu Co-op / LAN',
+    coordsHint: 'Bãi cỏ trung tâm tại X: -40, Z: 24',
+    previewImage: 'worlds-real/multiplayer.webp',
+    description: 'Khu vực xuất hiện rộng rãi cạnh rừng cây và sông nước, rất thuận tiện để cả nhóm bạn bè cùng chia đất xây thị trấn chung.'
   }
 ];
 

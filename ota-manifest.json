@@ -1,31 +1,31 @@
 {
-  "version": "41.8.1",
-  "releasedAt": "2026-11-12T06:53:38.273Z",
-  "notes": "v41.8.1 PRO — Kiểm thử trực quan & đồng bộ toàn diện 9 phân hệ: sửa hiển thị icon nút Sakura, chống tràn thanh công cụ Modpack/Co-op, icon SVG gốc cho 5 tiện ích Rust không phụ thuộc CDN, chống cắt nhãn thẻ Mod & hoàn thiện GitHub Release CI.",
+  "version": "42.2.0",
+  "releasedAt": "2026-11-12T14:41:21.011Z",
+  "notes": "v42.1.0 PRO — Pure Horizon Glass Edition: Xếp toàn bộ mục điều hướng + Hồ sơ lên Thanh Kính Nổi phía trên, đặt danh sách 8 Core Loader sang Cột Kính Mờ bên trái, triệt tiêu ảnh nền Minecraft dư thừa ở Trang chủ & Sân khấu 3D, đồng bộ Kho Mod dạng hàng ngang chuẩn Horizon kèm Sticky Inspector.",
   "files": {
     "package.json": {
-      "sha256": "9669d49293b166d3fb46b1264f38f81c4be53f78469722ea0db79d1b1fd0bd31",
-      "size": 2602
+      "sha256": "7e017cc15277e1a4d00b246fcd393c140a94d010c8243c3547ddce0e1cfe8696",
+      "size": 2656
     },
     "src/aether-cloud-auth.js": {
-      "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
-      "size": 100
+      "sha256": "d64b9e330c5e64c9fb9807f146d7f0ab2f44a32fe69b06492b3d4addc018fbe3",
+      "size": 104
     },
     "src/launcher-engine.js": {
-      "sha256": "6db73915506f52558f1e1c92ba30237eed237dd0c6d11240073fe74ca83d7ff8",
-      "size": 658143
+      "sha256": "3903bf31d4cf8094854c6e7e670818547a94f522a907971a8211f064545c2d11",
+      "size": 687863
     },
     "src/main.js": {
-      "sha256": "d387d8d8949227c24946ab136b3e1fc81833efde1cbcc47da78d47b021557752",
-      "size": 117031
+      "sha256": "83b6db4eb41330d9aa8e4427475cbeec34e30cf86cf2aff8b516fcfb53d4d0c7",
+      "size": 120326
     },
     "src/microsoft-auth.js": {
-      "sha256": "7df3ec8fd3fab2e80ca80ccaf4e7b7466d7f9de16d23e44c3caa15965555bd7d",
-      "size": 73434
+      "sha256": "fa74a5d2934bcf6e1a10890f3fe001ac2259f2adb9e873610add4b6aacbdf5ce",
+      "size": 75294
     },
     "src/preload.js": {
-      "sha256": "33ef9d18dec91c4cd9efc878abb1204dcca12ce5ef7ef6000ff495bcabff03ef",
-      "size": 16077
+      "sha256": "3f06caa589df0c4499646e8051ce60e40eb6b094992174b5c657f2a7bcbab463",
+      "size": 16286
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -43,105 +43,113 @@
       "sha256": "bf2f0563bb0c181565cc558bb8225240b768b9d1045f2ddf9e47c594af71c087",
       "size": 703070
     },
+    "src/ui/fonts/BricolageGrotesque-SemiBold.ttf": {
+      "sha256": "097a80a91f8d2a4c3e2db8008432847bf7de18328669298e8802282d8b1f163c",
+      "size": 100912
+    },
+    "src/ui/fonts/BricolageGrotesqueDisplay-Bold.ttf": {
+      "sha256": "47cc8b4f3d78e9577fbf9b2cba31c03d8b74ddbf308faf236a2d2bc134c2660c",
+      "size": 100836
+    },
+    "src/ui/fonts/Geist-Medium.ttf": {
+      "sha256": "0090e004725f6f64b841715b4167920580f883fcf9b67fc6d744089103fec101",
+      "size": 127660
+    },
+    "src/ui/fonts/Geist-Regular.ttf": {
+      "sha256": "5c8968eafb98a4c4f47033daf29e38e284a6f2a82eb017d171ab040fe7c4b615",
+      "size": 126048
+    },
+    "src/ui/fonts/Geist-SemiBold.ttf": {
+      "sha256": "612ec98df33935354f39e81e54101656961ab6e5549f64b63eb57868ba7bab8d",
+      "size": 127872
+    },
+    "src/ui/fonts/GeistMono-Regular.ttf": {
+      "sha256": "42d8ad2e610238e64e8abfcde3037c63f7850a73928742b7ab7229d897bcb155",
+      "size": 148516
+    },
+    "src/ui/fonts/OFL-BricolageGrotesque.txt": {
+      "sha256": "b2d8bb11b03bbc5bc27fc8f0bf66934c6628da30df0c681c684854b4fe678162",
+      "size": 4643
+    },
+    "src/ui/fonts/OFL-Geist.txt": {
+      "sha256": "b575251c79e87131200f86f3ef83a11aa0699a888ef5bba5d8f28f39cc7340c7",
+      "size": 4475
+    },
+    "src/ui/horizon-glass.css": {
+      "sha256": "ceb8fb1307ebd3bc8fba41fd4ca0546e78ebf0763089eb93ea25fd572c078a74",
+      "size": 58053
+    },
+    "src/ui/horizon-glass.js": {
+      "sha256": "10cc403d074c5d72967ce5d4f39a25c4f490c9805caedf973cf96167fb5c7312",
+      "size": 24026
+    },
     "src/ui/index.html": {
-      "sha256": "54997b2bd2f417ce58cae23d2c0f6552d92deea421e79c01b4ab405a44d18cb9",
-      "size": 240886
+      "sha256": "7a1f2c9a2b920bdc7fa3e7682e2cd1a68eaca3f6b37987d9a70270e2dbf4e766",
+      "size": 240462
     },
     "src/ui/installer-eula.txt": {
-      "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
-      "size": 1682
+      "sha256": "b58a7a3604dcb1f2ade5c99b228d2868e1da70eaa0a92ee7409b1edd2822b82f",
+      "size": 1700
     },
     "src/ui/layout-v33.css": {
-      "sha256": "368a3a55f10320a0bd54e44bf7d807abd010e933612245e4ca5a665880ade8fa",
-      "size": 266091
+      "sha256": "e9e168b34ec11cba52af13a7d241aa2b8e44cf40c03ffb8c6326d5910caf8895",
+      "size": 276748
     },
     "src/ui/minecraft-logo.png": {
       "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37",
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "5068c614f22c0ae3ea65d5014eff64b3aa49a0dc9cab64cba7965ee48f9602df",
-      "size": 181396
-    },
-    "src/ui/seeds/badlands-gold-oasis-icon.png": {
-      "sha256": "86e4da30e57f18e9fae9624206b8cdf7a3c7f652f5a46e5d7fa9fc0fd80363df",
-      "size": 13491
-    },
-    "src/ui/seeds/badlands-gold-oasis.jpg": {
-      "sha256": "9d6c49bc55cb44b1558eb2fa955912b3c3171c5c0934040f63b9c63675a2192c",
-      "size": 68466
-    },
-    "src/ui/seeds/cherry-ring-mountain-icon.png": {
-      "sha256": "8c07667c72aa440edab3219d3ed5d228328ac98080467352b0435b6a7fa8b342",
-      "size": 13696
-    },
-    "src/ui/seeds/cherry-ring-mountain.jpg": {
-      "sha256": "0ebcd50ab7bc7e8cde5b039305387eb5425dbe756190862cbb481bd0c3fd7ef8",
-      "size": 92726
-    },
-    "src/ui/seeds/coral-castaway-island-icon.png": {
-      "sha256": "7b6cab8d3775c259d1907185eb4d59bb0ebcf354ba2dc2761cdc48ab2ab4de45",
-      "size": 13520
-    },
-    "src/ui/seeds/coral-castaway-island.jpg": {
-      "sha256": "1586a11c07b90ea4697a01a7e48f54e86b4bdffc8370dafa999b90b572a88b44",
-      "size": 78999
-    },
-    "src/ui/seeds/ice-spikes-frozen-kingdom-icon.png": {
-      "sha256": "e48e180561c1e613ed37bc2f16f980c24e68c80a45fa881d4e81d805a1e91676",
-      "size": 12866
-    },
-    "src/ui/seeds/ice-spikes-frozen-kingdom.jpg": {
-      "sha256": "145846d66d7f0d4944aa6e4484e478f419cb55f36c83a88e83431b9e399bcafb",
-      "size": 65663
-    },
-    "src/ui/seeds/lush-cave-ancient-taiga-icon.png": {
-      "sha256": "50eb170f00e3df9407f9edd0583b07ff343dee7e690dbe2e919f4a2572144ccf",
-      "size": 11544
-    },
-    "src/ui/seeds/lush-cave-ancient-taiga.jpg": {
-      "sha256": "b0b98d5ca192ef32065cd0fd8151555b9c45dd0359d3fd6cef81d4c65d46ef87",
-      "size": 52750
-    },
-    "src/ui/seeds/mansion-village-ancient-icon.png": {
-      "sha256": "ce25b32b83e487f9fad905aa7d5da9ec20cfacde6cabf0b339c228e87360282b",
-      "size": 10399
-    },
-    "src/ui/seeds/mansion-village-ancient.jpg": {
-      "sha256": "958178cf220e414cb3dc4704a9bde48e85a6a5c063facde72da32d7aece336c3",
-      "size": 44315
-    },
-    "src/ui/seeds/mushroom-safe-island-icon.png": {
-      "sha256": "6b1f73cf1511c56ceb8a5597935e883b630203debe339851b2cd7e889f3e8fd9",
-      "size": 13526
-    },
-    "src/ui/seeds/mushroom-safe-island.jpg": {
-      "sha256": "50aa99d86b2f8782396bd49683b9416ab379823a7dc7ccce7c3b7ae8a3b518a5",
-      "size": 66336
-    },
-    "src/ui/seeds/speedrun-bastion-fortress-icon.png": {
-      "sha256": "82cdb456a39acb5c4059bc834ae82f171f6b2b5029c6613b39af186be60711cb",
-      "size": 13073
-    },
-    "src/ui/seeds/speedrun-bastion-fortress.jpg": {
-      "sha256": "7a1edf063b183583ff2212b2c2142da2530fadd52c58c73d9a96e111f57e925e",
-      "size": 66535
+      "sha256": "a4ca1973ded3488a2697dc26678d69f17103dd3d5c1ff3bb32ae5081d4445311",
+      "size": 185880
     },
     "src/ui/skinview3d.bundle.js": {
-      "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",
-      "size": 477198
+      "sha256": "0e7591e4dc81003fcfa20d82873b7c2f78131726430a3e24d6a3bb755c508abe",
+      "size": 479194
     },
     "src/ui/store-features.js": {
-      "sha256": "552edfd7b304de1fc749522f9e63a18f804d3626cb98205596b641456858fb4a",
-      "size": 520087
+      "sha256": "48c8e05a3563e10a568a453a26960eff87a733820f67f45e0fc9074782a9c810",
+      "size": 530790
     },
     "src/ui/styles.css": {
-      "sha256": "7b942245d70a9cc56ab3107a4c67ed64da15e619a7d6b0402457148403961048",
-      "size": 118918
+      "sha256": "da8a4b0ee9f88da899aa85509f97490de1e551b7528f75da836a04c4e97c5b9c",
+      "size": 124726
+    },
+    "src/ui/worlds-real/multiplayer.webp": {
+      "sha256": "5462a5c8fed55375c8960d3aa12df33bee28a51806a22e750e7276d4987ccf31",
+      "size": 124634
+    },
+    "src/ui/worlds-real/nether.jpg": {
+      "sha256": "5301722fc490ad8ab98349c53a873e0f0ce328cc661ac4c8ff02605215eed82e",
+      "size": 275418
+    },
+    "src/ui/worlds-real/night.jpg": {
+      "sha256": "3dccba14ec7dc18b2300d1ae87bacedbee11e662d7ca43e7baddb6fbd4877611",
+      "size": 113097
+    },
+    "src/ui/worlds-real/sunset.jpg": {
+      "sha256": "dfa342a9d55658e79eb6b669b00eb065f81bf2b37b4604c7cc88af92823d5406",
+      "size": 195577
+    },
+    "src/ui/worlds-real/survival.jpg": {
+      "sha256": "5ba973eda8fe205a0900d25d5c4ab408d95d39394c00784583cc35e56fc2c6af",
+      "size": 175810
+    },
+    "src/ui/worlds-real/underwater.jpg": {
+      "sha256": "12a172d825b2cfe92e2addfeb846a0feacea2e44569b470bac22d0a951548e34",
+      "size": 195128
+    },
+    "src/ui/worlds-real/valley.webp": {
+      "sha256": "369d533ffcd0ef95bccd28aff95e9791d8e382e12d1f2504394c6ca56d3f8d5a",
+      "size": 127240
+    },
+    "src/ui/worlds-real/village.jpg": {
+      "sha256": "dc8fdd1cb35da630f9f51d088735e9934dc5be79add272b4af875a6316b8e6e8",
+      "size": 376934
     },
     "src/world-creator.js": {
-      "sha256": "6a860e3a241fee8f9440c2f68783e693a0597d0922bcc2535b6c21a5e8f0fc06",
-      "size": 52248
+      "sha256": "98657456fa8addd09f40140cb44ec05c73f221b3bac08b27b95fde50af7fff9f",
+      "size": 52378
     }
   }
 }

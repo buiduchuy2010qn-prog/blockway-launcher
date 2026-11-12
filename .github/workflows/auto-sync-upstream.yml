@@ -1,0 +1,56 @@
+name: Auto-Sync & Upgrade Rust Core from Upstream
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  sync-upstream:
+    name: Sync Upstream Horizon Rust into rust-engine/
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main branch with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install system headers for Linux check
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libasound2-dev libudev-dev
+
+      - name: Install Rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo registry
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust-engine
+          shared-key: blockway-rust-sync-check
+
+      - name: Merge upstream improvements into rust-engine/ and verify compilation
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "BlockWay Rust Auto-Upgrader"
+          git config user.email "actions@users.noreply.github.com"
+          BEFORE_SHA="$(git rev-parse HEAD)"
+          git subtree pull --prefix=rust-engine https://github.com/horizon-rust/horizon.git main --squash -m "chore(rust-engine): sync upstream horizon-rust improvements" || {
+            git merge --abort || true
+            git reset --hard "$BEFORE_SHA"
+            echo "Upstream divergence requires manual review; keeping stable BlockWay Rust Core."
+            exit 0
+          }
+          AFTER_SHA="$(git rev-parse HEAD)"
+          if [[ "$BEFORE_SHA" == "$AFTER_SHA" ]]; then
+            echo "Already up to date with upstream."
+            exit 0
+          fi
+          (cd rust-engine && cargo check --locked -p horizon-official -p horizon-client)
+          git push origin main
+          gh workflow run build-rust-core.yml

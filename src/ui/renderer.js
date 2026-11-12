@@ -43,7 +43,7 @@ const DEFAULT_FEATURED_SERVERS = [
 ];
 
 const state = {
-  theme: 'lunar', authMode: 'crack', username: 'StevePlayer',
+  theme: 'horizon', uiV42HorizonGlassMigrated: false, authMode: 'crack', username: 'StevePlayer',
   savedAccounts: ['StevePlayer', 'Dream', 'Technoblade'],
   crackSkinSync: true, msProfile: null, cloudProfile: null, customDbUrl: '', selectedVersion: '1.21.4',
   versionFilter: 'release', selectedCore: 'fabric', selectedLoaderVersion: '',
@@ -237,6 +237,7 @@ window.applyUiCustomizationToDOM = applyUiCustomizationToDOM;
     const snap = JSON.parse(raw);
     if (!snap || typeof snap !== 'object') return;
     Object.assign(state, snap);
+    if (!snap.uiV42HorizonGlassMigrated) state.theme = 'horizon';
     if (state.selectedCore === 'blockway-rust') state.selectedCore = 'horizon';
     state.activeLaunchContext = null;
     state.isLaunching = false;
@@ -504,7 +505,7 @@ function setPose(poseName) {
 }
 
 function setTheme(themeId) {
-  state.theme = themeId || 'lunar';
+  state.theme = themeId || 'horizon';
   applyUiCustomizationToDOM();
   saveCurrentConfig();
 }
@@ -585,7 +586,7 @@ function updateSystemTelemetryUI(info) {
 
 function switchMainTab(tabId) {
   const targetTab = tabId || 'home';
-  document.querySelectorAll('.sidebar-nav .nav-item').forEach((n) => {
+  document.querySelectorAll('.nav-item[data-tab]').forEach((n) => {
     n.classList.toggle('active', n.dataset.tab === targetTab);
   });
   document.querySelectorAll('.main-stage > .tab-panel').forEach((p) => {
@@ -1065,6 +1066,7 @@ function saveCurrentConfig() {
         uiSidebarMode: state.uiSidebarMode || 'full',
         uiCornerMode: state.uiCornerMode || 'normal',
         customWallpaper: state.customWallpaper || '',
+        uiV42HorizonGlassMigrated: Boolean(state.uiV42HorizonGlassMigrated),
         playtimeTotalSec: Number(state.playtimeStats?.totalSeconds) || 0,
         installedVersions: Array.isArray(state.installedVersions) ? state.installedVersions.slice(0, 40) : []
       }));
@@ -1089,6 +1091,7 @@ function saveCurrentConfig() {
       deepSmoothLayers: Array.isArray(state.deepSmoothLayers) ? state.deepSmoothLayers : null,
       autoCreateFirstWorld: state.autoCreateFirstWorld !== false,
       uiV33ThemeMigrated: Boolean(state.uiV33ThemeMigrated),
+      uiV42HorizonGlassMigrated: Boolean(state.uiV42HorizonGlassMigrated),
       customWallpaper: state.customWallpaper || '',
       customWpLabel: state.customWpLabel || '',
       skinCloset: Array.isArray(state.skinCloset) ? state.skinCloset.slice(0, 12) : [],
@@ -1645,7 +1648,11 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (saved) {
     Object.assign(state, saved);
     if (state.selectedCore === 'blockway-rust') state.selectedCore = 'horizon';
-    if (!saved.uiV33ThemeMigrated) state.theme = 'lunar';
+    if (!saved.uiV33ThemeMigrated) state.theme = 'horizon';
+    if (!saved.uiV42HorizonGlassMigrated) {
+      state.theme = 'horizon';
+      state.uiV42HorizonGlassMigrated = true;
+    }
     state.uiV33ThemeMigrated = true;
     if (!Array.isArray(state.savedAccounts) || !state.savedAccounts.length) state.savedAccounts = [state.username || 'StevePlayer'];
     if (state.msProfile && state.msProfile.isOfficialLicense === false) {
@@ -1668,7 +1675,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const crackSkinHydrate = document.getElementById('crackSkinSyncToggle');
   if (crackSkinHydrate) crackSkinHydrate.checked = state.crackSkinSync !== false;
 
-  setTheme(state.theme || 'lunar');
+  setTheme(state.theme || 'horizon');
   applyUiScaleToUI(state.uiScale || 1.0, false);
   syncBoosterCheckboxes();
   syncAutoBackupAndDiscordUI();
@@ -1811,7 +1818,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const btnResetUiStudio = document.getElementById('btnResetUiStudioDefaults');
   if (btnResetUiStudio) {
     btnResetUiStudio.onclick = () => {
-      state.theme = 'lunar';
+      state.theme = 'horizon';
       state.accentColor = '';
       state.uiDensity = 'normal';
       state.uiSidebarMode = 'full';
@@ -1832,7 +1839,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       }, 80);
     };
   }
-  document.querySelectorAll('.sidebar-nav .nav-item').forEach((nav) => {
+  document.querySelectorAll('.nav-item[data-tab]').forEach((nav) => {
     nav.onclick = () => switchMainTab(nav.dataset.tab);
   });
 
@@ -2045,7 +2052,12 @@ window.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     const rect = sbProf.getBoundingClientRect();
-    sbPopover.style.left = `${Math.max(10, Math.round(rect.left))}px`;
+    const popW = Math.min(340, Math.max(296, sbPopover.offsetWidth || 320));
+    const maxLeft = Math.max(12, (window.innerWidth || 1280) - popW - 14);
+    const preferredLeft = rect.left > (window.innerWidth || 1280) * 0.45
+      ? Math.round(rect.right - popW)
+      : Math.round(rect.left);
+    sbPopover.style.left = `${Math.max(12, Math.min(maxLeft, preferredLeft))}px`;
     sbPopover.style.top = `${Math.round(rect.bottom + 8)}px`;
     renderSidebarProfilePopover();
     sbPopover.classList.remove('hidden');

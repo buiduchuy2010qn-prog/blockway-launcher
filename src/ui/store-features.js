@@ -1636,7 +1636,7 @@ async function loadModrinthStore(append = false) {
     const extraBtnAttrs = `${(isProbePending || isBuiltinLocked) ? 'disabled' : ''} ${isProbePending ? 'data-hzprobe="1"' : ''} data-fallbackver="${escapeHtml(fallbackJavaVer)}" data-fallbackcore="${escapeHtml(fallbackJavaLoaderKey)}"`;
     return `<div class="mod-card" data-modslug="${safeSlug}">
       <div class="mod-card-top">
-        <img class="mod-icon" src="${safeIconUrl}" alt="" />
+        <img class="mod-icon" src="${safeIconUrl}" alt="" loading="lazy" decoding="async" />
         <div class="mod-head-info">
           <div class="mod-title" title="${safeTitle}">${safeTitle}</div>
           <div class="mod-meta">bởi <strong>${safeAuthor}</strong> • ${dl}</div>
@@ -1661,6 +1661,8 @@ async function loadModrinthStore(append = false) {
     : '';
 
   grid.innerHTML = cardsHtml + loadMoreHtml;
+  window.__bwVisibleModHits = visibleHits;
+  window.dispatchEvent(new CustomEvent('bw:mods-rendered'));
 
   // Background pre-install verification queue for Horizon Rust candidate cards (horizon-port-jar real inspection!)
   if (isHorizonRustModStore && typeof window.aetherAPI?.checkModrinthForHorizon === 'function') {
@@ -1722,6 +1724,7 @@ async function loadModrinthStore(append = false) {
                 b.title = `Mod này thuần mã Java, không chạy trên Nhân Rust — Bấm để chuyển sang ${fbVer} (${fbCoreLabel.toUpperCase()}) và cài đặt`;
               }
             }
+            window.dispatchEvent(new CustomEvent('bw:mod-card-updated', { detail: { slug: slugVal } }));
           } catch (_) {
             if (!b.isConnected) continue;
             if (!state.modAllVersions && !query) {
@@ -2399,52 +2402,54 @@ window.quickLaunchWorld = quickLaunchWorld;
 function renderHomeRecentWorlds(worlds = []) {
   const homeGrid = document.getElementById('homeRecentWorldsGrid');
   if (!homeGrid) return;
-  const recentSlice = worlds.slice(0, 3);
-  const createCardHtml = `
-    <button class="hw-create-card" id="btnHomeCreateWorldCard" title="Vào game tạo thế giới mới">
-      <div class="hw-create-plus">+</div>
-      <div class="hw-create-label">Tạo thế giới mới</div>
-      <div class="hw-create-sub">Bắt đầu hành trình</div>
-    </button>
-  `;
-  const worldCards = recentSlice.map((w, idx) => {
-    const thumbUrl = (w.iconDataUrl && /^data:image\//i.test(String(w.iconDataUrl))) ? w.iconDataUrl : 'app-banner-hero.png';
+  const recentSlice = worlds.slice(0, 4);
+  const worldRows = recentSlice.map((w, idx) => {
+    const hasRealIcon = Boolean(w.iconDataUrl && /^data:image\//i.test(String(w.iconDataUrl)));
     const safePath = escapeHtml(w.path);
     const safeName = escapeHtml(w.name);
     const safePlayed = escapeHtml(w.lastPlayed || 'Mới tạo');
     const verPart = w.version ? `MC ${escapeHtml(w.version)}` : 'Chơi đơn';
-    const modePart = w.gameMode ? ` • ${escapeHtml(w.gameMode)}` : '';
+    const modePart = w.gameMode ? ` · ${escapeHtml(w.gameMode)}` : '';
     const verBadgeText = `${verPart}${modePart}`;
     const subLabel = w.instanceName
-      ? `📦 ${escapeHtml(w.instanceName)} • ${safePlayed}`
-      : `Chơi gần nhất: ${safePlayed}`;
+      ? `${verBadgeText} · Gói ${escapeHtml(w.instanceName)} · ${safePlayed}`
+      : `${verBadgeText} · ${safePlayed}`;
+    const iconBoxHtml = hasRealIcon
+      ? `<img class="hw-row-icon" src="${escapeHtml(w.iconDataUrl)}" alt="" loading="lazy" />`
+      : `<div class="hw-row-glyph" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>`;
     return `
-      <div class="hw-world-card" data-worldpath="${safePath}" data-hwidx="${idx}" title="⚡ Bấm để vào thẳng thế giới: ${safeName} (${verBadgeText}${w.instanceName ? ` — Gói ${escapeHtml(w.instanceName)}` : ''} — ${safePlayed})">
-        <div class="hw-world-thumb" style="background-image:url('${thumbUrl}')">
-          <span class="hw-world-ver-tag">${verBadgeText}</span>
-          <span class="hw-world-play-overlay">▶ Vào thẳng Map</span>
+      <div class="hw-world-card hw-world-row" data-worldpath="${safePath}" data-hwidx="${idx}" title="⚡ Bấm để vào thẳng thế giới: ${safeName} (${subLabel})">
+        ${iconBoxHtml}
+        <div class="hw-world-info">
+          <div class="hw-world-title">${safeName}</div>
+          <div class="hw-world-sub">${subLabel}</div>
         </div>
-        <div class="hw-world-body">
-          <div class="hw-world-info">
-            <div class="hw-world-title">${safeName}</div>
-            <div class="hw-world-sub">${subLabel}</div>
-          </div>
-          <button class="hw-world-menu-btn" data-openworld="${safePath}" title="Mở thư mục thế giới này trong Explorer">⋮</button>
+        <div class="hw-row-actions">
+          <span class="hw-row-play-pill">▷ Vào map</span>
+          <button type="button" class="hw-world-menu-btn" data-openworld="${safePath}" title="Mở thư mục thế giới này trong Explorer">⋮</button>
         </div>
       </div>
     `;
   });
 
-  if (worldCards.length === 0) {
-    worldCards.push(`
+  const createRowHtml = `
+    <button type="button" class="hw-create-card hw-create-row" id="btnHomeCreateWorldCard" title="Khởi chạy game để tạo thế giới mới">
+      <span class="hw-create-plus">+</span>
+      <span class="hw-create-label">Tạo thế giới mới trong game</span>
+      <span class="hw-create-sub">Khởi chạy nhanh ›</span>
+    </button>
+  `;
+
+  if (worldRows.length === 0) {
+    worldRows.push(`
       <div class="hw-world-empty-notice">
         <strong>Chưa có thế giới chơi đơn nào</strong>
-        <span>Các thế giới bạn tạo trong game sẽ tự động hiển thị tại đây — bấm trực tiếp vào thẻ thế giới để vào thẳng Map 1-Click!</span>
+        <span>Thế giới bạn tạo trong game sẽ tự động hiện tại đây để vào thẳng 1-Click.</span>
       </div>
     `);
   }
 
-  homeGrid.innerHTML = createCardHtml + worldCards.join('');
+  homeGrid.innerHTML = worldRows.join('') + createRowHtml;
 
   const btnCreate = document.getElementById('btnHomeCreateWorldCard');
   if (btnCreate) {
@@ -3746,14 +3751,14 @@ function openQuickWorldModal(inst = null, prefillSeed = '', prefillName = '') {
       <label class="qw-label">Seed <span class="qw-sub">(để trống = ngẫu nhiên, hoặc bấm chọn nhanh Hạt giống có sẵn ảnh bản đồ bên dưới)</span></label>
       <input type="text" id="qwSeed" class="pro-input" maxlength="64" spellcheck="false" value="${escapeHtml(prefillSeed || '')}" placeholder="VD: 1691256543523180978 hoặc để trống..." />
       <div class="qw-seed-chips">
-        <button type="button" class="mqt-chip" data-qwseed="1691256543523180978" data-qwtitle="Thung Lũng Anh Đào">🌸 Anh Đào Núi Tuyết</button>
-        <button type="button" class="mqt-chip" data-qwseed="-4270204629242599305" data-qwtitle="Đảo Nấm Bình Yên">🍄 Đảo Nấm Không Quái</button>
-        <button type="button" class="mqt-chip" data-qwseed="5706378859201728440" data-qwtitle="Biệt Thự & Thành Cổ">🏰 Biệt Thự + Làng</button>
-        <button type="button" class="mqt-chip" data-qwseed="-3420545464665791887" data-qwtitle="Đảo Hoang San Hô">🏝️ Đảo San Hô</button>
-        <button type="button" class="mqt-chip" data-qwseed="-7253978062019363248" data-qwtitle="Vương Quốc Gai Băng">❄️ Gai Băng Cổ Đại</button>
-        <button type="button" class="mqt-chip" data-qwseed="8678942899319966093" data-qwtitle="Ốc Đảo Giàu Vàng">🏜️ Ốc Đảo Giàu Vàng</button>
-        <button type="button" class="mqt-chip" data-qwseed="-4530634556500121041" data-qwtitle="Speedrun Phá Đảo">⚡ Speedrun</button>
-        <button type="button" class="mqt-chip" data-qwseed="7092092118958763650" data-qwtitle="Hang Rêu Phát Sáng">🌲 Hang Rêu Phát Sáng</button>
+        <button type="button" class="mqt-chip" data-qwseed="1691256543523180978" data-qwtitle="Thung Lũng Ven Sông">🏞️ Thung Lũng Làng</button>
+        <button type="button" class="mqt-chip" data-qwseed="-4270204629242599305" data-qwtitle="Làng Hoàng Hôn">🌅 Thảo Nguyên Hoàng Hôn</button>
+        <button type="button" class="mqt-chip" data-qwseed="5706378859201728440" data-qwtitle="Cao Nguyên Làng Acacia">🏡 Làng &amp; Golem</button>
+        <button type="button" class="mqt-chip" data-qwseed="-3420545464665791887" data-qwtitle="Vịnh San Hô Biển Ấm">🐠 Vịnh San Hô</button>
+        <button type="button" class="mqt-chip" data-qwseed="-4530634556500121041" data-qwtitle="Speedrun Crimson">🔥 Speedrun Nether</button>
+        <button type="button" class="mqt-chip" data-qwseed="8678942899319966093" data-qwtitle="Thảo Nguyên Sinh Tồn">⚔️ Sinh Tồn Chuẩn</button>
+        <button type="button" class="mqt-chip" data-qwseed="-7253978062019363248" data-qwtitle="Đêm Sao Hardcore">🌌 Hardcore Đêm</button>
+        <button type="button" class="mqt-chip" data-qwseed="7092092118958763650" data-qwtitle="Đồng Cỏ Tổ Đội">🤝 Chơi Chung Co-op</button>
       </div>
       <div id="qwSeedPreviewBox" class="qw-seed-preview hidden"></div>
       <div class="qw-toggles">
@@ -3783,14 +3788,14 @@ function openQuickWorldModal(inst = null, prefillSeed = '', prefillName = '') {
       seedPreviewBox.innerHTML = '';
       return;
     }
-    const imgSrc = escapeHtml(matched.previewImage || `seeds/${matched.id}.jpg`);
+    const imgSrc = escapeHtml(matched.previewImage || 'worlds-real/valley.webp');
     seedPreviewBox.classList.remove('hidden');
     seedPreviewBox.innerHTML = `
-      <img class="qw-sp-thumb" src="${imgSrc}" alt="${escapeHtml(matched.title)}" />
+      <img class="qw-sp-thumb" src="${imgSrc}" alt="${escapeHtml(matched.title)}" loading="lazy" decoding="async" />
       <div class="qw-sp-info">
         <div class="qw-sp-head">
           <strong>${escapeHtml(matched.title)}</strong>
-          <span class="mod-compat-pill ok">✓ Tự gắn ảnh đại diện Map</span>
+          <span class="mod-compat-pill ok">✓ Ảnh In-Game thực tế</span>
         </div>
         <div class="qw-sp-coords">📍 ${escapeHtml(matched.coordsHint || '')} • Mã Seed: <code>${escapeHtml(matched.seed)}</code></div>
         <p>${escapeHtml(matched.description || '')}</p>
@@ -6460,42 +6465,42 @@ function initV402FeaturesUI() {
     };
   }
 
-  // v41.7.0 PRO: Native Rust Mods & 5-Channel Mod / Modpack Converter Studio
+  // v42.0.0 PRO: Native Rust Mods & 5-Channel Mod / Modpack Converter Studio (with official Modrinth CDN icons)
   const HORIZON_NATIVE_STUDIO_CARDS = [
     {
       id: 'minimap',
-      icon: '🗺️',
+      iconUrl: 'https://cdn.modrinth.com/data/1bokaNcj/354080f65407e49f486fcf9c4580e82c45ae63b8_96.webp',
       title: 'Bản Đồ Thu Nhỏ (Minimap)',
       desc: 'Hiển thị địa hình 2D góc phải trên, hướng xoay nhân vật, tọa độ & bấm phím B đổi mức phóng.',
       replaces: 'Thay thế: Xaero\'s Minimap, JourneyMap'
     },
     {
       id: 'zoom',
-      icon: '🔭',
+      iconUrl: 'https://cdn.modrinth.com/data/w7ThoJFB/e2de67a0bfb9e8aa2347982ab3ec5463f26cca31_96.webp',
       title: 'Ống Nhòm Zoom Mượt (Phím Z)',
       desc: 'Giữ phím Z để phóng to tầm nhìn mượt mà, cuộn con lăn chuột để chỉnh độ phóng đại 1.5×–16×.',
       replaces: 'Thay thế: Zoomify, Logical Zoom, OK Zoomer'
     },
     {
       id: 'coords_hud',
-      icon: '🧭',
+      iconUrl: 'https://cdn.modrinth.com/data/UMxybHE8/4adf057a251f694983af139a06839e33bcd7a419.png',
       title: 'Thanh Tọa Độ & La Bàn',
       desc: 'Hiển thị tọa độ X / Y / Z, hướng Đông-Tây-Nam-Bắc và quần xã sinh vật gọn nhẹ trên màn hình.',
       replaces: 'Thay thế: MiniHUD, Coordinates Display'
     },
     {
       id: 'keystrokes',
-      icon: '⌨️',
+      iconUrl: 'https://cdn.modrinth.com/data/uDMPYwAN/2a29dcba09cbd5a62342300e00ab57e1598b4e05_96.webp',
       title: 'Bàn Phím PvP & CPS',
       desc: 'Hiển thị trực quan các phím W A S D, Nhảy, Chuột trái/phải phục vụ PvP & quay video.',
       replaces: 'Thay thế: KronHUD, KeystrokesMod'
     },
     {
       id: 'fps_overlay',
-      icon: '⚡',
+      iconUrl: 'https://cdn.modrinth.com/data/8shC1gFX/icon.png',
       title: 'Bộ Đếm FPS Siêu Nhẹ',
       desc: 'Theo dõi tốc độ khung hình thực tế của Nhân Rust Vulkan / DX12 ngay góc trái màn hình.',
-      replaces: 'Thay thế: FPS Display, Sodium Extra FPS'
+      replaces: 'Thay thế: BetterF3, FPS Display'
     }
   ];
 
@@ -6625,7 +6630,7 @@ function initV402FeaturesUI() {
           return `<div class="hrs-native-card ${isOn ? 'is-on' : ''}">
             <div>
               <div class="hrs-nc-top">
-                <div class="hrs-nc-title"><span class="hrs-nc-icon">${card.icon}</span><span>${escapeHtml(card.title)}</span></div>
+                <div class="hrs-nc-title"><img class="hrs-nc-real-icon" src="${escapeHtml(card.iconUrl || '')}" alt="" loading="lazy" decoding="async" /><span>${escapeHtml(card.title)}</span></div>
               </div>
               <div class="hrs-nc-desc" style="margin-top:5px;">${escapeHtml(card.desc)}</div>
             </div>
@@ -8146,79 +8151,79 @@ async function handleTogglePvpModeClick(triggerBtn) {
   }
 }
 
-/* ---------- Upgrade 3: World NBT Inspector, Hardcore Rescue & Seed Vault ---------- */
+/* ---------- Upgrade 3: World NBT Inspector, Hardcore Rescue & Real In-Game Seed Vault ---------- */
 const INLINE_CURATED_SEEDS_FALLBACK = [
   {
-    id: 'cherry-ring-mountain',
-    title: '🌸 Thung Lũng Anh Đào Ôm Trọn Hồ Núi Tuyết',
+    id: 'valley-river-village',
+    title: '🏞️ Thung Lũng Làng Ven Sông & Đồi Rừng Xanh',
     seed: '1691256543523180978',
-    badge: 'Đẹp Nhất Xây Nhà',
+    badge: 'Ảnh Chụp In-Game Thật',
     coordsHint: 'Spawn gần X: 120, Z: 80',
-    previewImage: 'seeds/cherry-ring-mountain.jpg',
-    description: 'Vòng núi tuyết hùng vĩ khép kín bao quanh thung lũng hoa anh đào hồng rực, hồ nước trong vắt ở giữa và ngôi làng bình yên sát bên.'
+    previewImage: 'worlds-real/valley.webp',
+    description: 'Thung lũng sông uốn lượn bao quanh ngôi làng yên bình dưới chân đồi rừng xanh mướt, địa hình bằng phẳng lý tưởng để xây căn cứ.'
   },
   {
-    id: 'mushroom-safe-island',
-    title: '🍄 Quần Đảo Nấm Khổng Lồ (100% Không Quái Ban Đêm)',
+    id: 'savanna-sunset-village',
+    title: '🌅 Làng Thảo Nguyên Hoàng Hôn Bên Bờ Sông',
     seed: '-4270204629242599305',
-    badge: 'An Toàn Tuyệt Đối',
-    coordsHint: 'Xuất hiện ngay trên Đảo Nấm',
-    previewImage: 'seeds/mushroom-safe-island.jpg',
-    description: 'Đảo Nấm rộng lớn nằm giữa đại dương ngay điểm xuất hiện — ban đêm không bao giờ tự sinh Zombie/Creeper, lý tưởng để xây đại căn cứ.'
+    badge: 'Khởi Đầu Êm Đềm',
+    coordsHint: 'Xuất hiện cạnh làng (X: 32, Z: -40)',
+    previewImage: 'worlds-real/sunset.jpg',
+    description: 'Ngôi làng thảo nguyên nằm trên sườn đồi thoai thoải sát dòng sông lớn, sẵn ruộng lúa và nhà dân làng ngay từ ngày đầu tiên.'
   },
   {
-    id: 'mansion-village-ancient',
-    title: '🏰 Biệt Thự Rừng + Làng Cổ + Thành Cổ Ngầm Sát Nhau',
+    id: 'acacia-plateau-village',
+    title: '🏡 Cao Nguyên Làng Acacia & Golem Bảo Vệ',
     seed: '5706378859201728440',
-    badge: 'Siêu Hiếm 3-Trong-1',
+    badge: 'An Toàn Xây Căn Cứ',
     coordsHint: 'Ngay sát điểm xuất hiện (X: 60, Z: 90)',
-    previewImage: 'seeds/mansion-village-ancient.jpg',
-    description: 'Vừa vào thế giới đã đứng trước tòa Biệt thự Woodland Mansion khổng lồ ghép liền với ngôi làng dân làng và thành cổ Ancient City sâu bên dưới.'
+    previewImage: 'worlds-real/village.jpg',
+    description: 'Quần thể làng rộng lớn trên cao nguyên thoáng đãng, có sẵn Iron Golem tuần tra, lò nung và hẻm núi khoáng sản ngay kế bên.'
   },
   {
-    id: 'coral-castaway-island',
-    title: '🏝️ Đảo Hoang San Hô Rực Rỡ & Kho Báu Tàu Đắm',
+    id: 'coral-reef-ocean',
+    title: '🐠 Vịnh San Hô Đại Dương Ấm & Kho Báu Biển',
     seed: '-3420545464665791887',
-    badge: 'Sinh Tồn Đảo Hoang',
-    coordsHint: 'Đảo chính tại X: 0, Z: 0',
-    previewImage: 'seeds/coral-castaway-island.jpg',
-    description: 'Thử thách sinh tồn trên hòn đảo nhỏ giữa vùng biển ấm rực rỡ san hô phát sáng ban đêm, bao quanh bởi xác tàu đắm và phế tích biển.'
+    badge: 'Sinh Tồn Biển Ấm',
+    coordsHint: 'Vịnh san hô tại X: 0, Z: 0',
+    previewImage: 'worlds-real/underwater.jpg',
+    description: 'Vùng biển ấm rực rỡ rạn san hô đa sắc màu cùng đàn cá nhiệt đới, bao quanh bởi xác tàu đắm và di tích đại dương cổ.'
   },
   {
-    id: 'ice-spikes-frozen-kingdom',
-    title: '❄️ Vương Quốc Gai Băng Cổ Đại & Làng Tuyết',
-    seed: '-7253978062019363248',
-    badge: 'Cảnh Quan Kỳ Vĩ',
-    coordsHint: 'Gai băng tại X: -150, Z: 120',
-    previewImage: 'seeds/ice-spikes-frozen-kingdom.jpg',
-    description: 'Hàng trăm cột băng xanh cao vút nối liền rặng núi tuyết trắng xóa, có sẵn làng tuyết Igloo và cổng địa ngục cổ ngay gần điểm xuất hiện.'
-  },
-  {
-    id: 'badlands-gold-oasis',
-    title: '🏜️ Ốc Đảo Hẻm Núi Đỏ Giàu Vàng & Đền Sa Mạc',
-    seed: '8678942899319966093',
-    badge: 'Giàu Tài Nguyên',
-    coordsHint: 'Ốc đảo tại X: 40, Z: -60',
-    previewImage: 'seeds/badlands-gold-oasis.jpg',
-    description: 'Sự giao thoa tuyệt đẹp giữa hồ nước xanh, làng sa mạc, Kim tự tháp chứa kho báu và dãy núi đất nung Badlands lộ thiên đầy mỏ vàng.'
-  },
-  {
-    id: 'speedrun-bastion-fortress',
-    title: '⚡ Hạt Giống Phá Đảo Thần Tốc (Làng Rèn + Pháo Đài Gần)',
+    id: 'crimson-nether-speedrun',
+    title: '🔥 Rừng Đỏ Crimson & Hồ Lava Phá Đảo Nhanh',
     seed: '-4530634556500121041',
     badge: 'Speedrun Chuẩn',
-    coordsHint: 'Làng & Hồ Lava ngay cạnh Spawn',
-    previewImage: 'seeds/speedrun-bastion-fortress.jpg',
-    description: 'Có sẵn làng thợ rèn lấy sắt/đồ ăn và hồ dung nham dựng cổng Nether mở thẳng ra khu vực sát Pháo đài Nether Fortress và Bastion.'
+    coordsHint: 'Cổng Nether dẫn thẳng rừng Crimson',
+    previewImage: 'worlds-real/nether.jpg',
+    description: 'Hồ dung nham gần Spawn mở cổng thẳng vào rừng đỏ Crimson Forest giàu vàng và Piglin trao đổi Ender Pearl tốc độ cao.'
   },
   {
-    id: 'lush-cave-ancient-taiga',
-    title: '🌲 Rừng Tùng Cổ Thụ & Đại Hang Động Rêu Phát Sáng',
+    id: 'classic-survival-plains',
+    title: '⚔️ Thảo Nguyên Sinh Tồn Cổ Điển & Đêm Thử Thách',
+    seed: '8678942899319966093',
+    badge: 'Sinh Tồn Chuẩn',
+    coordsHint: 'Thung lũng tại X: 40, Z: -60',
+    previewImage: 'worlds-real/survival.jpg',
+    description: 'Địa hình thung lũng cỏ xanh xen kẽ sườn đồi thoáng rộng, cân bằng tài nguyên gỗ, đá, quặng sắt cho hành trình sinh tồn dài lâu.'
+  },
+  {
+    id: 'starry-night-hardcore',
+    title: '🌌 Bầu Trời Đêm Thảo Nguyên & Hành Trình Hardcore',
+    seed: '-7253978062019363248',
+    badge: 'Thử Thách Hardcore',
+    coordsHint: 'Đồng bằng mở tại X: -120, Z: 95',
+    previewImage: 'worlds-real/night.jpg',
+    description: 'Tầm nhìn chân trời rộng mở dưới bầu trời đêm đầy sao, thích hợp cho thử thách 100 Ngày Hardcore hoặc xây dựng công trình lớn.'
+  },
+  {
+    id: 'coop-meadow-spawn',
+    title: '🤝 Đồng Cỏ Tổ Đội Chơi Chung Nhiều Người',
     seed: '7092092118958763650',
-    badge: 'Hang Động Tuyệt Đẹp',
-    coordsHint: 'Cửa hang lớn tại X: -80, Z: 40',
-    previewImage: 'seeds/lush-cave-ancient-taiga.jpg',
-    description: 'Rừng thông khổng lồ phủ rêu phong bên trên một quần thể hang động Lush Caves rực sáng quả mọng phát quang và cá kỳ nhông Axolotl.'
+    badge: 'Tối Ưu Co-op / LAN',
+    coordsHint: 'Bãi cỏ trung tâm tại X: -40, Z: 24',
+    previewImage: 'worlds-real/multiplayer.webp',
+    description: 'Khu vực xuất hiện rộng rãi cạnh rừng cây và sông nước, rất thuận tiện để cả nhóm bạn bè cùng chia đất xây thị trấn chung.'
   }
 ];
 
@@ -8235,7 +8240,7 @@ function findCuratedSeedByValue(seedStr) {
 
 function openSeedPreviewModal(s) {
   if (!s) return;
-  const imgSrc = escapeHtml(s.previewImage || `seeds/${s.id}.jpg`);
+  const imgSrc = escapeHtml(s.previewImage || 'worlds-real/valley.webp');
   const cleanTitle = String(s.title || 'Thế giới mới').replace(/^[^\p{L}\p{N}]+/u, '').split('(')[0].trim().slice(0, 48);
   const card = packOpenModal(`
     <div class="modal-head" style="justify-content:space-between;">
@@ -8247,9 +8252,9 @@ function openSeedPreviewModal(s) {
     </div>
     <div class="modal-body seed-preview-modal-body">
       <div class="spm-hero-frame">
-        <img class="spm-hero-img" src="${imgSrc}" alt="${escapeHtml(s.title)}" />
+        <img class="spm-hero-img" src="${imgSrc}" alt="${escapeHtml(s.title)}" loading="lazy" decoding="async" />
         <div class="svc-banner-overlay-top">
-          <span class="svc-badge-pill">🌱 ${escapeHtml(s.badge || 'Hạt giống tuyển chọn')}</span>
+          <span class="svc-badge-pill">🌱 ${escapeHtml(s.badge || 'Ảnh In-Game thực tế')}</span>
           <span class="svc-badge-pill">Chuẩn MC 1.20 → 26.x</span>
         </div>
         <div class="svc-banner-overlay-bot">
@@ -8266,7 +8271,7 @@ function openSeedPreviewModal(s) {
       </div>
     </div>
     <div class="modal-foot" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
-      <span class="field-hint-mini">🖼️ Tự gắn sẵn ảnh đại diện thế giới vào <code>.minecraft/saves</code> khi tạo Map</span>
+      <span class="field-hint-mini">🎮 Ảnh chụp trong game thật — Minecraft sẽ tự lưu ảnh <code>icon.png</code> thực tế khi bạn vào chơi</span>
       <div style="display:flex;gap:8px;">
         <button class="btn-modal-cancel" data-pmclose>Đóng</button>
         <button class="btn-modal-agree" id="btnModalCreateFromSeed">🌍 Tạo Map Với Seed Này</button>
@@ -8336,7 +8341,7 @@ async function renderSeedVaultUI() {
       const res = await window.aetherAPI.getCuratedSeedsVault();
       cachedCuratedSeeds = (res?.seeds || []).map((s) => {
         const fb = INLINE_CURATED_SEEDS_FALLBACK.find((x) => x.id === s.id);
-        return { ...fb, ...s, previewImage: s.previewImage || fb?.previewImage || `seeds/${s.id}.jpg` };
+        return { ...fb, ...s, previewImage: s.previewImage || fb?.previewImage || 'worlds-real/valley.webp' };
       });
     } catch (_) {
       cachedCuratedSeeds = INLINE_CURATED_SEEDS_FALLBACK;
@@ -8345,11 +8350,11 @@ async function renderSeedVaultUI() {
   const seeds = cachedCuratedSeeds.length ? cachedCuratedSeeds : INLINE_CURATED_SEEDS_FALLBACK;
 
   grid.innerHTML = seeds.map((s, idx) => {
-    const imgSrc = escapeHtml(s.previewImage || `seeds/${s.id}.jpg`);
+    const imgSrc = escapeHtml(s.previewImage || 'worlds-real/valley.webp');
     return `
     <div class="mod-card seed-vault-card">
       <div class="svc-banner-wrap" data-zoomseed="${idx}" title="Nhấp để phóng to ảnh bản đồ & xem chi tiết">
-        <img class="svc-banner-img" src="${imgSrc}" alt="${escapeHtml(s.title)}" loading="lazy" />
+        <img class="svc-banner-img" src="${imgSrc}" alt="${escapeHtml(s.title)}" loading="lazy" decoding="async" />
         <div class="svc-banner-overlay-top">
           <span class="svc-badge-pill">🌱 ${escapeHtml(s.badge || 'Hạt giống tuyển chọn')}</span>
           <span class="svc-zoom-pill">🔍 Phóng to</span>

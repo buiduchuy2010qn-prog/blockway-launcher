@@ -1,5 +1,7 @@
 node_modules/
 dist/
+rust-engine/target/
+rust-engine/dist/
 *.log
 .DS_Store
 curseforge-api-key.txt

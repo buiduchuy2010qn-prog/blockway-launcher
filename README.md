@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v41.8.1 PRO — Every World, One Place (`blockway-launcher`)
+# ⚡ BlockWay Launcher v42.2.0 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,17 +6,24 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v41.8.1_PRO-22c55e?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.2.0_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-8_Core_Loaders_+_Horizon_Rust-f97316?style=for-the-badge" alt="8 Core Loaders" /></a>
 </p>
 
-**BlockWay Launcher** (*Every World, One Place* — phát triển bởi **buiduchuy2010qn-prog**) là trình khởi chạy Minecraft đa nền tảng (**Windows & Linux**) kết hợp đầy đủ **7 Mod Loader Java truyền thống** (`Vanilla`, `OptiFine`, `Fabric`, `Forge`, `NeoForge`, `Quilt`, `Legacy Fabric`) cùng nhân thứ 8 **🦀 Horizon Rust** (client & server viết bằng Rust chạy trên Vulkan / DirectX 12). Hỗ trợ **Tài khoản Microsoft** (kiểm tra quyền sở hữu Minecraft: Java Edition chính thức), **Tài khoản Cloud 24/7** và **Chế độ Offline** để chơi đơn / LAN.
+**BlockWay Launcher** (*Every World, One Place* — phát triển bởi **buiduchuy2010qn-prog**) là trình khởi chạy Minecraft đa nền tảng (**Windows & Linux**) hợp nhất cả **Electron Launcher (`src/`)** lẫn **Nhân mã nguồn Rust (`rust-engine/`)** trong **1 repo duy nhất (`buiduchuy2010qn-prog/blockway-launcher`)**, kết hợp đầy đủ **7 Mod Loader Java truyền thống** (`Vanilla`, `OptiFine`, `Fabric`, `Forge`, `NeoForge`, `Quilt`, `Legacy Fabric`) cùng nhân thứ 8 **🦀 Horizon Rust** (client & server viết bằng Rust chạy trên Vulkan / DirectX 12). Hỗ trợ **Tài khoản Microsoft** (kiểm tra quyền sở hữu Minecraft: Java Edition chính thức), **Tài khoản Cloud 24/7** và **Chế độ Offline** để chơi đơn / LAN.
 
 🌐 **Trang chủ chính thức:** **[https://buiduchuy2010qn-prog.github.io/blockway-launcher/](https://buiduchuy2010qn-prog.github.io/blockway-launcher/)**
 
 ---
 
-## ✨ Điểm mới trong `v41.8.1 PRO` (Bảo mật • Độ ổn định • Giao diện • Kiểm thử tự động)
+## ✨ Điểm mới trong `v42.2.0 PRO` (Hợp Nhất Toàn Bộ Nhân Rust Vào Repo Gốc `blockway-launcher` • Pure Horizon Glass • Bảo Vệ Worldgen 26.3)
+
+0. **🌌 Hợp nhất Monorepo (`rust-engine/`), Giao diện Pure Horizon Glass & Bảo vệ Worldgen 26.3 (`v42.2.0 PRO`):**
+   - **Hợp nhất 100% vào repo gốc `buiduchuy2010qn-prog/blockway-launcher`:** Toàn bộ mã nguồn Nhân Rust đa phiên bản (`rust-engine/`), GitHub Actions CI (`build-rust-core.yml`, tag `rust-core`) và OTA của Launcher đều nằm chung trong 1 kho mã nguồn chính thức duy nhất.
+   - **Giải nén nguyên bản & Tự phục hồi Datapack 26.3 (`Worldgen Guard`):** Phát hiện và giữ nguyên 100% cấu trúc `density_function` chuẩn Minecraft 26.3 (`left`/`right`/`input`) khi cài các Datapack thế giới lớn như *Terralith 26.3*, đồng thời tự động kiểm tra & khôi phục/cách ly Datapack lỗi trước khi vào Thế giới để chống văng game tuyệt đối.
+   - **Điều hướng chính trên Thanh Kính Nổi phía trên (`Top Floating Bar`):** Toàn bộ các mục chính (`Trang chủ`, `Chơi game`, `Kho Mod`, `Modpack`, `Thế giới`, `Máy chủ`, `Skin 3D`, `Công cụ`), tìm kiếm nhanh (`Ctrl K`), Hồ sơ tài khoản Microsoft/Offline và Cài đặt nằm gọn gàng trên thanh nổi phía trên.
+   - **Cột Kính Mờ bên trái chuyên biệt cho 8 Core Loaders (`Left 8-Core Rail`):** Giữ trọn **Logo chính thức của BlockWay** ở góc trái trên, bên dưới là danh sách chuyển nhanh 1 chạm cả **8 Core** (`BlockWay Rust`, `Fabric`, `Forge`, `NeoForge`, `OptiFine`, `Quilt`, `Legacy PvP`, `Vanilla`) kèm lối tắt `SMP & Co-op LAN` và thẻ trạng thái hệ thống không quảng cáo.
+   - **Tinh giản triệt để ảnh nền dư thừa & Kho Mod chuẩn Horizon:** Bầu trời sao đêm dịu tĩnh kết hợp ánh hoàng hôn thấp ở chân trời; sân khấu Nhân vật 3D kính trong suốt (không chồng ảnh banner Minecraft); danh sách Thế giới gần đây và **Kho Mod** hiển thị dạng **hàng ngang kính mờ gọn sắc nét** đi kèm **Bảng Chi Tiết Cố Định (`Sticky Inspector`)** và **100% ảnh gốc từ CDN Modrinth**.
 
 1. **🔒 Gia cố Bảo mật toàn diện (`P0 Security Hardening`):**
    - **Khóa nguồn gọi IPC (`assertTrustedIpcSender`):** Mọi kênh `ipcMain.handle` và `ipcMain.on` xác thực chặt `event.sender === mainWindow.webContents`, từ chối subframe và nguồn không phải `file://`.

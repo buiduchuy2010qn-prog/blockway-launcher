@@ -1,37 +1,50 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="lunar">
+<html lang="vi" data-theme="horizon">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>BlockWay Launcher v41.8.1 PRO — Every World, One Place</title>
+  <title>BlockWay Launcher v42.2.0 PRO — Every World, One Place</title>
   <link rel="icon" href="app-icon.ico" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="layout-v33.css" />
+  <link rel="stylesheet" href="horizon-glass.css" />
 </head>
 <body>
+  <canvas id="hzlSceneCanvas" aria-hidden="true"></canvas>
   <div class="app-shell">
-    <!-- A. TOP TITLEBAR -->
+    <!-- A. TOP FLOATING HORIZON GLASS BAR (ALL MAIN SECTIONS + SEARCH + PROFILE + CONTROLS) -->
     <header class="titlebar">
-      <div class="titlebar-brand">
-        <div class="brand-cube-svg">
-          <img src="app-logo.png" class="brand-grass-img" alt="BlockWay Launcher" draggable="false" />
-        </div>
-        <div class="brand-titles">
-          <span class="brand-main-word">BlockWay</span>
-          <span class="brand-sub-word">LAUNCHER</span>
-        </div>
-        <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
-          <span>🔄 Kiểm tra cập nhật</span>
-          <strong id="titlebarUpdateVer">v41.8.1</strong>
+      <nav class="sidebar-nav hzl-top-nav-strip" aria-label="Điều hướng chính">
+        <button type="button" class="nav-item hzl-top-pill active" data-tab="home"><span>Trang chủ</span></button>
+        <button type="button" class="nav-item hzl-top-pill" data-tab="play"><span>Chơi game</span></button>
+        <button type="button" class="nav-item hzl-top-pill" data-tab="mods"><span>Kho Mod</span></button>
+        <button type="button" class="nav-item nav-item-packs hzl-top-pill" data-tab="packs">
+          <span>Modpack</span>
+          <em class="nav-new-badge hidden">MỚI</em>
         </button>
-      </div>
+        <button type="button" class="nav-item hzl-top-pill" data-tab="worlds"><span>Thế giới</span></button>
+        <button type="button" class="nav-item hzl-top-pill" data-tab="servers"><span>Máy chủ</span></button>
+        <button type="button" class="nav-item hzl-top-pill" data-tab="skin"><span>Skin 3D</span></button>
+        <button type="button" class="nav-item hzl-top-pill" data-tab="tools"><span>Công cụ</span></button>
+      </nav>
 
       <div class="titlebar-right-zone">
         <!-- Global Search Pill -->
         <div class="titlebar-search-pill">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="globalSearchInput" placeholder="Tìm kiếm..." title="Nhập tên Mod, Phiên bản hoặc Thế giới rồi nhấn Enter" />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="globalSearchInput" placeholder="Tìm nhanh..." title="Nhập tên Mod, Phiên bản hoặc Thế giới rồi nhấn Enter (Ctrl + K)" />
+          <kbd class="hzl-kbd-hint">Ctrl K</kbd>
+        </div>
+
+        <!-- Horizon Top-Right Profile & Microsoft Account Pill -->
+        <div class="sidebar-profile-card hzl-top-profile-pill" id="sidebarProfileCard" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="Bấm để đổi nhanh tài khoản Microsoft / Cloud / Offline hoặc Avatar">
+          <canvas id="avatar2dCanvas" width="64" height="64" class="avatar-face-canvas"></canvas>
+          <div class="sidebar-profile-info">
+            <div class="sidebar-player-name" id="sidebarPlayerName">StevePlayer</div>
+            <div class="sidebar-auth-tag" id="sidebarAuthBadge" data-badge="offline">👤 OFFLINE</div>
+          </div>
+          <svg class="sidebar-profile-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
 
         <!-- Quick Font Size / UI Scale Picker -->
@@ -57,43 +70,47 @@
 
         <!-- Quick Theme Picker -->
         <div class="titlebar-theme-wrap">
-          <button class="titlebar-notif-btn" id="btnThemePicker" title="Đổi màu giao diện">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 1 1 10-10c0 2.2-1.8 3.5-4 3.5h-1.6a1.9 1.9 0 0 0-1.4 3.2c.5.6.3 1.6-.4 2.2-.8.7-1.6 1.1-2.6 1.1z"/><circle cx="7.5" cy="11" r="1.3" fill="currentColor"/><circle cx="10.5" cy="7" r="1.3" fill="currentColor"/><circle cx="15.5" cy="7.5" r="1.3" fill="currentColor"/></svg>
+          <button class="titlebar-notif-btn" id="btnThemePicker" title="Đổi chủ đề Glass trong suốt">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 1 1 10-10c0 2.2-1.8 3.5-4 3.5h-1.6a1.9 1.9 0 0 0-1.4 3.2c.5.6.3 1.6-.4 2.2-.8.7-1.6 1.1-2.6 1.1z"/><circle cx="7.5" cy="11" r="1.3" fill="currentColor"/><circle cx="10.5" cy="7" r="1.3" fill="currentColor"/><circle cx="15.5" cy="7.5" r="1.3" fill="currentColor"/></svg>
           </button>
           <div class="theme-popover hidden" id="themePickerPopover">
-            <div class="notif-pop-head"><strong>🎨 Chủ đề &amp; Giao diện</strong><span class="theme-pop-hint">Lưu tự động</span></div>
+            <div class="notif-pop-head"><strong>🎨 Chủ đề Glass Trong Suốt</strong><span class="theme-pop-hint">Lưu tự động</span></div>
             <div class="theme-swatch-grid">
-              <button class="ts-chip theme-swatch" data-theme-pick="lunar" title="Giao diện BlockWay Dark (Mặc định dịu mắt)">
+              <button class="ts-chip theme-swatch active" data-theme-pick="horizon" title="Giao diện Tím Hoàng Hôn Trong Suốt (Horizon Glass mặc định)">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #120d26 0 42%, #6b4bff 42% 72%, #f38b60 72% 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">🌅 Tím Hoàng Hôn</span><small class="tsw-sub">Glass Mặc Định ✨</small></span>
+              </button>
+              <button class="ts-chip theme-swatch" data-theme-pick="sakura" title="Giao diện Sakura Dawn Glass (Hồng Ngọc Trai Trong Suốt)">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #f8d1e1 0 46%, #fff5f9 46% 68%, #db2777 68% 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">🌸 Sakura Dawn</span><small class="tsw-sub">Hồng Trong Suốt ✨</small></span>
+              </button>
+              <button class="ts-chip theme-swatch" data-theme-pick="lunar" title="Giao diện BlockWay Dark Glass">
                 <span class="tsw-preview" style="background: linear-gradient(135deg, #151922 0 50%, #3b82f6 50% 78%, #22c55e 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">BlockWay Dark</span><small class="tsw-sub">Tối Mặc Định</small></span>
+                <span class="tsw-info"><span class="tsw-label">BlockWay Dark</span><small class="tsw-sub">Xanh Đêm Glass</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="rust" title="Giao diện Rust Obsidian (Đen núi lửa &amp; Cam Rust hiện đại)">
+              <button class="ts-chip theme-swatch" data-theme-pick="rust" title="Giao diện Rust Obsidian Glass">
                 <span class="tsw-preview" style="background: linear-gradient(135deg, #121318 0 50%, #f97316 50% 78%, #fbbf24 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">🦀 Rust Obsidian</span><small class="tsw-sub">Đen Cam Mới</small></span>
+                <span class="tsw-info"><span class="tsw-label">🦀 Rust Obsidian</span><small class="tsw-sub">Đen Cam Glass</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="prism" title="Giao diện Trắng Sáng">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #ffffff 0 50%, #2563eb 50% 78%, #dbe4f0 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Trắng Sáng</span><small class="tsw-sub">Sáng Xanh</small></span>
+              <button class="ts-chip theme-swatch" data-theme-pick="prism" title="Giao diện Crystal Ice Glass (Trắng Băng Trong Suốt)">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #dbeafe 0 50%, #2563eb 50% 78%, #ffffff 78% 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">Crystal Ice</span><small class="tsw-sub">Sáng Băng Glass</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="sakura" title="Giao diện Trắng Sáng Hồng (Trắng &amp; Hồng Anh Đào)">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #ffffff 0 48%, #fdf2f8 48% 64%, #ec4899 64% 84%, #f472b6 84% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Trắng Hồng</span><small class="tsw-sub">Sáng Hồng ✨</small></span>
-              </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="mojang" title="Giao diện Mojang">
+              <button class="ts-chip theme-swatch" data-theme-pick="mojang" title="Giao diện Mojang Glass">
                 <span class="tsw-preview" style="background: linear-gradient(135deg, #1c1f26 0 50%, #16a34a 50% 78%, #4ade80 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Mojang</span><small class="tsw-sub">Xanh Lục</small></span>
+                <span class="tsw-info"><span class="tsw-label">Mojang</span><small class="tsw-sub">Xanh Lục Glass</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="modrinth" title="Giao diện Modrinth">
+              <button class="ts-chip theme-swatch" data-theme-pick="modrinth" title="Giao diện Modrinth Glass">
                 <span class="tsw-preview" style="background: linear-gradient(135deg, #142019 0 50%, #10b981 50% 78%, #1bd96a 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Modrinth</span><small class="tsw-sub">Xanh Mint</small></span>
+                <span class="tsw-info"><span class="tsw-label">Modrinth</span><small class="tsw-sub">Xanh Mint Glass</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="feather" title="Giao diện Feather">
+              <button class="ts-chip theme-swatch" data-theme-pick="feather" title="Giao diện Feather Glass">
                 <span class="tsw-preview" style="background: linear-gradient(135deg, #102235 0 50%, #0284c7 50% 78%, #38bdf8 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Feather</span><small class="tsw-sub">Xanh Băng</small></span>
+                <span class="tsw-info"><span class="tsw-label">Feather</span><small class="tsw-sub">Xanh Băng Glass</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="cherry" title="Giao diện Cherry">
+              <button class="ts-chip theme-swatch" data-theme-pick="cherry" title="Giao diện Cherry Dark Glass">
                 <span class="tsw-preview" style="background: linear-gradient(135deg, #24111f 0 50%, #db2777 50% 78%, #f9a8d4 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Cherry Dark</span><small class="tsw-sub">Tối Hồng</small></span>
+                <span class="tsw-info"><span class="tsw-label">Cherry Dark</span><small class="tsw-sub">Tối Hồng Glass</small></span>
               </button>
             </div>
             <div class="theme-pop-quick-studio">
@@ -116,7 +133,7 @@
         <!-- Notification Bell with Badge & Dropdown -->
         <div class="titlebar-notif-wrap">
           <button class="titlebar-notif-btn" id="btnTopNotifications" title="Thông báo & Trạng thái cập nhật">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             <span class="notif-count-badge" id="topNotifBadge">0</span>
           </button>
           <div class="notif-popover hidden" id="topNotifPopover">
@@ -130,201 +147,188 @@
           </div>
         </div>
 
+        <!-- Horizon Settings Sliders Button (Opens #tab-settings) -->
+        <button type="button" class="nav-item titlebar-notif-btn hzl-settings-nav-btn" data-tab="settings" title="Cài đặt Hệ thống, Java, RAM & Giao diện">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </button>
+
         <!-- Window Controls -->
         <div class="titlebar-controls">
-          <button class="win-btn" id="btnMin" title="Thu nhỏ"><svg width="12" height="12" viewBox="0 0 12 12"><rect y="5" width="12" height="1.8" fill="currentColor"/></svg></button>
-          <button class="win-btn" id="btnMax" title="Phóng to / Khôi phục"><svg width="12" height="12" viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>
-          <button class="win-btn win-close" id="btnClose" title="Đóng"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8"/></svg></button>
+          <button class="win-btn" id="btnMin" title="Thu nhỏ"><svg width="11" height="11" viewBox="0 0 12 12"><rect y="5" width="12" height="1.8" fill="currentColor"/></svg></button>
+          <button class="win-btn" id="btnMax" title="Phóng to / Khôi phục"><svg width="11" height="11" viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>
+          <button class="win-btn win-close" id="btnClose" title="Đóng"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" stroke-width="1.8"/></svg></button>
         </div>
       </div>
     </header>
 
     <!-- MAIN WORKSPACE -->
     <div class="workspace">
-      <!-- B. LEFT SIDEBAR (SINGLE UNIFIED 8-ITEM NAVIGATION) -->
+      <!-- B. LEFT SIDEBAR (HORIZON FROSTED GLASS INSTANCES & 8 CORE LOADERS RAIL) -->
       <aside class="sidebar">
-        <div class="sidebar-profile-card" id="sidebarProfileCard" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="Bấm để đổi nhanh tài khoản, ảnh đại diện (Avatar) hoặc Skin 3D">
-          <canvas id="avatar2dCanvas" width="64" height="64" class="avatar-face-canvas"></canvas>
-          <div class="sidebar-profile-info">
-            <div class="sidebar-player-name" id="sidebarPlayerName">StevePlayer</div>
-            <div class="sidebar-auth-tag" id="sidebarAuthBadge" data-badge="offline">👤 OFFLINE</div>
+        <div class="sidebar-brand-head">
+          <img src="app-logo.png" class="sidebar-brand-logo" alt="BlockWay Launcher" draggable="false" />
+          <div class="sidebar-brand-titles">
+            <span class="brand-main-word">BlockWay</span>
+            <span class="brand-sub-word">LAUNCHER</span>
           </div>
-          <svg class="sidebar-profile-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
 
-        <nav class="sidebar-nav">
-          <button class="nav-item active" data-tab="home">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" fill="currentColor" fill-opacity="0.18"/></svg>
-            <span>Trang chủ</span>
-          </button>
-          <button class="nav-item" data-tab="play">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 12h4M8 10v4"/><circle cx="15" cy="11" r="1" fill="currentColor"/><circle cx="17" cy="13" r="1" fill="currentColor"/></svg>
-            <span>Chơi game</span>
-          </button>
-          <button class="nav-item" data-tab="worlds">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-            <span>Thế giới</span>
-          </button>
-          <button class="nav-item" data-tab="mods">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.315 8.685a.98.98 0 0 1 .837-.276c.47.07.802.48.968.925a2.501 2.501 0 1 0 3.214-3.214c-.446-.166-.855-.497-.925-.968a.979.979 0 0 1 .276-.837l1.61-1.61a2.404 2.404 0 0 1 1.705-.707c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"/></svg>
-            <span>Mod &amp; Pack</span>
-          </button>
-          <button class="nav-item nav-item-packs" data-tab="packs">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" fill="currentColor" fill-opacity="0.16"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
-            <span>Modpack</span>
-            <em class="nav-new-badge hidden">MỚI</em>
-          </button>
-          <button class="nav-item" data-tab="servers">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><circle cx="6" cy="6.5" r="1" fill="currentColor"/><circle cx="6" cy="17.5" r="1" fill="currentColor"/></svg>
-            <span>Máy chủ</span>
-          </button>
-          <button class="nav-item" data-tab="skin">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>Skin &amp; Nhân vật</span>
-          </button>
-          <button class="nav-item" data-tab="tools">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-            <span>Công cụ</span>
-          </button>
-          <button class="nav-item" data-tab="settings">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            <span>Cài đặt</span>
-          </button>
-        </nav>
+        <div class="hzl-instances-section">
+          <div class="hzl-inst-head">
+            <span>Phiên bản &amp; Core (8)</span>
+            <button type="button" class="hzl-inst-add-btn" id="btnSideAddInstance" title="Mở cấu hình chi tiết Phiên bản, Core &amp; RAM">+</button>
+          </div>
 
-        <!-- Hidden summary bindings preserved for renderer compatibility -->
-        <div class="sidebar-current-box hidden">
-          <strong id="sideVerText">1.21.4</strong>
-          <strong id="sideCoreText">FABRIC</strong>
-          <strong id="sideRamText">4 GB</strong>
-          <strong id="sideModsCount">0 Mod</strong>
+          <div class="hzl-side-cores-list" role="list" aria-label="Danh sách 8 Core Loader">
+            <button type="button" class="hzl-side-core-item" data-side-core="horizon" title="Chuyển sang Nhân BlockWay Rust (Horizon Vulkan / WGSL)">
+              <img src="app-logo.png" class="hsc-icon" alt="BlockWay Rust" draggable="false" />
+              <div class="hsc-info">
+                <strong>BlockWay Rust</strong>
+                <small class="hsc-sub" data-default-sub="Nhân Rust · Vulkan"><i class="hsc-dot"></i> <span>Nhân Rust · Vulkan</span></small>
+              </div>
+              <span class="hsc-more">⋮</span>
+            </button>
+
+            <button type="button" class="hzl-side-core-item active" data-side-core="fabric" title="Chuyển sang Fabric Loader (Siêu nhẹ, FPS cao)">
+              <img src="app-logo.png" class="hsc-icon" data-sync-core-icon="fabric" alt="Fabric" draggable="false" />
+              <div class="hsc-info">
+                <strong>Fabric Loader</strong>
+                <small class="hsc-sub" data-default-sub="Siêu nhẹ · FPS cao"><i class="hsc-dot"></i> <span>Siêu nhẹ · FPS cao</span></small>
+              </div>
+              <span class="hsc-more">⋮</span>
+            </button>
+
+            <button type="button" class="hzl-side-core-item" data-side-core="forge" title="Chuyển sang Forge Loader (Kho Mod đồ sộ, ổn định)">
+              <img src="app-logo.png" class="hsc-icon" data-sync-core-icon="forge" alt="Forge" draggable="false" />
+              <div class="hsc-info">
+                <strong>Forge Modpack</strong>
+                <small class="hsc-sub" data-default-sub="Mod lớn · Ổn định"><i class="hsc-dot"></i> <span>Mod lớn · Ổn định</span></small>
+              </div>
+              <span class="hsc-more">⋮</span>
+            </button>
+
+            <button type="button" class="hzl-side-core-item" data-side-core="neoforge" title="Chuyển sang NeoForge (Thế hệ mới 1.20.4+)">
+              <img src="app-logo.png" class="hsc-icon" data-sync-core-icon="neoforge" alt="NeoForge" draggable="false" />
+              <div class="hsc-info">
+                <strong>NeoForge</strong>
+                <small class="hsc-sub" data-default-sub="Thế hệ mới · Nhanh"><i class="hsc-dot"></i> <span>Thế hệ mới · Nhanh</span></small>
+              </div>
+              <span class="hsc-more">⋮</span>
+            </button>
+
+            <button type="button" class="hzl-side-core-item" data-side-core="optifine" title="Chuyển sang OptiFine (Shader, Zoom &amp; Đuốc sáng)">
+              <img src="app-logo.png" class="hsc-icon" data-sync-core-icon="optifine" alt="OptiFine" draggable="false" />
+              <div class="hsc-info">
+                <strong>OptiFine Shaders</strong>
+                <small class="hsc-sub" data-default-sub="Shader &amp; Phím Zoom"><i class="hsc-dot"></i> <span>Shader &amp; Phím Zoom</span></small>
+              </div>
+              <span class="hsc-more">⋮</span>
+            </button>
+
+            <button type="button" class="hzl-side-core-item" data-side-core="quilt" title="Chuyển sang Quilt Loader (Hiện đại, tương thích Fabric)">
+              <img src="app-logo.png" class="hsc-icon" data-sync-core-icon="quilt" alt="Quilt" draggable="false" />
+              <div class="hsc-info">
+                <strong>Quilt Loader</strong>
+                <small class="hsc-sub" data-default-sub="Hiện đại · Tối ưu"><i class="hsc-dot"></i> <span>Hiện đại · Tối ưu</span></small>
+              </div>
+              <span class="hsc-more">⋮</span>
+            </button>
+
+            <button type="button" class="hzl-side-core-item" data-side-core="legacyfabric" title="Chuyển sang Legacy Fabric (Chuyên PvP 1.8.9 / 1.12.2)">
+              <img src="app-logo.png" class="hsc-icon" data-sync-core-icon="legacyfabric" alt="Legacy PvP" draggable="false" />
+              <div class="hsc-info">
+                <strong>Legacy PvP</strong>
+                <small class="hsc-sub" data-default-sub="BedWars · 1.8 / 1.12"><i class="hsc-dot"></i> <span>BedWars · 1.8 / 1.12</span></small>
+              </div>
+              <span class="hsc-more">⋮</span>
+            </button>
+
+            <button type="button" class="hzl-side-core-item" data-side-core="vanilla" title="Chuyển sang Vanilla (Nguyên bản Mojang)">
+              <img src="app-logo.png" class="hsc-icon" data-sync-core-icon="vanilla" alt="Vanilla" draggable="false" />
+              <div class="hsc-info">
+                <strong>Vanilla Mojang</strong>
+                <small class="hsc-sub" data-default-sub="Nguyên bản chuẩn"><i class="hsc-dot"></i> <span>Nguyên bản chuẩn</span></small>
+              </div>
+              <span class="hsc-more">⋮</span>
+            </button>
+          </div>
+
+          <div class="hzl-side-coop-block">
+            <div class="hzl-inst-head hzl-inst-head-sub">
+              <span>Máy chủ &amp; Co-op</span>
+            </div>
+            <button type="button" class="hzl-side-core-item hzl-side-coop-btn" id="btnSideOpenServers" title="Mở danh sách Server Việt Nam, Quốc tế &amp; phòng Co-op LAN">
+              <div class="hsc-coop-glyph">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="7" rx="2"/><rect x="2" y="14" width="20" height="7" rx="2"/><circle cx="6" cy="6.5" r="1" fill="currentColor"/><circle cx="6" cy="17.5" r="1" fill="currentColor"/></svg>
+              </div>
+              <div class="hsc-info">
+                <strong>SMP &amp; Co-op LAN</strong>
+                <small class="hsc-sub"><i class="hsc-dot is-online"></i> <span>Kết nối thẳng 1-Click</span></small>
+              </div>
+            </button>
+          </div>
         </div>
 
-        <!-- Bottom BlockWay Promo Card (Matches Reference Design) -->
-        <div class="sidebar-promo-card">
-          <div class="spc-bg" style="background-image: url('app-banner.png');"></div>
-          <div class="spc-overlay"></div>
-          <div class="spc-content">
-            <div class="spc-title">Khám phá<br/>những thế giới mới<br/>cùng BlockWay!</div>
-            <button class="spc-btn" id="btnSidebarLearnMore">Tìm hiểu thêm →</button>
+        <!-- Clean Ad-Free Glass System Status Footer -->
+        <div class="sidebar-glass-footer">
+          <div class="sgf-status-top">
+            <span class="sgf-status-lbl">Trạng thái Hệ thống</span>
+            <span class="sgf-status-ready"><i class="sgf-live-dot"></i> Sẵn sàng</span>
           </div>
+          <div class="sgf-meta">
+            <span><strong id="sideVerText">1.21.4</strong> · <strong id="sideCoreText">FABRIC</strong></span>
+            <strong id="sideRamText">4 GB</strong>
+            <strong id="sideModsCount" class="hidden">0 Mod</strong>
+          </div>
+          <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
+            <span>BlockWay OTA</span>
+            <strong id="titlebarUpdateVer">v42.2.0</strong>
+          </button>
         </div>
       </aside>
 
       <!-- C. MAIN CONTENT STAGE -->
       <main class="main-stage">
         <!-- =========================================================
-             MỤC 1: TRANG CHỦ (DEFAULT DASHBOARD MATCHING REFERENCE)
+             MỤC 1: TRANG CHỦ (HORIZON GLASS OPEN-AIR STAGE + NOTCHED TABBEDPANEL)
              ========================================================= -->
         <section class="tab-panel active" id="tab-home">
-          <div class="home-dashboard-grid">
-            <!-- CENTER COLUMN -->
-            <div class="home-center-col">
-              <!-- 1. HERO BRAND BANNER WITH MANDATORY 4 QUICK UTILITY BUTTONS -->
-              <div class="hero-banner-clean" id="heroBanner" style="background-image: url('app-banner-hero.png');">
-                <div class="hbc-overlay"></div>
-                <div class="hbc-content">
-                  <div class="hbc-top">
-                    <div class="hbc-badges-left">
-                      <span class="mc-badge">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-                        MINECRAFT JAVA EDITION
-                      </span>
-                      <span class="mc-live-pill" id="bannerActivePill">1.21.11 • FABRIC • 4 GB RAM</span>
-                      <span class="mc-live-pill playtime-pill" id="bannerPlaytimePill" title="Tổng thời gian bạn đã chơi Minecraft trên BlockWay Launcher">⏱️ Đã chơi: Chưa chơi</span>
-                    </div>
-                    <div class="wallpaper-switcher">
-                      <button class="wp-chip active" data-wp="app-banner-hero.png">BlockWay</button>
-                      <button class="wp-chip" data-wp="https://launchercontent.mojang.com/v2/images/1.21.11540x540.jpg">Tricky Trials</button>
-                      <button class="wp-chip" data-wp="https://launchercontent.mojang.com/v2/images/dappledcamp540x540.jpg">Vibrant Camp</button>
-                      <button class="wp-chip" data-wp="https://launchercontent.mojang.com/v2/images/MCLauncher700x466.png">Overworld</button>
-                      <button class="wp-chip" data-wp="https://launchercontent.mojang.com/v2/images/MinecraftWildernessBoundLauncher700x466.png">Wilderness</button>
-                    </div>
+          <div class="hzl-home-layout">
+            <!-- 1. OPEN-AIR HORIZON HERO STAGE -->
+            <div class="hero-banner-clean hzl-open-hero" id="heroBanner">
+              <div class="hbc-overlay"></div>
+              <div class="hzl-hero-top-bar">
+                <div class="hzl-hero-pills-left">
+                  <div class="hzl-edition-switch" role="group" aria-label="Chọn nhánh Engine">
+                    <button type="button" class="hzl-ed-btn" data-hzl-edition="rust">🦀 Nhân Rust (Horizon)</button>
+                    <button type="button" class="hzl-ed-btn active" data-hzl-edition="java">☕ Java Edition (8 Core)</button>
                   </div>
-
-                  <div class="hbc-bottom-row">
-                    <div class="hbc-bottom">
-                      <div class="hbc-edition-tag" id="hbcEditionTag">BLOCKWAY LAUNCHER • EVERY WORLD, ONE PLACE.</div>
-                      <p id="bannerSubStatus">Phiên bản đã sẵn sàng trên máy — Bấm CHƠI NGAY để vào thẳng thế giới.</p>
-                    </div>
-                    <!-- MANDATORY 4 BANNER UTILITY BUTTONS -->
-                    <div class="hbc-quick-actions">
-                      <button class="banner-cta-btn secondary" id="btnOpenMigrateModal" title="Đồng bộ Thế giới, Mods, Server & Tài khoản từ Launcher cũ (TLauncher, CurseForge, Prism, Modrinth...)">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        <span>Đồng bộ dữ liệu từ Launcher cũ</span>
-                      </button>
-                      <button class="banner-cta-btn secondary" id="btnBannerScreenshots" title="Mở thư mục ảnh chụp trong game (.minecraft/screenshots)">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                        <span>Ảnh Chụp</span>
-                      </button>
-                      <button class="banner-cta-btn secondary" id="btnBannerWorlds" title="Quản lý thế giới chơi đơn">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                        <span>Thế Giới</span>
-                      </button>
-                      <button class="banner-cta-btn" id="btnGoModStore" title="Mở kho 77,600+ Mod, Shader & Resource Pack">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.252.004a11.78 11.768 0 0 0-8.92 3.73 11 10.999 0 0 0-2.17 3.11 11.37 11.359 0 0 0-1.16 5.169c0 1.42.17 2.5.6 3.77.24.759.77 1.899 1.17 2.529a12.3 12.298 0 0 0 8.85 5.639c.44.05 2.54.07 2.76.02.2-.04.22.1-.26-1.7l-.36-1.37-1.01-.06a8.5 8.489 0 0 1-5.18-1.8 5.34 5.34 0 0 1-1.3-1.26c0-.05.34-.28.74-.5a37.572 37.545 0 0 1 2.88-1.629c.03 0 .5.45 1.06.98l1 .97 2.07-.43 2.06-.43 1.47-1.47c.8-.8 1.48-1.5 1.48-1.52 0-.09-.42-1.63-.46-1.7-.04-.06-.2-.03-1.02.18-.53.13-1.2.3-1.45.4l-.48.15-.53.53-.53.53-.93.1-.93.07-.52-.5a2.7 2.7 0 0 1-.96-1.7l-.13-.6.43-.57c.68-.9.68-.9 1.46-1.1.4-.1.65-.2.83-.33.13-.099.65-.579 1.14-1.069l.9-.9-.7-.7-.7-.7-1.95.54c-1.07.3-1.96.53-1.97.53-.03 0-2.23 2.48-2.63 2.97l-.29.35.28 1.03c.16.56.3 1.16.31 1.34l.03.3-.34.23c-.37.23-2.22 1.3-2.84 1.63-.36.2-.37.2-.44.1-.08-.1-.23-.6-.32-1.03-.18-.86-.17-2.75.02-3.73a8.84 8.839 0 0 1 7.9-6.93c.43-.03.77-.08.78-.1.06-.17.5-2.999.47-3.039-.01-.02-.1-.02-.2-.03Zm3.68.67c-.2 0-.3.1-.37.38-.06.23-.46 2.42-.46 2.52 0 .04.1.11.22.16a8.51 8.499 0 0 1 2.99 2 8.38 8.379 0 0 1 2.16 3.449 6.9 6.9 0 0 1 .4 2.8c0 1.07 0 1.27-.1 1.73a9.37 9.369 0 0 1-1.76 3.769c-.32.4-.98 1.06-1.37 1.38-.38.32-1.54 1.1-1.7 1.14-.1.03-.1.06-.07.26.03.18.64 2.56.7 2.78l.06.06a12.07 12.058 0 0 0 7.27-9.4c.13-.77.13-2.58 0-3.4a11.96 11.948 0 0 0-5.73-8.578c-.7-.42-2.05-1.06-2.25-1.06Z"/></svg>
-                        <span>Kho Modrinth</span>
-                      </button>
-                    </div>
+                  <span class="mc-live-pill" id="bannerActivePill">1.21.11 • FABRIC • 4 GB RAM</span>
+                  <span class="mc-live-pill playtime-pill" id="bannerPlaytimePill" title="Tổng thời gian bạn đã chơi Minecraft trên BlockWay Launcher">⏱️ Đã chơi: Chưa chơi</span>
+                  <div class="wallpaper-switcher hidden">
+                    <button class="wp-chip active" data-wp="app-banner-hero.png">BlockWay</button>
                   </div>
                 </div>
               </div>
 
-              <!-- 2. FIVE QUICK ACTION CARDS ROW -->
-              <div class="quick-actions-5grid v413-compact-hide hidden">
-                <button class="qa-card" id="qaCreateWorld">
-                  <img src="data:image/png;base64,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" class="qa-icon-img" alt="" draggable="false" />
-                  <div class="qa-text">
-                    <strong>Tạo thế giới mới</strong>
-                    <span>Bắt đầu hành trình</span>
+              <div class="hzl-hero-identity">
+                <img src="app-logo.png" class="hzl-hero-logo" alt="BlockWay" draggable="false" />
+                <div class="hzl-hero-headings">
+                  <div class="hbc-edition-tag hidden" id="hbcEditionTag">BLOCKWAY LAUNCHER • EVERY WORLD, ONE PLACE.</div>
+                  <h1 class="hzl-hero-title" id="hzlHeroTitle">BlockWay Rust</h1>
+                  <div class="hzl-hero-subrow">
+                    <p id="bannerSubStatus">Phiên bản đã sẵn sàng trên máy — Bấm Chơi ngay để vào thế giới.</p>
                   </div>
-                </button>
-                <button class="qa-card" id="qaJoinServer">
-                  <div class="qa-svg-box blue">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                  </div>
-                  <div class="qa-text">
-                    <strong>Tham gia máy chủ</strong>
-                    <span>Kết nối cùng bạn bè</span>
-                  </div>
-                </button>
-                <button class="qa-card" id="qaAddModPack">
-                  <div class="qa-svg-box purple">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.315 8.685a.98.98 0 0 1 .837-.276c.47.07.802.48.968.925a2.501 2.501 0 1 0 3.214-3.214c-.446-.166-.855-.497-.925-.968a.979.979 0 0 1 .276-.837l1.61-1.61a2.404 2.404 0 0 1 1.705-.707c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"/></svg>
-                  </div>
-                  <div class="qa-text">
-                    <strong>Thêm mod &amp; Pack</strong>
-                    <span>Mở rộng trải nghiệm</span>
-                  </div>
-                </button>
-                <button class="qa-card" id="qaGameSettings">
-                  <div class="qa-svg-box cyan">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                  </div>
-                  <div class="qa-text">
-                    <strong>Cài đặt game</strong>
-                    <span>Tùy chỉnh tối ưu</span>
-                  </div>
-                </button>
-                <button class="qa-card" id="qaUsefulTools">
-                  <div class="qa-svg-box amber">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                  </div>
-                  <div class="qa-text">
-                    <strong>Công cụ hữu ích</strong>
-                    <span>Nhiều công cụ khác</span>
-                  </div>
-                </button>
+                </div>
               </div>
 
-              <!-- 3. SLOT FOR SHARED PRIORITY LAUNCH BAR -->
+              <!-- 2. HORIZON 56PX (H-14) ACTION BAR + QUICK CO-OP / SERVER JOIN PILL -->
               <div id="homeLaunchSlot">
                 <div class="home-play-card" id="sharedLaunchBarWrap">
                   <div class="hpc-header">
                     <div class="hpc-title">
                       <svg viewBox="0 0 24 24" width="18" height="18" stroke="#22c55e" stroke-width="2.2" fill="none"><rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 12h4M8 10v4"/><circle cx="15" cy="11" r="1" fill="#22c55e"/><circle cx="17" cy="13" r="1" fill="#22c55e"/></svg>
                       <span>Chơi game</span>
-                      <button type="button" class="turbo-hpc-pill" id="btnHeroTurboSmooth" title="Tính năng đặc biệt Turbo Smooth Core™: Can thiệp sâu 6 tầng tệp cấu hình game &amp; hoàn tác 1-Click">⚡ Turbo Smooth™</button>
                     </div>
                     <div class="hpc-status-wrap">
                       <span class="drs-text" id="statusText">🟢 Sẵn sàng vào game</span>
@@ -334,7 +338,24 @@
                   </div>
 
                   <div class="hpc-main-row">
-                    <!-- Version Selector Box with 3D Grass Block & Quick Dropdown -->
+                    <!-- Primary Horizon Indigo/Rose Play Button -->
+                    <div class="hpc-launch-actions">
+                      <button class="btn-instant-kill hidden" id="btnForceKill">
+                        <span>⏹ DỪNG GAME</span>
+                      </button>
+                      <button class="btn-mc-official-play" id="btnLaunch">
+                        <svg class="play-tri-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                        <div class="play-btn-labels">
+                          <span class="mc-play-main" id="launchBtnText">Chơi ngay</span>
+                          <span class="mc-play-sub" id="launchBtnSub">1.21.4 - FABRIC</span>
+                        </div>
+                      </button>
+                      <button class="hpc-quick-cfg-btn" id="btnQuickPlaySettings" title="Mở cấu hình phiên bản & tài khoản chi tiết">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>
+                      </button>
+                    </div>
+
+                    <!-- Horizon Version & Core Selector Pill -->
                     <div class="hpc-version-box" id="homeVersionBox" title="Bấm để chọn nhanh phiên bản Minecraft">
                       <div class="dac-icon" id="dockActiveIconWrap">
                         <img src="data:image/png;base64,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" id="dockGrassImg" class="dock-grass-img" alt="Minecraft" draggable="false" />
@@ -344,25 +365,31 @@
                         <strong id="dockVersionTitle">Minecraft 1.21.4 (Đã tải)</strong>
                         <span id="dockCoreSubtitle">⚙ Fabric 0.20.1  •  🖥 4 GB RAM  •  🧩 0 Mod</span>
                       </div>
-                      <svg class="hpc-ver-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>
+                      <svg class="hpc-ver-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>
                       <select id="versionSelect" class="hpc-Native-select" title="Chọn phiên bản Minecraft"></select>
                     </div>
 
-                    <!-- Primary Emerald Launch Button -->
-                    <div class="hpc-launch-actions">
-                      <button class="btn-instant-kill hidden" id="btnForceKill">
-                        <span>⏹ DỪNG GAME</span>
+                    <!-- Horizon 56x56 Square Utility Icons (Mods, Folder, Turbo Smooth) -->
+                    <div class="hzl-action-extras">
+                      <button type="button" class="hzl-square-action-btn" id="btnGoModStore" title="Mở Kho Mod, Shader &amp; Resource Pack (Modrinth + Horizon Rust)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.315 8.685a.98.98 0 0 1 .837-.276c.47.07.802.48.968.925a2.501 2.501 0 1 0 3.214-3.214c-.446-.166-.855-.497-.925-.968a.979.979 0 0 1 .276-.837l1.61-1.61a2.404 2.404 0 0 1 1.705-.707c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"/></svg>
                       </button>
-                      <button class="btn-mc-official-play" id="btnLaunch">
-                        <svg class="play-tri-svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-                        <div class="play-btn-labels">
-                          <span class="mc-play-main" id="launchBtnText">CHƠI NGAY</span>
-                          <span class="mc-play-sub" id="launchBtnSub">1.21.4 - FABRIC</span>
-                        </div>
+                      <button type="button" class="hzl-square-action-btn" id="btnHzlOpenMcFolder" title="Mở nhanh thư mục .minecraft trên máy">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                       </button>
-                      <button class="hpc-quick-cfg-btn" id="btnQuickPlaySettings" title="Mở cấu hình phiên bản & tài khoản chi tiết">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                      <button type="button" class="hzl-square-action-btn" id="btnHeroTurboSmooth" title="Turbo Smooth Core™: Can thiệp sâu 6 tầng tệp cấu hình game &amp; hoàn tác 1-Click">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                       </button>
+                      <button type="button" class="hzl-pill-action-btn hidden" id="btnHzlCoreQuickJump" title="Mở bảng chọn 8 Mod Loader (Core) &amp; dung lượng RAM">
+                        <span>⚙ FABRIC · 4 GB</span>
+                      </button>
+                    </div>
+
+                    <!-- Horizon Right-Aligned Quick Server / Co-op Invite Join Pill -->
+                    <div class="hzl-quick-join-pill">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                      <input type="text" id="hzlQuickJoinInput" placeholder="Dán IP Server / Mã phòng..." aria-label="Dán nhanh IP máy chủ hoặc mã phòng Co-op" />
+                      <button type="button" id="hzlQuickJoinBtn">Vào phòng</button>
                     </div>
                   </div>
 
@@ -371,9 +398,36 @@
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- 4. SLOT FOR SHARED MOD LOADER & RAM CARDS (SIDE-BY-SIDE) -->
-              <div id="homeLoaderRamSlot">
+            <!-- 3. SIGNATURE HORIZON NOTCHED TABBEDPANEL (16px CONCAVE FILLET) -->
+            <div class="hzl-tabbed-panel" id="hzlHomeTabbedPanel">
+              <div class="hzl-tp-tabs" id="hzlHomeTabbedStrip" role="tablist" aria-label="Bảng điều khiển Trang chủ">
+                <button type="button" class="hzl-tp-tab active" data-hzl-pane="overview">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                  <span>Tổng quan</span>
+                </button>
+                <button type="button" class="hzl-tp-tab" data-hzl-pane="cores">
+                  <span>8 Core &amp; RAM</span>
+                </button>
+                <button type="button" class="hzl-tp-tab" data-hzl-pane="system">
+                  <span>Hệ thống</span>
+                </button>
+                <button type="button" class="hzl-tp-tab hzl-tp-jump" id="btnBannerWorlds" title="Quản lý thế giới chơi đơn &amp; Seed đẹp">
+                  <span>Thế giới</span>
+                </button>
+                <button type="button" class="hzl-tp-tab hzl-tp-jump" id="btnBannerScreenshots" title="Mở thư viện ảnh chụp trong game (.minecraft/screenshots)">
+                  <span>Ảnh chụp</span>
+                </button>
+                <button type="button" class="hzl-tp-tab hzl-tp-jump" id="btnOpenMigrateModal" title="Đồng bộ Thế giới, Mods &amp; Server từ Launcher khác">
+                  <span>Đồng bộ</span>
+                </button>
+              </div>
+
+              <div class="hzl-tp-body">
+                <!-- PANE B: 8 MOD LOADERS & RAM CONFIG -->
+                <div class="hzl-tp-pane hidden" data-hzl-pane-body="cores">
+                  <div id="homeLoaderRamSlot">
                 <div class="home-controls-2col" id="sharedLoaderRamWrap">
                   <!-- LEFT: MOD LOADER CARD -->
                   <div class="bento-card loader-pick-card">
@@ -427,7 +481,7 @@
                         <strong>Legacy</strong>
                         <span>PvP 1.8 / 1.12</span>
                       </button>
-                      <button class="core-tab-btn" data-core="horizon" title="Horizon Custom Rust Core (GitHub buiduchuy2010qn-prog/blockway-rust-engine): Gộp trọn bộ 29 bản từ 1.16.5 → 1.20.2 → 1.21.1 → 1.21.11 → 26.3 chạy thuần mã nguồn Rust đã tuỳ biến (lọc chuẩn kho đồ &amp; lệnh theo từng bản, tự động nâng cấp OTA từ GitHub Actions) • Các bản cũ &lt; 1.16.5 tự bật Horizon Hybrid Turbo">
+                      <button class="core-tab-btn" data-core="horizon" title="Horizon Custom Rust Core (GitHub buiduchuy2010qn-prog/blockway-launcher • rust-engine/): Gộp trọn bộ 29 bản từ 1.16.5 → 1.20.2 → 1.21.1 → 1.21.11 → 26.3 chạy thuần mã nguồn Rust đã tuỳ biến (lọc chuẩn kho đồ &amp; lệnh theo từng bản, tự động nâng cấp OTA từ GitHub Actions) • Các bản cũ &lt; 1.16.5 tự bật Horizon Hybrid Turbo">
                         <span class="core-check-dot">✓</span>
                         <img class="core-svg-icon core-real-logo pixel-art" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgc2hhcGUtcmVuZGVyaW5nPSJjcmlzcEVkZ2VzIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIzIiBmaWxsPSIjMTAwYTFmIi8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTQgM2gydjRINHpNMTAgM2gydjRoLTJ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIuNCIgZD0iTTQgOGgydjRINHpNMTAgOGgydjRoLTJ6Ii8+PHBhdGggZmlsbD0iI2E5OGZmZiIgZD0iTTEgN2gxNHYxSDF6Ii8+PC9zdmc+" alt="Horizon" draggable="false" />
                         <strong>Horizon</strong>
@@ -479,24 +533,52 @@
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <!-- 5. RECENT WORLDS SECTION (REAL SAVES DATA) -->
-              <div class="bento-card home-recent-worlds-card">
-                <div class="hrw-head">
-                  <div class="hrw-title">
-                    <svg viewBox="0 0 24 24" width="17" height="17" stroke="#14b8a6" stroke-width="2.2" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                    <span>Thế giới gần đây</span>
                   </div>
-                  <button class="hrw-view-all" id="btnHomeViewAllWorlds">Xem tất cả →</button>
                 </div>
-                <div class="hrw-cards-row" id="homeRecentWorldsGrid"></div>
-              </div>
-            </div>
 
-            <!-- RIGHT UTILITY COLUMN (315px) -->
-            <div class="right-utility-col" id="rightUtilityCol">
-              <!-- CARD A: 3D CHARACTER PREVIEW SLOT -->
+                <!-- PANE A (DEFAULT ACTIVE): OVERVIEW, QUICK CHIPS, RECENT WORLDS & 3D CHARACTER -->
+                <div class="hzl-tp-pane" data-hzl-pane-body="overview">
+                  <div class="hzl-overview-grid">
+                    <div class="hzl-overview-left">
+                      <div class="hzl-quick-strip">
+                        <button type="button" class="hzl-quick-chip" id="qaCreateWorld">🌱 Tạo thế giới mới</button>
+                        <button type="button" class="hzl-quick-chip" id="qaJoinServer">🌐 Tham gia máy chủ</button>
+                        <button type="button" class="hzl-quick-chip" id="qaAddModPack">🧩 Thêm Mod &amp; Pack</button>
+                        <button type="button" class="hzl-quick-chip" id="qaGameSettings">⚙️ Cài đặt game</button>
+                        <button type="button" class="hzl-quick-chip" id="qaUsefulTools">🛠️ Công cụ hữu ích</button>
+                      </div>
+
+                      <!-- RECENT WORLDS SECTION (REAL SAVES DATA) -->
+                      <div class="bento-card home-recent-worlds-card">
+                        <div class="hrw-head">
+                          <div class="hrw-title">
+                            <svg viewBox="0 0 24 24" width="17" height="17" stroke="#14b8a6" stroke-width="2.2" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                            <span>Thế giới gần đây</span>
+                          </div>
+                          <button class="hrw-view-all" id="btnHomeViewAllWorlds">Xem tất cả →</button>
+                        </div>
+                        <div class="hrw-cards-row" id="homeRecentWorldsGrid"></div>
+                      </div>
+
+                      <!-- HORIZON-STYLE PATCH & ENGINE STATUS CARD (PURE TEXT GLASS, ZERO STOCK PHOTOS) -->
+                      <div class="bento-card hzl-patch-note-card">
+                        <div class="hrw-head">
+                          <div class="hrw-title">
+                            <span>Nhật ký &amp; Trạng thái Nhân</span>
+                            <small class="hzl-patch-ver-tag">v42.1 PRO · Pure Glass</small>
+                          </div>
+                          <button type="button" class="hrw-view-all" id="btnHomeOpenChangelog">Cài đặt ›</button>
+                        </div>
+                        <ul class="hzl-patch-list">
+                          <li>Giao diện kính mờ (Frosted Glass 24px) chuẩn Horizon: điều hướng trên thanh nổi, danh sách 8 Core bên trái, triệt tiêu ảnh nền dư thừa.</li>
+                          <li>Hỗ trợ song song <strong>Nhân Rust (Horizon Vulkan / WGSL)</strong> và đầy đủ <strong>8 Core Java</strong> kèm bộ biên dịch <code>.jar → .hmod</code>.</li>
+                          <li>Kho Mod hiển thị chuẩn danh sách ngang kèm bảng Chi tiết cố định (Sticky Inspector) và 100% ảnh gốc từ CDN Modrinth.</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div class="hzl-overview-right" id="rightUtilityCol">
+                      <!-- CARD A: 3D CHARACTER PREVIEW SLOT -->
               <div id="homeRightSkinSlot">
                 <div class="bento-card skin-studio-card" id="sharedSkinViewerCard">
                   <div class="card-head">
@@ -559,7 +641,12 @@
                   <button class="acc-save-btn" id="btnHomeSaveName" title="Lưu tên này vào danh sách tài khoản">Lưu</button>
                 </div>
               </div>
+                    </div>
+                  </div>
+                </div>
 
+                <!-- PANE C: SYSTEM INFORMATION TELEMETRY & OPTIMIZATION -->
+                <div class="hzl-tp-pane hidden" data-hzl-pane-body="system">
               <!-- CARD C: SYSTEM INFORMATION TELEMETRY CARD -->
               <div class="bento-card sys-telemetry-card">
                 <div class="card-head">
@@ -608,6 +695,8 @@
                     <div class="smr-track"><div class="smr-fill amber" id="sysDiskBar" style="width: 35%"></div></div>
                     <strong class="smr-val" id="sysDiskPct">--%</strong>
                   </div>
+                </div>
+              </div>
                 </div>
               </div>
             </div>
@@ -1146,7 +1235,22 @@
 
           <div id="modCompatNoticeBar" class="mod-compat-notice-bar hidden"></div>
 
-          <div class="modrinth-grid" id="modrinthResultsGrid"></div>
+          <div class="hzl-mods-split" id="hzlModsSplitWrap">
+            <div class="modrinth-grid" id="modrinthResultsGrid"></div>
+            <aside class="hzl-mod-inspector" id="hzlModDetailAside" aria-label="Chi tiết gói Mod">
+              <div class="hmi-top">
+                <img class="hmi-icon" id="hmiIcon" src="app-logo.png" alt="" />
+                <div class="hmi-titles">
+                  <h3 class="hmi-title" id="hmiTitle">Chọn một Mod để xem chi tiết</h3>
+                  <div class="hmi-meta" id="hmiMeta">Kho Modrinth &amp; Horizon Rust chính thức</div>
+                </div>
+              </div>
+              <div class="mod-compat-pill ok" id="hmiCompatBox">✅ Tự động kiểm tra tương thích phiên bản</div>
+              <div class="hmi-desc" id="hmiDesc">Nhấp vào bất kỳ thẻ Mod, Shader hoặc Gói đồ họa nào ở danh sách bên trái để đọc mô tả đầy đủ và trạng thái tương thích trước khi cài đặt.</div>
+              <div class="hmi-tags" id="hmiTags"></div>
+              <button type="button" class="hmi-install-btn" id="hmiInstallBtn" disabled>Chọn gói để cài đặt</button>
+            </aside>
+          </div>
 
           <div class="local-addons-wrap hidden" id="localAddonsWrap">
             <div class="local-addons-toolbar" style="flex-wrap:wrap;gap:8px;">
@@ -1809,7 +1913,7 @@
               </div>
             </div>
             <div class="console-terminal" id="consoleOutput">
-              <div class="log-entry info">[BlockWay Launcher v41.8.1 PRO] Sẵn sàng khởi chạy.</div>
+              <div class="log-entry info">[BlockWay Launcher v42.2.0 PRO] Horizon Glass Edition — Sẵn sàng khởi chạy.</div>
             </div>
           </div>
         </section>
@@ -1831,7 +1935,7 @@
                 📦 GitHub Repo
               </button>
               <button class="btn-sync-skin" id="btnCheckUpdate">
-                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v41.8.1</span>)
+                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v42.2.0</span>)
               </button>
             </div>
           </div>
@@ -1915,14 +2019,15 @@
               <div class="settings-utility-bar">
                 <span class="sub-bar-label">🎨 Chủ đề nền:</span>
                 <div class="theme-studio-bar">
-                  <button class="ts-chip active" data-theme-pick="lunar"><span class="ts-dot" style="background:linear-gradient(135deg,#151922 45%,#3b82f6 45%);"></span>BlockWay Dark</button>
+                  <button class="ts-chip active" data-theme-pick="horizon"><span class="ts-dot" style="background:linear-gradient(135deg,#1c123c 45%,#6b4bff 45%);"></span>🌅 Tím Hoàng Hôn Glass</button>
+                  <button class="ts-chip" data-theme-pick="sakura"><span class="ts-dot" style="background:linear-gradient(135deg,#f8dfe9 45%,#ec4899 45%);border:1px solid #f472b6;"></span>🌸 Sakura Dawn Glass</button>
+                  <button class="ts-chip" data-theme-pick="lunar"><span class="ts-dot" style="background:linear-gradient(135deg,#151922 45%,#3b82f6 45%);"></span>BlockWay Dark Glass</button>
                   <button class="ts-chip" data-theme-pick="rust"><span class="ts-dot" style="background:linear-gradient(135deg,#121318 45%,#f97316 45%);"></span>🦀 Rust Obsidian</button>
-                  <button class="ts-chip" data-theme-pick="mojang"><span class="ts-dot" style="background:linear-gradient(135deg,#1c1f26 45%,#22c55e 45%);"></span>Mojang</button>
-                  <button class="ts-chip" data-theme-pick="modrinth"><span class="ts-dot" style="background:linear-gradient(135deg,#142019 45%,#1bd96a 45%);"></span>Modrinth</button>
-                  <button class="ts-chip" data-theme-pick="feather"><span class="ts-dot" style="background:linear-gradient(135deg,#102235 45%,#0ea5e9 45%);"></span>Feather</button>
-                  <button class="ts-chip" data-theme-pick="cherry"><span class="ts-dot" style="background:linear-gradient(135deg,#24111f 45%,#ec4899 45%);"></span>Cherry Dark</button>
-                  <button class="ts-chip" data-theme-pick="prism"><span class="ts-dot" style="background:linear-gradient(135deg,#ffffff 45%,#2563eb 45%);border:1px solid #94a3b8;"></span>Trắng Sáng</button>
-                  <button class="ts-chip" data-theme-pick="sakura"><span class="ts-dot" style="background:linear-gradient(135deg,#ffffff 45%,#ec4899 45%);border:1px solid #f472b6;"></span>Trắng Hồng ✨</button>
+                  <button class="ts-chip" data-theme-pick="mojang"><span class="ts-dot" style="background:linear-gradient(135deg,#1c1f26 45%,#22c55e 45%);"></span>Mojang Emerald</button>
+                  <button class="ts-chip" data-theme-pick="modrinth"><span class="ts-dot" style="background:linear-gradient(135deg,#142019 45%,#1bd96a 45%);"></span>Modrinth Mint</button>
+                  <button class="ts-chip" data-theme-pick="feather"><span class="ts-dot" style="background:linear-gradient(135deg,#102235 45%,#0ea5e9 45%);"></span>Feather Sky</button>
+                  <button class="ts-chip" data-theme-pick="cherry"><span class="ts-dot" style="background:linear-gradient(135deg,#24111f 45%,#ec4899 45%);"></span>Cherry Night</button>
+                  <button class="ts-chip" data-theme-pick="prism"><span class="ts-dot" style="background:linear-gradient(135deg,#ffffff 45%,#2563eb 45%);border:1px solid #94a3b8;"></span>Crystal Light</button>
                 </div>
               </div>
               <div class="settings-utility-bar">
@@ -2640,5 +2745,6 @@
   <script src="skinview3d.bundle.js"></script>
   <script src="store-features.js"></script>
   <script src="renderer.js"></script>
+  <script src="horizon-glass.js"></script>
 </body>
 </html>

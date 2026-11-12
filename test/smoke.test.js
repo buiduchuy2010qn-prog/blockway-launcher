@@ -211,3 +211,103 @@ test('5. Zip-Slip protection & Horizon Rust compatibility classifier unit tests'
   assert.equal(uuidA, uuidB);
   assert.match(uuidA, /^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 });
+
+test('6. Native 26.3 Datapack extraction & Worldgen self-healing prevent map crash', () => {
+  const engine = require('../src/launcher-engine');
+  const tmpGame = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-dp263-test-'));
+  try {
+    const mockTerralithZip = {
+      getEntries: () => [
+        {
+          entryName: 'pack.mcmeta',
+          isDirectory: false,
+          getData: () => Buffer.from(JSON.stringify({ pack: { description: 'Terralith 26.3', min_format: 121, max_format: 121 } }), 'utf8')
+        },
+        {
+          entryName: 'data/minecraft/tags/worldgen/configured_feature/can_spawn_from_bone_meal.json',
+          isDirectory: false,
+          getData: () => Buffer.from(JSON.stringify({ values: ['minecraft:oak'] }), 'utf8')
+        },
+        {
+          entryName: 'data/minecraft/worldgen/density_function/overworld/final_density.json',
+          isDirectory: false,
+          getData: () => Buffer.from(JSON.stringify({
+            type: 'minecraft:add',
+            left: 'minecraft:beardifier',
+            right: {
+              type: 'minecraft:cache',
+              input: {
+                type: 'minecraft:interpolated',
+                cell_size_xz: 4,
+                cell_size_y: 8,
+                input: { type: 'minecraft:abs', input: 0.5 }
+              }
+            }
+          }), 'utf8')
+        },
+        {
+          entryName: 'data/terralith/function/init.mcfunction',
+          isDirectory: false,
+          getData: () => Buffer.from('say Terralith ready\n', 'utf8')
+        }
+      ]
+    };
+
+    const installed = engine.tryInstallNative263DatapackArchive(mockTerralithZip, {
+      gameDir: tmpGame,
+      preferredModId: 'terralith',
+      displayName: 'Terralith'
+    });
+    assert.ok(installed, 'Must recognize native 26.3 datapack archive');
+    assert.equal(installed.mod_id, 'terralith');
+    assert.equal(installed.verdict, 'works');
+
+    const checkClean = engine.inspectWorldgenDatapackDir(installed.output_path);
+    assert.equal(checkClean.valid, true, 'Extracted 26.3 density_function must remain 100% valid');
+    assert.equal(checkClean.checkedFiles, 1);
+
+    // Simulate a previously corrupted world datapack (`"left": null, "right": null`)
+    const worldDir = path.join(tmpGame, 'saves', 'New World');
+    const brokenDp = path.join(worldDir, 'datapacks', 'terralith', 'data', 'minecraft', 'worldgen', 'density_function', 'overworld');
+    fs.mkdirSync(brokenDp, { recursive: true });
+    fs.writeFileSync(path.join(worldDir, 'level.dat'), 'dummy');
+    fs.writeFileSync(
+      path.join(brokenDp, 'final_density.json'),
+      JSON.stringify({ type: 'minecraft:add', left: null, right: null }),
+      'utf8'
+    );
+
+    assert.equal(
+      engine.inspectWorldgenDatapackDir(path.join(worldDir, 'datapacks', 'terralith')).valid,
+      false,
+      'Must detect null left/right density_function corruption'
+    );
+
+    const healReport = engine.sanitizeCorruptedWorldgenDatapacks(tmpGame);
+    assert.deepEqual(healReport.repairedInSaves, ['New World/terralith']);
+    assert.equal(
+      engine.inspectWorldgenDatapackDir(path.join(worldDir, 'datapacks', 'terralith')).valid,
+      true,
+      'World datapack must be automatically repaired from clean new-world-datapacks copy'
+    );
+  } finally {
+    fs.rmSync(tmpGame, { recursive: true, force: true });
+  }
+});
+
+test('7. Unified Monorepo: Rust engine lives in rust-engine/ and zero separate-repo references remain', () => {
+  assert.equal(
+    fs.existsSync(path.join(REPO_ROOT, 'rust-engine', 'Cargo.toml')),
+    true,
+    'rust-engine/Cargo.toml must exist inside unified blockway-launcher repo'
+  );
+  const srcFiles = walkFiles(path.join(REPO_ROOT, 'src'), 'src').filter((f) => /\.(js|html|css)$/i.test(f.rel));
+  for (const f of srcFiles) {
+    const txt = fs.readFileSync(f.full, 'utf8');
+    assert.equal(
+      txt.includes('blockway-rust-engine'),
+      false,
+      `${f.rel} must not reference legacy separate blockway-rust-engine repo`
+    );
+  }
+});

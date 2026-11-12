@@ -1,0 +1,2039 @@
+/* ============================================================================
+   BlockWay Launcher v42.1 PRO — Pure Horizon Frosted Glass UI System
+   - Top Floating Navigation + Search + Profile Pill + Settings Sliders
+   - Left Frosted Glass Rail dedicated to 8 Core Loaders & Quick Co-op
+   - Open-Air Hero + 56px Action Row + Quick Invite Join + 16px Notched TabbedPanel
+   - Pure Translucent 3D Skin Stage & Compact Glass World Rows (Zero Wallpaper Clutter)
+   - Horizon 1-Column Horizontal Mod Rows + Sticky Detail Inspector
+   ============================================================================ */
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('fonts/BricolageGrotesque-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('fonts/BricolageGrotesqueDisplay-Bold.ttf') format('truetype');
+  font-weight: 700 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('fonts/Geist-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('fonts/Geist-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('fonts/Geist-SemiBold.ttf') format('truetype');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('fonts/GeistMono-Regular.ttf') format('truetype');
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------- 1. THEME GLASS TOKENS ---------- */
+:root,
+html[data-theme="horizon"],
+html[data-theme="lunar"],
+html[data-theme="rust"],
+html[data-theme="mojang"],
+html[data-theme="modrinth"],
+html[data-theme="feather"],
+html[data-theme="cherry"] {
+  --font-ui: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', Consolas, monospace;
+
+  --hzl-sky-fallback: #0b0a18;
+  --hzl-plate: rgba(46, 43, 66, 0.44);
+  --hzl-plate-strong: rgba(58, 54, 82, 0.58);
+  --hzl-plate-inner: rgba(255, 255, 255, 0.05);
+  --hzl-plate-pop: rgba(22, 19, 36, 0.92);
+  --hzl-blur: blur(24px) saturate(145%);
+
+  --hzl-ink-1: rgba(255, 255, 255, 0.96);
+  --hzl-ink-2: rgba(255, 255, 255, 0.72);
+  --hzl-ink-3: rgba(255, 255, 255, 0.48);
+  --hzl-fill-1: rgba(255, 255, 255, 0.06);
+  --hzl-fill-2: rgba(255, 255, 255, 0.12);
+  --hzl-fill-3: rgba(255, 255, 255, 0.18);
+  --hzl-hairline: rgba(255, 255, 255, 0.08);
+
+  --accent: #6b4bff;
+  --accent-strong: #5636ec;
+  --accent-soft: #b8b4ff;
+  --accent-glow: rgba(107, 75, 255, 0.28);
+  --accent-border: rgba(169, 169, 255, 0.38);
+  --live-green: #4ade80;
+  --warn-amber: #f2c46b;
+  --danger-coral: #ff8a8a;
+
+  --bg-app: transparent;
+  --bg-sidebar: var(--hzl-plate);
+  --bg-card: var(--hzl-plate);
+  --bg-card-hover: var(--hzl-plate-strong);
+  --bg-elevated: var(--hzl-fill-1);
+  --bg-input: rgba(10, 9, 20, 0.42);
+  --text-main: var(--hzl-ink-1);
+  --text-sub: var(--hzl-ink-2);
+  --text-muted: var(--hzl-ink-3);
+  --border-subtle: var(--hzl-hairline);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --bw-nav-grad: rgba(255, 255, 255, 0.14);
+  --bw-nav-border: transparent;
+  --bw-nav-shadow: none;
+}
+
+html[data-theme="lunar"] {
+  --hzl-sky-fallback: #080d1b;
+  --hzl-plate: rgba(36, 48, 72, 0.44);
+  --hzl-plate-strong: rgba(46, 60, 88, 0.58);
+  --hzl-plate-pop: rgba(14, 20, 34, 0.92);
+  --accent: #3b82f6;
+  --accent-strong: #2563eb;
+  --accent-soft: #93c5fd;
+  --accent-glow: rgba(59, 130, 246, 0.28);
+}
+
+html[data-theme="rust"] {
+  --hzl-sky-fallback: #120a0b;
+  --hzl-plate: rgba(62, 44, 40, 0.44);
+  --hzl-plate-strong: rgba(78, 54, 48, 0.58);
+  --hzl-plate-pop: rgba(26, 16, 14, 0.92);
+  --accent: #f97316;
+  --accent-strong: #ea580c;
+  --accent-soft: #fdba74;
+  --accent-glow: rgba(249, 115, 22, 0.28);
+}
+
+html[data-theme="mojang"],
+html[data-theme="modrinth"] {
+  --hzl-sky-fallback: #08130f;
+  --hzl-plate: rgba(38, 58, 50, 0.44);
+  --hzl-plate-strong: rgba(48, 72, 62, 0.58);
+  --hzl-plate-pop: rgba(14, 24, 20, 0.92);
+  --accent: #10b981;
+  --accent-strong: #059669;
+  --accent-soft: #6ee7b7;
+  --accent-glow: rgba(16, 185, 129, 0.28);
+}
+
+html[data-theme="feather"] {
+  --hzl-sky-fallback: #07111d;
+  --hzl-plate: rgba(36, 54, 72, 0.44);
+  --hzl-plate-strong: rgba(46, 68, 90, 0.58);
+  --hzl-plate-pop: rgba(12, 22, 34, 0.92);
+  --accent: #0ea5e9;
+  --accent-strong: #0284c7;
+  --accent-soft: #7dd3fc;
+  --accent-glow: rgba(14, 165, 233, 0.28);
+}
+
+html[data-theme="cherry"] {
+  --hzl-sky-fallback: #120917;
+  --hzl-plate: rgba(66, 40, 62, 0.44);
+  --hzl-plate-strong: rgba(82, 50, 76, 0.58);
+  --hzl-plate-pop: rgba(28, 14, 26, 0.92);
+  --accent: #ec4899;
+  --accent-strong: #db2777;
+  --accent-soft: #f9a8d4;
+  --accent-glow: rgba(236, 72, 153, 0.28);
+}
+
+/* Sakura Dawn Frosted Glass (Light Rose-Pearl Translucent Glass) */
+html[data-theme="sakura"] {
+  --font-ui: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', Consolas, monospace;
+
+  --hzl-sky-fallback: #f5e2f2;
+  --hzl-plate: rgba(255, 250, 253, 0.66);
+  --hzl-plate-strong: rgba(255, 246, 251, 0.82);
+  --hzl-plate-inner: rgba(255, 255, 255, 0.60);
+  --hzl-plate-pop: rgba(255, 250, 253, 0.96);
+  --hzl-blur: blur(24px) saturate(150%);
+
+  --hzl-ink-1: #2a1224;
+  --hzl-ink-2: rgba(58, 24, 48, 0.78);
+  --hzl-ink-3: rgba(88, 38, 72, 0.56);
+  --hzl-fill-1: rgba(219, 39, 119, 0.065);
+  --hzl-fill-2: rgba(219, 39, 119, 0.125);
+  --hzl-fill-3: rgba(219, 39, 119, 0.19);
+  --hzl-hairline: rgba(190, 24, 93, 0.11);
+
+  --accent: #db2777;
+  --accent-strong: #be185d;
+  --accent-soft: #be185d;
+  --accent-glow: rgba(219, 39, 119, 0.20);
+  --accent-border: rgba(219, 39, 119, 0.30);
+  --live-green: #059669;
+  --warn-amber: #b45309;
+  --danger-coral: #dc2626;
+
+  --bg-app: transparent;
+  --bg-sidebar: var(--hzl-plate);
+  --bg-card: var(--hzl-plate);
+  --bg-card-hover: var(--hzl-plate-strong);
+  --bg-elevated: var(--hzl-plate-inner);
+  --bg-input: rgba(255, 255, 255, 0.74);
+  --text-main: var(--hzl-ink-1);
+  --text-sub: var(--hzl-ink-2);
+  --text-muted: var(--hzl-ink-3);
+  --border-subtle: var(--hzl-hairline);
+  --border-strong: rgba(190, 24, 93, 0.18);
+}
+
+/* Crystal Ice Frosted Glass (Light Alpine Translucent Glass) */
+html[data-theme="prism"] {
+  --font-ui: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', Consolas, monospace;
+
+  --hzl-sky-fallback: #e4eefb;
+  --hzl-plate: rgba(248, 252, 255, 0.68);
+  --hzl-plate-strong: rgba(255, 255, 255, 0.84);
+  --hzl-plate-inner: rgba(255, 255, 255, 0.60);
+  --hzl-plate-pop: rgba(250, 253, 255, 0.96);
+  --hzl-blur: blur(24px) saturate(150%);
+
+  --hzl-ink-1: #0f172a;
+  --hzl-ink-2: rgba(15, 23, 42, 0.76);
+  --hzl-ink-3: rgba(30, 41, 59, 0.56);
+  --hzl-fill-1: rgba(37, 99, 235, 0.065);
+  --hzl-fill-2: rgba(37, 99, 235, 0.125);
+  --hzl-fill-3: rgba(37, 99, 235, 0.185);
+  --hzl-hairline: rgba(37, 99, 235, 0.11);
+
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-soft: #1d4ed8;
+  --accent-glow: rgba(37, 99, 235, 0.20);
+  --accent-border: rgba(37, 99, 235, 0.28);
+  --live-green: #059669;
+  --warn-amber: #b45309;
+  --danger-coral: #dc2626;
+
+  --bg-app: transparent;
+  --bg-sidebar: var(--hzl-plate);
+  --bg-card: var(--hzl-plate);
+  --bg-card-hover: var(--hzl-plate-strong);
+  --bg-elevated: var(--hzl-plate-inner);
+  --bg-input: rgba(255, 255, 255, 0.76);
+  --text-main: var(--hzl-ink-1);
+  --text-sub: var(--hzl-ink-2);
+  --text-muted: var(--hzl-ink-3);
+  --border-subtle: var(--hzl-hairline);
+  --border-strong: rgba(37, 99, 235, 0.18);
+}
+
+/* ---------- 2. SKY CANVAS & APP SHELL GRID ---------- */
+html:root:root,
+:root:root body {
+  background: var(--hzl-sky-fallback) !important;
+  color: var(--hzl-ink-1) !important;
+  font-family: var(--font-ui) !important;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#hzlSceneCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  image-rendering: pixelated;
+  display: block;
+}
+
+:root:root body .app-shell {
+  position: relative;
+  z-index: 1;
+  display: grid !important;
+  grid-template-columns: 214px minmax(0, 1fr) !important;
+  grid-template-rows: 44px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  padding: 12px !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .app-shell {
+  grid-template-columns: 74px minmax(0, 1fr) !important;
+}
+
+:root:root body .app-shell > .workspace {
+  display: contents !important;
+}
+
+:root:root body h1,
+:root:root body h2,
+:root:root body h3,
+:root:root body .brand-main-word,
+:root:root body .hzl-hero-title {
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.02em;
+}
+
+:root:root body code,
+:root:root body pre,
+:root:root body .svc-seed-code,
+:root:root body .console-terminal {
+  font-family: var(--font-mono) !important;
+}
+
+/* ---------- 3. LEFT SIDEBAR: HORIZON INSTANCES & 8 CORE LOADERS RAIL ---------- */
+:root:root body .app-shell .workspace > aside.sidebar {
+  grid-column: 1 !important;
+  grid-row: 1 / 3 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  flex: none !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 13px 11px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  background: var(--hzl-plate) !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  border-radius: 20px !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+:root:root body .sidebar-brand-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px 6px;
+  border-bottom: 1px solid var(--hzl-hairline);
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+:root:root body .sidebar-brand-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+}
+
+:root:root body .sidebar-brand-titles {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+  min-width: 0;
+}
+
+:root:root body .sidebar-brand-titles .brand-main-word {
+  font-size: 16.5px !important;
+  font-weight: 700 !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+:root:root body .sidebar-brand-titles .brand-sub-word {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.14em !important;
+  color: var(--hzl-ink-3) !important;
+  margin-top: 2px;
+}
+
+:root:root body .hzl-instances-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+:root:root body .hzl-inst-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--hzl-ink-3);
+  letter-spacing: 0.02em;
+}
+
+:root:root body .hzl-inst-head-sub {
+  margin-top: 4px;
+}
+
+:root:root body .hzl-inst-add-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--hzl-ink-2);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+:root:root body .hzl-inst-add-btn:hover {
+  background: var(--hzl-fill-2);
+  color: var(--hzl-ink-1);
+}
+
+:root:root body .hzl-side-cores-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+}
+
+:root:root body .hzl-side-core-item {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--hzl-ink-1);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+
+:root:root body .hzl-side-core-item:hover {
+  background: var(--hzl-fill-1);
+}
+
+:root:root body .hzl-side-core-item.active {
+  background: var(--hzl-fill-2);
+  border-color: var(--hzl-hairline);
+}
+
+html:root:root[data-theme="sakura"] body .hzl-side-core-item.active,
+html:root:root[data-theme="prism"] body .hzl-side-core-item.active {
+  background: rgba(255, 255, 255, 0.84);
+  border-color: var(--accent-border);
+}
+
+:root:root body .hsc-icon,
+:root:root body .hsc-coop-glyph {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--hzl-fill-1);
+}
+
+:root:root body .hsc-icon {
+  object-fit: contain;
+  padding: 3px;
+  box-sizing: border-box;
+}
+
+:root:root body .hzl-side-core-item[data-side-core="horizon"] .hsc-icon {
+  padding: 0;
+  object-fit: cover;
+}
+
+:root:root body .hsc-coop-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-soft);
+}
+
+:root:root body .hsc-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+:root:root body .hsc-info strong {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--hzl-ink-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root:root body .hsc-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: var(--hzl-ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root:root body .hzl-side-core-item.active .hsc-sub {
+  color: var(--hzl-ink-2);
+}
+
+:root:root body .hsc-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hzl-ink-3);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+:root:root body .hsc-dot.is-online {
+  background: var(--live-green);
+}
+
+:root:root body .hsc-more {
+  font-size: 13px;
+  color: var(--hzl-ink-3);
+  opacity: 0.55;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+:root:root body .hzl-side-core-item:hover .hsc-more {
+  opacity: 1;
+  color: var(--hzl-ink-1);
+}
+
+:root:root body .hzl-side-coop-block {
+  border-top: 1px solid var(--hzl-hairline);
+  padding-top: 4px;
+}
+
+/* Clean Ad-Free Sidebar System Footer */
+:root:root body .sidebar-glass-footer {
+  margin-top: auto;
+  padding: 9px 10px;
+  border-radius: 13px;
+  background: var(--hzl-fill-1);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+:root:root body .sgf-status-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+:root:root body .sgf-status-lbl {
+  color: var(--hzl-ink-2);
+}
+
+:root:root body .sgf-status-ready {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--live-green);
+}
+
+:root:root body .sgf-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--hzl-ink-3);
+}
+
+:root:root body .sgf-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--live-green);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+:root:root body .sidebar-glass-footer .titlebar-update-btn {
+  width: 100% !important;
+  justify-content: space-between !important;
+  padding: 5px 8px !important;
+  border-radius: 8px !important;
+  background: var(--hzl-fill-1) !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--hzl-ink-2) !important;
+  font-size: 11px !important;
+  cursor: pointer;
+}
+
+:root:root body .sidebar-glass-footer .titlebar-update-btn:hover {
+  background: var(--hzl-fill-2) !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+/* Compact Rail Mode for Sidebar */
+html:root:root[data-ui-sidebar="rail"] body .sidebar-brand-titles,
+html:root:root[data-ui-sidebar="rail"] body .hzl-inst-head span,
+html:root:root[data-ui-sidebar="rail"] body .hsc-info,
+html:root:root[data-ui-sidebar="rail"] body .hsc-more,
+html:root:root[data-ui-sidebar="rail"] body .sidebar-glass-footer .sgf-status-top,
+html:root:root[data-ui-sidebar="rail"] body .sidebar-glass-footer .sgf-meta,
+html:root:root[data-ui-sidebar="rail"] body .sidebar-glass-footer .titlebar-update-btn span {
+  display: none !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .hzl-side-core-item {
+  justify-content: center;
+  padding: 7px 4px;
+}
+
+/* ---------- 4. TOP FLOATING HORIZON GLASS BAR (ALL SECTIONS + PROFILE + CONTROLS) ---------- */
+:root:root body .app-shell > header.titlebar {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  -webkit-app-region: drag;
+  z-index: 40;
+}
+
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  gap: 1.5px !important;
+  padding: 4px !important;
+  height: 40px !important;
+  box-sizing: border-box !important;
+  border-radius: 13px !important;
+  background: var(--hzl-plate) !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  -webkit-app-region: no-drag;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none;
+}
+
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip::-webkit-scrollbar {
+  display: none;
+}
+
+:root:root body .app-shell header.titlebar .hzl-top-nav-strip .nav-item {
+  width: auto !important;
+  min-width: 0 !important;
+  flex: 0 0 auto !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 6.5px !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--hzl-ink-2) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  transition: background 0.14s ease, color 0.14s ease !important;
+}
+
+@media (min-width: 1400px) {
+  :root:root body .app-shell header.titlebar .hzl-top-nav-strip .nav-item {
+    padding: 0 9px !important;
+    font-size: 12px !important;
+  }
+}
+
+:root:root body .app-shell header.titlebar .hzl-top-nav-strip .nav-item:hover {
+  background: var(--hzl-fill-1) !important;
+  color: var(--hzl-ink-1) !important;
+  transform: none !important;
+}
+
+:root:root body .app-shell header.titlebar .hzl-top-nav-strip .nav-item.active {
+  background: var(--hzl-fill-2) !important;
+  color: var(--hzl-ink-1) !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+html:root:root[data-theme="sakura"] body .app-shell header.titlebar .hzl-top-nav-strip .nav-item.active,
+html:root:root[data-theme="prism"] body .app-shell header.titlebar .hzl-top-nav-strip .nav-item.active {
+  background: var(--accent) !important;
+  color: #ffffff !important;
+}
+
+:root:root body .app-shell header.titlebar .titlebar-right-zone {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
+  -webkit-app-region: no-drag;
+}
+
+:root:root body .app-shell header.titlebar .titlebar-search-pill {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
+  height: 40px !important;
+  padding: 0 8px 0 9px !important;
+  border-radius: 12px !important;
+  background: var(--hzl-plate) !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  box-shadow: none !important;
+  color: var(--hzl-ink-2) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+:root:root body .app-shell header.titlebar #globalSearchInput {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: var(--hzl-ink-1) !important;
+  font-size: 12px !important;
+  width: 48px !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+  transition: width 0.16s ease;
+}
+
+:root:root body .app-shell header.titlebar .titlebar-search-pill:focus-within #globalSearchInput {
+  width: 106px !important;
+}
+
+@media (min-width: 1460px) {
+  :root:root body .app-shell header.titlebar #globalSearchInput {
+    width: 114px !important;
+  }
+}
+
+:root:root body .titlebar #globalSearchInput::placeholder {
+  color: var(--hzl-ink-3) !important;
+}
+
+:root:root body .hzl-kbd-hint {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: var(--hzl-fill-1);
+  color: var(--hzl-ink-3);
+  pointer-events: none;
+}
+
+@media (max-width: 1420px) {
+  :root:root body .hzl-kbd-hint,
+  :root:root body .titlebar #topScaleBadge {
+    display: none !important;
+  }
+}
+
+/* Horizon Top-Right Profile / Microsoft Account Pill */
+:root:root body .app-shell header.titlebar #sidebarProfileCard.hzl-top-profile-pill {
+  height: 40px !important;
+  padding: 0 7px 0 5px !important;
+  margin: 0 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 132px !important;
+  border-radius: 12px !important;
+  background: var(--hzl-plate) !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 5px !important;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+
+:root:root body .app-shell header.titlebar #sidebarProfileCard.hzl-top-profile-pill:hover {
+  background: var(--hzl-plate-strong) !important;
+}
+
+:root:root body .app-shell header.titlebar #sidebarProfileCard .avatar-face-canvas {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 6px !important;
+  flex-shrink: 0 !important;
+}
+
+:root:root body .app-shell header.titlebar #sidebarProfileCard .sidebar-profile-info {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+  line-height: 1.05 !important;
+}
+
+:root:root body .app-shell header.titlebar #sidebarProfileCard .sidebar-player-name {
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  color: var(--hzl-ink-1) !important;
+  max-width: 92px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root:root body .app-shell header.titlebar #sidebarProfileCard .sidebar-auth-tag {
+  font-size: 9px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--live-green) !important;
+  font-weight: 600 !important;
+  white-space: nowrap;
+}
+
+:root:root body .app-shell header.titlebar #sidebarProfileCard .sidebar-auth-tag[data-badge="offline"] {
+  color: var(--hzl-ink-3) !important;
+}
+
+:root:root body .app-shell header.titlebar #sidebarProfileCard .sidebar-profile-chev {
+  color: var(--hzl-ink-3) !important;
+  flex-shrink: 0 !important;
+}
+
+:root:root body .titlebar .titlebar-notif-btn,
+:root:root body .titlebar .titlebar-controls {
+  background: var(--hzl-plate) !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  box-shadow: none !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+:root:root body .app-shell header.titlebar .titlebar-notif-btn {
+  height: 40px !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  padding: 0 !important;
+  border-radius: 11px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+:root:root body .app-shell header.titlebar .titlebar-notif-btn.titlebar-aa-btn {
+  width: auto !important;
+  padding: 0 7px !important;
+}
+
+:root:root body .titlebar .titlebar-notif-btn:hover,
+:root:root body .titlebar .hzl-settings-nav-btn.active {
+  background: var(--hzl-plate-strong) !important;
+}
+
+:root:root body .titlebar .hzl-settings-nav-btn.active {
+  border-color: var(--accent-border) !important;
+  color: var(--accent-soft) !important;
+}
+
+:root:root body .titlebar .titlebar-controls {
+  height: 40px !important;
+  padding: 0 3px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 1px !important;
+}
+
+:root:root body .titlebar .win-btn {
+  width: 28px !important;
+  height: 30px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  color: var(--hzl-ink-2) !important;
+  background: transparent !important;
+}
+
+:root:root body .titlebar .win-btn:hover {
+  background: var(--hzl-fill-2) !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+:root:root body .titlebar .win-btn.win-close:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+/* ---------- 5. MAIN SCROLLABLE GLASS STAGE & OPEN-AIR SUBPAGE HEADERS ---------- */
+:root:root body .app-shell .workspace > main.main-stage {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  width: 100% !important;
+  flex: none !important;
+  background: transparent !important;
+  padding: 2px 6px 16px 2px !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+
+/* Open-Air Horizon Subpage Headers (like Horizon's Mods / Wardrobe pages) */
+:root:root body .app-shell .main-stage > .tab-panel:not(#__none) > .subtab-header,
+:root:root body .app-shell .main-stage > .tab-panel:not(#__none) > .mods-tab-header {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 6px 4px 12px !important;
+}
+
+/* Frosted Glass Surface Override */
+:root:root body .app-shell .bento-card,
+:root:root body .app-shell #tab-settings .settings-card-unit,
+:root:root body .app-shell #tab-tools .bento-card,
+:root:root body .app-shell #tab-servers .bento-card,
+:root:root body .app-shell #tab-packs .bento-card,
+:root:root body .app-shell #tab-worlds .bento-card,
+:root:root body .app-shell #tab-play .bento-card,
+:root:root body .app-shell #playPageLaunchSlot .home-play-card,
+:root:root body .app-shell #tab-mods .mods-filter-tiers,
+:root:root body .app-shell .mods-filter-tiers,
+:root:root body .app-shell .horizon-rust-studio-card,
+:root:root body .app-shell .local-addons-wrap,
+:root:root body .app-shell .packs-progress-box,
+:root:root body .app-shell .mod-compat-notice-bar {
+  background: var(--hzl-plate) !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  border-radius: 20px !important;
+  box-shadow: none !important;
+}
+
+:root:root body .app-shell #heroBanner .wallpaper-switcher,
+:root:root body .app-shell .wallpaper-switcher {
+  display: none !important;
+}
+
+/* ---------- 6. HOME VIEW: OPEN-AIR HERO + 56PX PLAY ROW + QUICK JOIN + NOTCHED TABBEDPANEL ---------- */
+:root:root body .hzl-home-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1280px;
+}
+
+:root:root body .app-shell #heroBanner.hero-banner-clean.hzl-open-hero {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  flex: none !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 8px 4px 0 !important;
+  overflow: visible !important;
+}
+
+:root:root body .app-shell #heroBanner.hzl-open-hero .hbc-overlay {
+  display: none !important;
+}
+
+:root:root body .hzl-hero-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+:root:root body .hzl-hero-pills-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+:root:root body .hzl-edition-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--hzl-plate);
+  backdrop-filter: var(--hzl-blur);
+  -webkit-backdrop-filter: var(--hzl-blur);
+  border: 1px solid var(--hzl-hairline);
+}
+
+:root:root body .hzl-ed-btn {
+  border: none;
+  background: transparent;
+  color: var(--hzl-ink-2);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+:root:root body .hzl-ed-btn:hover {
+  color: var(--hzl-ink-1);
+}
+
+:root:root body .hzl-ed-btn.active {
+  background: var(--hzl-fill-2);
+  color: var(--hzl-ink-1);
+}
+
+html:root:root[data-theme="sakura"] body .hzl-ed-btn.active,
+html:root:root[data-theme="prism"] body .hzl-ed-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+:root:root body .app-shell .mc-live-pill {
+  background: var(--hzl-plate) !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  color: var(--hzl-ink-2) !important;
+  border-radius: 10px !important;
+  padding: 5px 11px !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+
+/* Giant Bricolage Grotesque Brand Display Title */
+:root:root body .hzl-hero-identity {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 16px;
+}
+
+:root:root body .hzl-hero-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 15px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+}
+
+:root:root body .hzl-hero-headings {
+  min-width: 0;
+}
+
+:root:root body .hzl-hero-title {
+  margin: 0;
+  font-size: 44px;
+  line-height: 1.04;
+  font-weight: 700;
+  color: var(--hzl-ink-1);
+}
+
+:root:root body .hzl-hero-subrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+:root:root body #bannerSubStatus {
+  margin: 0 !important;
+  font-size: 13px !important;
+  color: var(--hzl-ink-2) !important;
+  font-weight: 500;
+}
+
+/* 56px (h-14) Horizon Action Bar on Home */
+:root:root body .app-shell #tab-home #sharedLaunchBarWrap.home-play-card {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-header {
+  display: none !important;
+}
+
+:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-main-row {
+  display: flex !important;
+  align-items: stretch !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+@media (min-width: 1160px) {
+  :root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-main-row {
+    flex-wrap: nowrap !important;
+  }
+}
+
+:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-launch-actions {
+  order: 1;
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+  flex: 0 0 auto !important;
+}
+
+:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-version-box {
+  order: 2;
+  flex: 0 1 214px !important;
+  min-width: 168px !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  padding: 0 11px !important;
+  border-radius: 14px !important;
+  background: var(--hzl-plate) !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  box-shadow: none !important;
+}
+
+:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-version-box:hover {
+  background: var(--hzl-plate-strong) !important;
+}
+
+:root:root body .app-shell .home-play-card #dockVersionTitle {
+  color: var(--hzl-ink-1) !important;
+  font-size: 12px !important;
+}
+
+:root:root body .app-shell .home-play-card #dockCoreSubtitle {
+  color: var(--hzl-ink-2) !important;
+  font-size: 10.5px !important;
+}
+
+:root:root body .hzl-action-extras {
+  order: 3;
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+:root:root body .app-shell .home-play-card #btnLaunch.btn-mc-official-play {
+  height: 54px !important;
+  min-height: 54px !important;
+  min-width: 154px !important;
+  padding: 0 16px !important;
+  border-radius: 14px !important;
+  background: var(--accent) !important;
+  border: none !important;
+  box-shadow: 0 8px 24px var(--accent-glow) !important;
+  color: #ffffff !important;
+  flex-direction: row !important;
+  transition: transform 0.14s ease, filter 0.14s ease !important;
+}
+
+:root:root body .app-shell .home-play-card #btnLaunch.btn-mc-official-play:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+:root:root body .app-shell .home-play-card #btnLaunch .mc-play-main {
+  font-family: var(--font-ui) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+}
+
+:root:root body .app-shell .home-play-card #btnLaunch .mc-play-sub {
+  font-size: 10.5px !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  white-space: nowrap !important;
+}
+
+:root:root body .app-shell .home-play-card .hpc-quick-cfg-btn,
+:root:root body .app-shell .hzl-square-action-btn,
+:root:root body .app-shell #sharedLaunchBarWrap #btnGoModStore.hzl-square-action-btn {
+  height: 54px !important;
+  min-height: 54px !important;
+  width: 52px !important;
+  min-width: 52px !important;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  background: var(--hzl-plate) !important;
+  background-image: none !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  box-shadow: none !important;
+  color: var(--hzl-ink-1) !important;
+  cursor: pointer;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  transition: background 0.14s ease, transform 0.14s ease;
+}
+
+:root:root body .app-shell .home-play-card .hpc-quick-cfg-btn:hover,
+:root:root body .app-shell .hzl-square-action-btn:hover,
+:root:root body .app-shell #sharedLaunchBarWrap #btnGoModStore.hzl-square-action-btn:hover {
+  background: var(--hzl-plate-strong) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--hzl-ink-1) !important;
+  transform: translateY(-1px);
+}
+
+/* Compact Horizon Glass Pill for Turbo Smooth (handles runtime injected label cleanly) */
+:root:root body .app-shell #sharedLaunchBarWrap #btnHeroTurboSmooth.hzl-square-action-btn {
+  width: auto !important;
+  min-width: 52px !important;
+  max-width: 142px !important;
+  padding: 0 11px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  background: var(--hzl-plate) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+:root:root body .app-shell #sharedLaunchBarWrap #btnHeroTurboSmooth.hzl-square-action-btn > span {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Horizon Right-Aligned Quick Server / Co-op Invite Join Pill */
+:root:root body .hzl-quick-join-pill {
+  order: 4;
+  margin-left: auto;
+  flex: 0 1 258px;
+  min-width: 192px;
+  height: 54px;
+  padding: 0 6px 0 11px;
+  border-radius: 14px;
+  background: var(--hzl-plate);
+  backdrop-filter: var(--hzl-blur);
+  -webkit-backdrop-filter: var(--hzl-blur);
+  border: 1px solid var(--hzl-hairline);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--hzl-ink-3);
+  box-sizing: border-box;
+}
+
+:root:root body #tab-play .hzl-quick-join-pill {
+  display: none !important;
+}
+
+:root:root body #hzlQuickJoinInput {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  color: var(--hzl-ink-1) !important;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  width: 100% !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+:root:root body #hzlQuickJoinInput::placeholder {
+  color: var(--hzl-ink-3);
+}
+
+:root:root body #hzlQuickJoinBtn {
+  height: 38px;
+  padding: 0 13px;
+  border: none;
+  border-radius: 10px;
+  background: var(--hzl-fill-2);
+  color: var(--hzl-ink-1);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+:root:root body #hzlQuickJoinBtn:hover {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+/* ---------- 7. SIGNATURE HORIZON NOTCHED TABBEDPANEL & PURE GLASS OVERVIEW ---------- */
+:root:root body .hzl-tabbed-panel {
+  position: relative;
+  background: var(--hzl-plate);
+  backdrop-filter: var(--hzl-blur);
+  -webkit-backdrop-filter: var(--hzl-blur);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+:root:root body .hzl-tp-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 14px 6px 8px;
+  height: 44px;
+  box-sizing: border-box;
+}
+
+:root:root body .hzl-tp-tab {
+  border: none;
+  background: transparent;
+  color: var(--hzl-ink-2);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+:root:root body .hzl-tp-tab:hover {
+  background: var(--hzl-fill-1);
+  color: var(--hzl-ink-1);
+}
+
+:root:root body .hzl-tp-tab.active {
+  background: var(--hzl-fill-2);
+  color: var(--hzl-ink-1);
+}
+
+html:root:root[data-theme="sakura"] body .hzl-tp-tab.active,
+html:root:root[data-theme="prism"] body .hzl-tp-tab.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+:root:root body .hzl-tp-body {
+  padding: 14px 18px 18px;
+}
+
+:root:root body .hzl-tp-pane.hidden {
+  display: none !important;
+}
+
+:root:root body .hzl-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 292px;
+  gap: 13px;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  :root:root body .hzl-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+:root:root body .hzl-overview-left,
+:root:root body .hzl-overview-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+:root:root body .app-shell .hzl-tabbed-panel .bento-card {
+  background: var(--hzl-plate-inner) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+/* Sleek Compact Horizon Glass World Rows (Zero Stock Minecraft Landscape Banners!) */
+:root:root body .app-shell #homeRecentWorldsGrid.hrw-cards-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+:root:root body .app-shell #homeRecentWorldsGrid .hw-world-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 11px !important;
+  padding: 8px 11px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  border-radius: 12px !important;
+  background: var(--hzl-fill-1) !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+
+:root:root body .app-shell #homeRecentWorldsGrid .hw-world-row:hover {
+  background: var(--hzl-fill-2) !important;
+  border-color: var(--hzl-hairline) !important;
+  transform: none !important;
+}
+
+:root:root body .hw-row-icon,
+:root:root body .hw-row-glyph {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 9px !important;
+  flex-shrink: 0 !important;
+  background: var(--hzl-fill-2);
+}
+
+:root:root body .hw-row-icon {
+  object-fit: cover;
+}
+
+:root:root body .hw-row-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-soft);
+}
+
+:root:root body #homeRecentWorldsGrid .hw-world-info {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+:root:root body #homeRecentWorldsGrid .hw-world-title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--hzl-ink-1) !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root:root body #homeRecentWorldsGrid .hw-world-sub {
+  font-size: 11px !important;
+  color: var(--hzl-ink-3) !important;
+  margin-top: 1px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root:root body .hw-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+:root:root body .hw-row-play-pill {
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--hzl-fill-2);
+  color: var(--hzl-ink-1);
+  font-size: 11.5px;
+  font-weight: 600;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+:root:root body .hw-world-row:hover .hw-row-play-pill {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+:root:root body .app-shell #homeRecentWorldsGrid .hw-create-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 8px 12px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  width: 100% !important;
+  border-radius: 12px !important;
+  border: 1px dashed var(--hzl-hairline) !important;
+  background: transparent !important;
+  color: var(--hzl-ink-2) !important;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+:root:root body .app-shell #homeRecentWorldsGrid .hw-create-row:hover {
+  background: var(--hzl-fill-1) !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+:root:root body #homeRecentWorldsGrid .hw-create-row .hw-create-plus {
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 7px !important;
+  font-size: 16px !important;
+  margin: 0 !important;
+  background: var(--hzl-fill-2) !important;
+  color: var(--hzl-ink-1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+:root:root body #homeRecentWorldsGrid .hw-create-row .hw-create-label {
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  color: inherit !important;
+}
+
+:root:root body #homeRecentWorldsGrid .hw-create-row .hw-create-sub {
+  margin-left: auto !important;
+  font-size: 11px !important;
+  color: var(--hzl-ink-3) !important;
+}
+
+/* Horizon Patch & Engine Status Glass Card */
+:root:root body .hzl-patch-note-card {
+  padding: 13px 15px !important;
+}
+
+:root:root body .hzl-patch-ver-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--hzl-fill-2);
+  color: var(--accent-soft);
+  margin-left: 6px;
+}
+
+:root:root body .hzl-patch-list {
+  margin: 8px 0 0;
+  padding-left: 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 1.48;
+  color: var(--hzl-ink-2);
+}
+
+/* Pure Translucent 3D Character Stage (ZERO app-banner-hero.png Minecraft Wallpaper!) */
+html:root:root body .app-shell .skin-studio-card .webgl-stage-wrap,
+html:root:root body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-stars,
+html:root:root body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-daylight,
+html:root:root body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-aurora,
+html:root:root[data-theme="sakura"] body .app-shell .skin-studio-card .webgl-stage-wrap,
+html:root:root[data-theme="sakura"] body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-stars,
+html:root:root[data-theme="sakura"] body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-daylight,
+html:root:root[data-theme="sakura"] body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-aurora,
+html:root:root[data-theme="prism"] body .app-shell .skin-studio-card .webgl-stage-wrap,
+html:root:root[data-theme="prism"] body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-stars,
+html:root:root[data-theme="prism"] body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-daylight,
+html:root:root[data-theme="prism"] body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-aurora {
+  background-color: var(--hzl-fill-1) !important;
+  background-image: radial-gradient(circle at 50% 38%, var(--accent-glow), transparent 68%) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  border-radius: 14px !important;
+}
+
+html:root:root body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-aurora {
+  background-image:
+    radial-gradient(circle at 32% 28%, rgba(74, 222, 128, 0.22), transparent 58%),
+    radial-gradient(circle at 72% 35%, var(--accent-glow), transparent 62%) !important;
+}
+
+html:root:root body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-daylight {
+  background-image:
+    radial-gradient(circle at 50% 25%, rgba(255, 255, 255, 0.16), transparent 65%) !important;
+}
+
+:root:root body .app-shell #homeRightSkinSlot .skin-studio-card {
+  height: auto !important;
+  min-height: 206px !important;
+  padding: 12px !important;
+}
+
+:root:root body .app-shell #homeRightSkinSlot #webglStageWrap {
+  height: 152px !important;
+  min-height: 152px !important;
+}
+
+:root:root body .app-shell .home-controls-2col .core-tab-btn {
+  background: var(--hzl-fill-1) !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  color: var(--hzl-ink-2) !important;
+}
+
+:root:root body .app-shell .home-controls-2col .core-tab-btn:hover {
+  background: var(--hzl-fill-2) !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+:root:root body .app-shell .home-controls-2col .core-tab-btn.active {
+  background: var(--hzl-fill-3) !important;
+  border-color: var(--accent-border) !important;
+  color: var(--hzl-ink-1) !important;
+  box-shadow: none !important;
+}
+
+:root:root body .app-shell .home-controls-2col .core-tab-btn strong {
+  color: var(--hzl-ink-1) !important;
+}
+
+:root:root body .app-shell .home-controls-2col .core-tab-btn > span:not(.core-check-dot) {
+  color: var(--hzl-ink-2) !important;
+}
+
+:root:root body .app-shell .hzl-quick-strip {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+:root:root body .app-shell .hzl-quick-strip .hzl-quick-chip {
+  flex: 0 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: 32px !important;
+  padding: 0 8.5px !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  border-radius: 9px !important;
+  background: var(--hzl-fill-1) !important;
+  box-shadow: none !important;
+  color: var(--hzl-ink-1) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 11.2px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  transition: background 0.14s ease;
+}
+
+:root:root body .app-shell .hzl-quick-strip .hzl-quick-chip:hover {
+  background: var(--hzl-fill-2) !important;
+}
+
+/* ---------- 8. MOD STORE: HORIZON 1-COLUMN HORIZONTAL ROWS + STICKY INSPECTOR ---------- */
+:root:root body .hzl-mods-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 338px;
+  gap: 14px;
+  align-items: start;
+}
+
+:root:root body .hzl-mods-split.is-single-col {
+  grid-template-columns: 1fr !important;
+}
+
+@media (max-width: 1060px) {
+  :root:root body .hzl-mods-split {
+    grid-template-columns: 1fr;
+  }
+  :root:root body .hzl-mod-inspector {
+    display: none !important;
+  }
+}
+
+/* Sleek Horizon Single-Column Horizontal Mod Rows */
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid.modrinth-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding-right: 2px !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-card {
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) auto !important;
+  grid-template-rows: auto auto !important;
+  column-gap: 12px !important;
+  row-gap: 2px !important;
+  align-items: center !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 10px 13px !important;
+  background: var(--hzl-plate) !important;
+  backdrop-filter: var(--hzl-blur) !important;
+  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-card:hover {
+  background: var(--hzl-plate-strong) !important;
+  transform: none !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-card.is-selected {
+  background: var(--hzl-plate-strong) !important;
+  border-color: var(--accent-border) !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-card-top {
+  display: contents !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-icon {
+  grid-column: 1 !important;
+  grid-row: 1 / 3 !important;
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 10px !important;
+  border: none !important;
+  object-fit: cover !important;
+  background: var(--hzl-fill-1) !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-head-info {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--hzl-ink-1) !important;
+  flex-shrink: 1 !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-meta {
+  font-size: 11.5px !important;
+  color: var(--hzl-ink-3) !important;
+  margin: 0 !important;
+  flex-shrink: 1 !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-desc {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-size: 12px !important;
+  color: var(--hzl-ink-2) !important;
+  margin: 0 !important;
+}
+
+/* Keep compat pill & tags in DOM for Sticky Inspector while keeping row ultra-clean */
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-compat-pill,
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-tags {
+  display: none !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-card-foot {
+  grid-column: 3 !important;
+  grid-row: 1 / 3 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .btn-install-mod {
+  height: 34px !important;
+  padding: 0 13px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root:root body .hrs-nc-real-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px !important;
+  object-fit: cover !important;
+  background: var(--hzl-fill-1);
+  flex-shrink: 0;
+}
+
+:root:root body .hzl-mod-inspector {
+  position: sticky;
+  top: 2px;
+  background: var(--hzl-plate);
+  backdrop-filter: var(--hzl-blur);
+  -webkit-backdrop-filter: var(--hzl-blur);
+  border: 1px solid var(--hzl-hairline);
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+:root:root body .hmi-top {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+:root:root body .hmi-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--hzl-fill-1);
+  flex-shrink: 0;
+}
+
+:root:root body .hmi-titles {
+  min-width: 0;
+}
+
+:root:root body .hmi-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--hzl-ink-1);
+  line-height: 1.2;
+}
+
+:root:root body .hmi-meta {
+  font-size: 12px;
+  color: var(--hzl-ink-2);
+  margin-top: 3px;
+}
+
+:root:root body .hmi-desc {
+  font-size: 13px;
+  line-height: 1.56;
+  color: var(--hzl-ink-2);
+  max-height: 220px;
+  overflow-y: auto;
+  white-space: pre-line;
+}
+
+:root:root body .hmi-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+:root:root body .hmi-install-btn {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #121024;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+html:root:root[data-theme="sakura"] body .hmi-install-btn,
+html:root:root[data-theme="prism"] body .hmi-install-btn {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+:root:root body .hmi-install-btn.is-installed {
+  background: rgba(74, 222, 128, 0.22) !important;
+  color: var(--live-green) !important;
+}
+
+:root:root body .hmi-install-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- 9. CONTROLS, INPUTS, PILLS, POPOVERS & MODALS ---------- */
+:root:root body .app-shell .pro-input,
+:root:root body .app-shell .pro-select {
+  background: var(--bg-input) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  border-radius: 11px !important;
+  color: var(--hzl-ink-1) !important;
+  box-shadow: none !important;
+}
+
+:root:root body .app-shell .pro-input:focus,
+:root:root body .app-shell .pro-select:focus {
+  border-color: var(--accent-border) !important;
+}
+
+:root:root body .app-shell .btn-sync-skin:not(.aether-btn-login):not(.aether-btn-reg),
+:root:root body .app-shell .vtype-btn,
+:root:root body .app-shell .mqt-chip,
+:root:root body .app-shell .mtype-btn,
+:root:root body .app-shell .res-pill-btn,
+:root:root body .app-shell .ram-pill-btn {
+  background: var(--hzl-fill-1) !important;
+  border: 1px solid transparent !important;
+  color: var(--hzl-ink-1) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+:root:root body .app-shell .btn-sync-skin:not(.aether-btn-login):not(.aether-btn-reg):hover,
+:root:root body .app-shell .vtype-btn:hover,
+:root:root body .app-shell .mqt-chip:hover,
+:root:root body .app-shell .mtype-btn:hover,
+:root:root body .app-shell .res-pill-btn:hover,
+:root:root body .app-shell .ram-pill-btn:hover {
+  background: var(--hzl-fill-2) !important;
+}
+
+:root:root body .app-shell .mtype-btn.active,
+:root:root body .app-shell .vtype-btn.active,
+:root:root body .app-shell .mqt-chip.active,
+:root:root body .app-shell .ram-pill-btn.active,
+:root:root body .app-shell .res-pill-btn.active,
+:root:root body .app-shell .pose-btn.active,
+:root:root body .app-shell .cape-chip.active,
+:root:root body .app-shell .skin-preset-chip.active,
+:root:root body .app-shell .auth-tab-btn.active {
+  background: var(--accent) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+:root:root body .app-shell .btn-install-mod {
+  background: var(--hzl-fill-2) !important;
+  border: none !important;
+  color: var(--hzl-ink-1) !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+}
+
+:root:root body .app-shell .btn-install-mod:hover:not(:disabled) {
+  background: var(--accent) !important;
+  color: #ffffff !important;
+}
+
+:root:root body .app-shell .btn-install-mod.installed {
+  background: rgba(74, 222, 128, 0.18) !important;
+  color: var(--live-green) !important;
+}
+
+/* Popovers & Modals use high-legibility deep frosted glass */
+:root:root body .theme-popover,
+:root:root body .scale-popover,
+:root:root body .notif-popover,
+:root:root body .sidebar-profile-popover,
+:root:root body .modal-dialog-card {
+  background: var(--hzl-plate-pop) !important;
+  backdrop-filter: blur(28px) saturate(165%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(165%) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38) !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+:root:root body .modal-backdrop {
+  background: rgba(8, 7, 18, 0.56) !important;
+  backdrop-filter: blur(8px) !important;
+}
