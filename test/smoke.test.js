@@ -357,3 +357,30 @@ test('8. Kho Mod sorts already-installed addons continuously to the top', () => 
   assert.ok(storeUi.includes('is-installed-card'), 'store-features.js must tag installed cards with is-installed-card');
   assert.ok(storeUi.includes('promoteCardToInstalledGroup'), 'store-features.js must promote newly installed cards to the installed block');
 });
+
+test('9. Pure Horizon Theme Studio popover overflow guard & translucent dark glass tokens', () => {
+  const html = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/index.html'), 'utf8');
+  const glassCss = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/horizon-glass.css'), 'utf8');
+  const glassJs = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/horizon-glass.js'), 'utf8');
+
+  const popMatch = html.match(/id="themePickerPopover"[\s\S]*?<\/header>/);
+  assert.ok(popMatch, '#themePickerPopover block must exist in header');
+  const popBlock = popMatch[0];
+  for (const themeId of ['horizon', 'sakura', 'prism', 'lunar', 'rust', 'mojang', 'modrinth', 'feather', 'cherry']) {
+    assert.ok(
+      popBlock.includes(`data-theme-pick="${themeId}"`),
+      `#themePickerPopover must include data-theme-pick="${themeId}"`
+    );
+  }
+
+  assert.ok(glassCss.includes('#themePickerPopover .tsw-label'), 'horizon-glass.css must style #themePickerPopover .tsw-label');
+  assert.ok(glassCss.includes('text-overflow: ellipsis !important'), 'horizon-glass.css must guard labels with text-overflow ellipsis');
+  assert.ok(glassCss.includes('#tab-play .dsp-block'), 'horizon-glass.css must apply frosted glass to #tab-play .dsp-block');
+
+  const searchWidthMatch = glassCss.match(/#globalSearchInput\s*\{[^}]*width:\s*(\d+)px\s*!important/);
+  assert.ok(searchWidthMatch && Number(searchWidthMatch[1]) >= 76, '#globalSearchInput width must be >= 76px so placeholder does not clip');
+
+  for (const field of ['auroraA', 'auroraB']) {
+    assert.ok(glassJs.includes(`lunar:`) && glassJs.includes(`${field}:`), `SCENE_PALETTES must define ${field} for dark frosted glass themes`);
+  }
+});

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>BlockWay Launcher v42.2.2 PRO — Every World, One Place</title>
+  <title>BlockWay Launcher v42.2.3 PRO — Every World, One Place</title>
   <link rel="icon" href="app-icon.ico" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="layout-v33.css" />
@@ -33,7 +33,7 @@
         <!-- Global Search Pill -->
         <div class="titlebar-search-pill">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="globalSearchInput" placeholder="Tìm nhanh..." title="Nhập tên Mod, Phiên bản hoặc Thế giới rồi nhấn Enter (Ctrl + K)" />
+          <input type="text" id="globalSearchInput" placeholder="Tìm nhanh" title="Nhập tên Mod, Phiên bản hoặc Thế giới rồi nhấn Enter (Ctrl + K)" />
           <kbd class="hzl-kbd-hint">Ctrl K</kbd>
         </div>
 
@@ -74,58 +74,66 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 1 1 10-10c0 2.2-1.8 3.5-4 3.5h-1.6a1.9 1.9 0 0 0-1.4 3.2c.5.6.3 1.6-.4 2.2-.8.7-1.6 1.1-2.6 1.1z"/><circle cx="7.5" cy="11" r="1.3" fill="currentColor"/><circle cx="10.5" cy="7" r="1.3" fill="currentColor"/><circle cx="15.5" cy="7.5" r="1.3" fill="currentColor"/></svg>
           </button>
           <div class="theme-popover hidden" id="themePickerPopover">
-            <div class="notif-pop-head"><strong>🎨 Chủ đề Glass Trong Suốt</strong><span class="theme-pop-hint">Lưu tự động</span></div>
+            <div class="notif-pop-head hzl-theme-pop-head">
+              <div class="hzl-tph-left">
+                <strong>Chủ đề Glass</strong>
+                <span class="hzl-pop-pill">9 giao diện</span>
+              </div>
+              <span class="theme-pop-hint">Lưu tự động</span>
+            </div>
             <div class="theme-swatch-grid">
-              <button class="ts-chip theme-swatch active" data-theme-pick="horizon" title="Giao diện Tím Hoàng Hôn Trong Suốt (Horizon Glass mặc định)">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #120d26 0 42%, #6b4bff 42% 72%, #f38b60 72% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">🌅 Tím Hoàng Hôn</span><small class="tsw-sub">Glass Mặc Định ✨</small></span>
+              <button type="button" class="ts-chip theme-swatch is-featured active" data-theme-pick="horizon" title="Giao diện Tím Hoàng Hôn Trong Suốt (Horizon Glass mặc định)">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #130e29 0%, #5b3df5 52%, #f2946c 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">Tím Hoàng Hôn</span><small class="tsw-sub">Chuẩn Horizon · Kính mờ Hoàng Hôn</small></span>
+                <span class="tsw-tag">Mặc định</span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="sakura" title="Giao diện Sakura Dawn Glass (Hồng Ngọc Trai Trong Suốt)">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #f8d1e1 0 46%, #fff5f9 46% 68%, #db2777 68% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">🌸 Sakura Dawn</span><small class="tsw-sub">Hồng Trong Suốt ✨</small></span>
+              <button type="button" class="ts-chip theme-swatch" data-theme-pick="sakura" title="Giao diện Sakura Dawn Glass (Hồng Ngọc Trai Trong Suốt)">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #f9d5e5 0%, #fff5f9 54%, #ec4899 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">Sakura Dawn</span><small class="tsw-sub">Hồng Ngọc Trai</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="lunar" title="Giao diện BlockWay Dark Glass">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #151922 0 50%, #3b82f6 50% 78%, #22c55e 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">BlockWay Dark</span><small class="tsw-sub">Xanh Đêm Glass</small></span>
+              <button type="button" class="ts-chip theme-swatch" data-theme-pick="prism" title="Giao diện Crystal Ice Glass (Sáng Băng Tuyết Trong Suốt)">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 54%, #2563eb 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">Crystal Ice</span><small class="tsw-sub">Sáng Băng Tuyết</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="rust" title="Giao diện Rust Obsidian Glass">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #121318 0 50%, #f97316 50% 78%, #fbbf24 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">🦀 Rust Obsidian</span><small class="tsw-sub">Đen Cam Glass</small></span>
+              <button type="button" class="ts-chip theme-swatch" data-theme-pick="lunar" title="Giao diện BlockWay Dark Glass (Xanh Đêm Sao Trong Suốt)">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #0d1b38 0%, #2563eb 56%, #60a5fa 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">BlockWay Dark</span><small class="tsw-sub">Xanh Đêm Sao</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="prism" title="Giao diện Crystal Ice Glass (Trắng Băng Trong Suốt)">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #dbeafe 0 50%, #2563eb 50% 78%, #ffffff 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Crystal Ice</span><small class="tsw-sub">Sáng Băng Glass</small></span>
+              <button type="button" class="ts-chip theme-swatch" data-theme-pick="rust" title="Giao diện Rust Obsidian Glass (Đen Cam Lửa Trong Suốt)">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #1c1010 0%, #ea580c 56%, #fbbf24 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">Rust Obsidian</span><small class="tsw-sub">Đen Cam Lửa</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="mojang" title="Giao diện Mojang Glass">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #1c1f26 0 50%, #16a34a 50% 78%, #4ade80 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Mojang</span><small class="tsw-sub">Xanh Lục Glass</small></span>
+              <button type="button" class="ts-chip theme-swatch" data-theme-pick="mojang" title="Giao diện Mojang Emerald Glass">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #0d231a 0%, #16a34a 56%, #4ade80 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">Mojang</span><small class="tsw-sub">Xanh Lục Bảo</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="modrinth" title="Giao diện Modrinth Glass">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #142019 0 50%, #10b981 50% 78%, #1bd96a 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Modrinth</span><small class="tsw-sub">Xanh Mint Glass</small></span>
+              <button type="button" class="ts-chip theme-swatch" data-theme-pick="modrinth" title="Giao diện Modrinth Mint Glass">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #0b2220 0%, #0d9488 56%, #34d399 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">Modrinth</span><small class="tsw-sub">Xanh Ngọc Mint</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="feather" title="Giao diện Feather Glass">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #102235 0 50%, #0284c7 50% 78%, #38bdf8 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Feather</span><small class="tsw-sub">Xanh Băng Glass</small></span>
+              <button type="button" class="ts-chip theme-swatch" data-theme-pick="feather" title="Giao diện Feather Sky Glass">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #0b1e33 0%, #0284c7 56%, #38bdf8 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">Feather</span><small class="tsw-sub">Xanh Băng Đêm</small></span>
               </button>
-              <button class="ts-chip theme-swatch" data-theme-pick="cherry" title="Giao diện Cherry Dark Glass">
-                <span class="tsw-preview" style="background: linear-gradient(135deg, #24111f 0 50%, #db2777 50% 78%, #f9a8d4 78% 100%);"></span>
-                <span class="tsw-info"><span class="tsw-label">Cherry Dark</span><small class="tsw-sub">Tối Hồng Glass</small></span>
+              <button type="button" class="ts-chip theme-swatch" data-theme-pick="cherry" title="Giao diện Cherry Dark Glass">
+                <span class="tsw-preview" style="background: linear-gradient(135deg, #241023 0%, #db2777 56%, #f472b6 100%);"></span>
+                <span class="tsw-info"><span class="tsw-label">Cherry Dark</span><small class="tsw-sub">Tím Hồng Đêm</small></span>
               </button>
             </div>
             <div class="theme-pop-quick-studio">
               <div class="tpqs-row">
-                <span class="tpqs-lbl">Màu nhấn:</span>
+                <span class="tpqs-lbl">Màu nhấn</span>
                 <div class="accent-swatch-row">
-                  <button type="button" class="accent-dot-btn is-auto active" data-accent-pick="" title="Màu chuẩn theo chủ đề">Auto</button>
+                  <button type="button" class="accent-dot-btn is-auto active" data-accent-pick="" title="Màu chuẩn theo chủ đề">Tự động</button>
+                  <button type="button" class="accent-dot-btn" data-accent-pick="#6b4bff" style="--dot:#6b4bff;" title="Tím Horizon"></button>
                   <button type="button" class="accent-dot-btn" data-accent-pick="#3b82f6" style="--dot:#3b82f6;" title="Xanh Dương"></button>
                   <button type="button" class="accent-dot-btn" data-accent-pick="#f97316" style="--dot:#f97316;" title="Cam Rust"></button>
                   <button type="button" class="accent-dot-btn" data-accent-pick="#10b981" style="--dot:#10b981;" title="Xanh Ngọc"></button>
-                  <button type="button" class="accent-dot-btn" data-accent-pick="#8b5cf6" style="--dot:#8b5cf6;" title="Tím Neon"></button>
+                  <button type="button" class="accent-dot-btn" data-accent-pick="#0ea5e9" style="--dot:#0ea5e9;" title="Xanh Băng"></button>
                   <button type="button" class="accent-dot-btn" data-accent-pick="#ec4899" style="--dot:#ec4899;" title="Hồng Anh Đào"></button>
                 </div>
               </div>
-              <button type="button" class="vtype-btn tpqs-more-btn" id="btnOpenUiStudioSettings">⚙️ Tùy chỉnh bố cục, bo góc &amp; thanh bên ›</button>
+              <button type="button" class="vtype-btn tpqs-more-btn" id="btnOpenUiStudioSettings">Tùy chỉnh bố cục, cỡ chữ &amp; thanh bên ›</button>
             </div>
           </div>
         </div>
@@ -282,7 +290,7 @@
           </div>
           <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
             <span>BlockWay OTA</span>
-            <strong id="titlebarUpdateVer">v42.2.2</strong>
+            <strong id="titlebarUpdateVer">v42.2.3</strong>
           </button>
         </div>
       </aside>
@@ -565,7 +573,7 @@
                         <div class="hrw-head">
                           <div class="hrw-title">
                             <span>Nhật ký &amp; Trạng thái Nhân</span>
-                            <small class="hzl-patch-ver-tag">v42.2.2 PRO · Pure Glass</small>
+                            <small class="hzl-patch-ver-tag">v42.2.3 PRO · Pure Glass</small>
                           </div>
                           <button type="button" class="hrw-view-all" id="btnHomeOpenChangelog">Cài đặt ›</button>
                         </div>
@@ -1913,7 +1921,7 @@
               </div>
             </div>
             <div class="console-terminal" id="consoleOutput">
-              <div class="log-entry info">[BlockWay Launcher v42.2.2 PRO] Horizon Glass Edition — Sẵn sàng khởi chạy.</div>
+              <div class="log-entry info">[BlockWay Launcher v42.2.3 PRO] Horizon Glass Edition — Sẵn sàng khởi chạy.</div>
             </div>
           </div>
         </section>
@@ -1935,7 +1943,7 @@
                 📦 GitHub Repo
               </button>
               <button class="btn-sync-skin" id="btnCheckUpdate">
-                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v42.2.2</span>)
+                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v42.2.3</span>)
               </button>
             </div>
           </div>

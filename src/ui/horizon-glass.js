@@ -36,7 +36,9 @@
         0x1b1636, 0x22193f, 0x2c1d49, 0x3b2254, 0x52295f,
         0x6e3266, 0x8e3e68, 0xb05166, 0xce6a62, 0xe48663
       ],
-      bloom: [242, 148, 108, 0.24],
+      auroraA: [107, 75, 255, 0.16],
+      auroraB: [192, 92, 168, 0.14],
+      bloom: [242, 148, 108, 0.26],
       ridges: ['#231236', '#140a22'],
       stars: true
     },
@@ -46,6 +48,8 @@
         0xfae3ed, 0xfde5e8, 0xffe8e4, 0xffebe1, 0xffefe0,
         0xfff2e1, 0xfff5e4, 0xfff8e9, 0xfffaef, 0xfffdf6
       ],
+      auroraA: [244, 114, 182, 0.14],
+      auroraB: [251, 146, 60, 0.10],
       bloom: [244, 114, 182, 0.20],
       ridges: ['#dfb2cc', '#c68eb0'],
       stars: false
@@ -56,62 +60,85 @@
         0xf4f9ff, 0xf7fbff, 0xf9fcff, 0xfbfdff, 0xfcfeff,
         0xfdfeff, 0xfeffff, 0xffffff, 0xffffff, 0xffffff
       ],
+      auroraA: [59, 130, 246, 0.13],
+      auroraB: [14, 165, 233, 0.10],
       bloom: [96, 165, 250, 0.18],
       ridges: ['#b6cde8', '#93b4da'],
       stars: false
     },
     lunar: {
       sky: [
-        0x060913, 0x080d1b, 0x0b1224, 0x0e1830, 0x12203d,
-        0x16284b, 0x1b325a, 0x213d6b, 0x29497d, 0x32578f,
-        0x3d66a0, 0x4b77b0, 0x5b89be, 0x6e9bcb, 0x82add7
+        0x060a16, 0x091022, 0x0d1730, 0x122042, 0x182b56,
+        0x1f386d, 0x284786, 0x3359a0, 0x406cb8, 0x4f80ce,
+        0x6195df, 0x76aaec, 0x8ebff5, 0xa7d2fb, 0xc2e3ff
       ],
-      bloom: [59, 130, 246, 0.20],
-      ridges: ['#132342', '#0a1326'],
+      auroraA: [59, 130, 246, 0.22],
+      auroraB: [56, 189, 248, 0.18],
+      bloom: [96, 165, 250, 0.30],
+      ridges: ['#10203d', '#081124'],
       stars: true
     },
     rust: {
       sky: [
-        0x0d0809, 0x120a0b, 0x180d0d, 0x20100f, 0x2a1412,
-        0x371915, 0x482018, 0x5d281c, 0x763320, 0x924025,
-        0xae502b, 0xc96334, 0xdf783f, 0xee8e4e, 0xf7a460
+        0x0d0809, 0x130b0c, 0x1b0f10, 0x261413, 0x331b17,
+        0x43231b, 0x572d20, 0x6f3926, 0x8a482d, 0xa75a35,
+        0xc36e3f, 0xdc834c, 0xef995d, 0xf8ae72, 0xffc48c
       ],
-      bloom: [249, 115, 22, 0.22],
-      ridges: ['#29120e', '#160907'],
+      auroraA: [249, 115, 22, 0.20],
+      auroraB: [244, 63, 94, 0.14],
+      bloom: [251, 146, 60, 0.28],
+      ridges: ['#28120e', '#150807'],
       stars: true
     },
     mojang: {
       sky: [
-        0x060e0b, 0x08130f, 0x0b1914, 0x0e201a, 0x122820,
-        0x163127, 0x1b3c30, 0x224839, 0x2a5644, 0x346651,
-        0x3f785f, 0x4d8b6f, 0x5d9e80, 0x70b192, 0x85c4a5
+        0x060f0b, 0x091610, 0x0d1f17, 0x122a1f, 0x183728,
+        0x204533, 0x29563f, 0x34684d, 0x417c5c, 0x50916e,
+        0x62a681, 0x76bb95, 0x8dd0aa, 0xa6e2bf, 0xc2f2d6
       ],
-      bloom: [16, 185, 129, 0.20],
-      ridges: ['#112b21', '#091712'],
+      auroraA: [34, 197, 94, 0.20],
+      auroraB: [16, 185, 129, 0.16],
+      bloom: [74, 222, 128, 0.26],
+      ridges: ['#102a1f', '#081610'],
+      stars: true
+    },
+    modrinth: {
+      sky: [
+        0x061010, 0x081717, 0x0c2120, 0x112c2b, 0x163937,
+        0x1d4845, 0x265955, 0x306b66, 0x3c7f79, 0x4a948d,
+        0x5baaa2, 0x6fc0b7, 0x86d5cc, 0xa0e8df, 0xbcf6ee
+      ],
+      auroraA: [16, 185, 129, 0.20],
+      auroraB: [45, 212, 191, 0.17],
+      bloom: [52, 211, 153, 0.27],
+      ridges: ['#0f2927', '#071514'],
       stars: true
     },
     feather: {
       sky: [
-        0x050c14, 0x07111d, 0x0a1726, 0x0d1e31, 0x11263d,
-        0x152f4b, 0x1a395a, 0x20456b, 0x28537d, 0x316290,
-        0x3c73a3, 0x4985b5, 0x5998c6, 0x6baad6, 0x80bce4
+        0x050c15, 0x081320, 0x0c1b2d, 0x11253d, 0x17314f,
+        0x1e3f63, 0x274f79, 0x316090, 0x3d73a8, 0x4b87bf,
+        0x5c9cd4, 0x70b2e6, 0x87c7f3, 0xa1dbfb, 0xbcebff
       ],
-      bloom: [14, 165, 233, 0.20],
-      ridges: ['#102940', '#081624'],
+      auroraA: [14, 165, 233, 0.22],
+      auroraB: [56, 189, 248, 0.18],
+      bloom: [56, 189, 248, 0.28],
+      ridges: ['#0f2840', '#071523'],
       stars: true
     },
     cherry: {
       sky: [
-        0x0d0710, 0x120917, 0x180c1f, 0x201029, 0x291434,
-        0x341941, 0x421f50, 0x542761, 0x6a3173, 0x833d86,
-        0x9d4c99, 0xb75ead, 0xcf72bf, 0xe288d0, 0xef9fdf
+        0x0d0711, 0x140b1a, 0x1c1025, 0x271633, 0x341d43,
+        0x432656, 0x56316b, 0x6b3d81, 0x834c98, 0x9c5dae,
+        0xb670c3, 0xcf86d7, 0xe49ee8, 0xf3b7f4, 0xfdd2fd
       ],
-      bloom: [236, 72, 153, 0.22],
-      ridges: ['#2a1029', '#160816'],
+      auroraA: [236, 72, 153, 0.20],
+      auroraB: [168, 85, 247, 0.17],
+      bloom: [244, 114, 182, 0.28],
+      ridges: ['#281028', '#150815'],
       stars: true
     }
   };
-  SCENE_PALETTES.modrinth = SCENE_PALETTES.mojang;
 
   function mulberry32(seed) {
     let a = seed >>> 0;
@@ -181,17 +208,32 @@
     if (!ctx) return;
     ctx.imageSmoothingEnabled = false;
 
-    // 2a. Non-linear sky curve: keep top ~74% calm deep cosmos, bloom sunset near bottom
+    // 2a. Non-linear sky curve so mid-screen glass panels sit over luminous gradient
     const stops = pal.sky.map(hexToRgb);
     for (let y = 0; y < ph; y++) {
       const linearT = y / Math.max(1, ph - 1);
-      const curvedT = Math.pow(linearT, 2.05);
+      const curvedT = Math.pow(linearT, 1.62);
       const pos = curvedT * (stops.length - 1);
       const idx = Math.min(stops.length - 2, Math.floor(pos));
       const c = lerpRgb(stops[idx], stops[idx + 1], pos - idx);
       ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
       ctx.fillRect(0, y, pw, 1);
     }
+
+    // 2a-bis. Ambient nebula auroras behind mid-screen frosted cards & popovers
+    const drawAurora = (rgb, cxRatio, cyRatio, radRatio) => {
+      if (!rgb) return;
+      const ax = Math.floor(pw * cxRatio);
+      const ay = Math.floor(ph * cyRatio);
+      const ar = Math.max(44, Math.floor(pw * radRatio));
+      const g = ctx.createRadialGradient(ax, ay, 4, ax, ay, ar);
+      g.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${rgb[3]})`);
+      g.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, pw, ph);
+    };
+    drawAurora(pal.auroraA, 0.20, 0.26, 0.44);
+    drawAurora(pal.auroraB, 0.80, 0.36, 0.40);
 
     // 2b. Subtle crisp starfield across upper cosmos (exact Horizon night feel)
     const rng = mulberry32(19);

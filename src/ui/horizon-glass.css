@@ -64,25 +64,26 @@ html[data-theme="cherry"] {
   --font-mono: 'Geist Mono', 'JetBrains Mono', Consolas, monospace;
 
   --hzl-sky-fallback: #0b0a18;
-  --hzl-plate: rgba(46, 43, 66, 0.44);
-  --hzl-plate-strong: rgba(58, 54, 82, 0.58);
-  --hzl-plate-inner: rgba(255, 255, 255, 0.05);
-  --hzl-plate-pop: rgba(22, 19, 36, 0.92);
-  --hzl-blur: blur(24px) saturate(145%);
+  --hzl-plate: rgba(48, 43, 76, 0.36);
+  --hzl-plate-strong: rgba(64, 58, 98, 0.50);
+  --hzl-plate-inner: rgba(255, 255, 255, 0.055);
+  --hzl-plate-pop: rgba(22, 19, 40, 0.72);
+  --hzl-blur: blur(26px) saturate(165%);
 
   --hzl-ink-1: rgba(255, 255, 255, 0.96);
   --hzl-ink-2: rgba(255, 255, 255, 0.72);
-  --hzl-ink-3: rgba(255, 255, 255, 0.48);
-  --hzl-fill-1: rgba(255, 255, 255, 0.06);
-  --hzl-fill-2: rgba(255, 255, 255, 0.12);
-  --hzl-fill-3: rgba(255, 255, 255, 0.18);
-  --hzl-hairline: rgba(255, 255, 255, 0.08);
+  --hzl-ink-3: rgba(255, 255, 255, 0.50);
+  --hzl-fill-1: rgba(255, 255, 255, 0.065);
+  --hzl-fill-2: rgba(255, 255, 255, 0.125);
+  --hzl-fill-3: rgba(255, 255, 255, 0.185);
+  --hzl-hairline: rgba(255, 255, 255, 0.115);
+  --hzl-specular: rgba(255, 255, 255, 0.10);
 
   --accent: #6b4bff;
   --accent-strong: #5636ec;
   --accent-soft: #b8b4ff;
   --accent-glow: rgba(107, 75, 255, 0.28);
-  --accent-border: rgba(169, 169, 255, 0.38);
+  --accent-border: rgba(169, 169, 255, 0.42);
   --live-green: #4ade80;
   --warn-amber: #f2c46b;
   --danger-coral: #ff8a8a;
@@ -92,71 +93,94 @@ html[data-theme="cherry"] {
   --bg-card: var(--hzl-plate);
   --bg-card-hover: var(--hzl-plate-strong);
   --bg-elevated: var(--hzl-fill-1);
-  --bg-input: rgba(10, 9, 20, 0.42);
+  --bg-input: rgba(255, 255, 255, 0.065);
+  --bg-dock: var(--hzl-plate);
   --text-main: var(--hzl-ink-1);
   --text-sub: var(--hzl-ink-2);
   --text-muted: var(--hzl-ink-3);
+  --border-col: var(--hzl-hairline);
   --border-subtle: var(--hzl-hairline);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --bw-surface-top: var(--hzl-plate);
+  --bw-surface-bot: var(--hzl-plate);
+  --bw-chrome-top: var(--hzl-plate);
+  --bw-chrome-bot: var(--hzl-plate);
+  --bw-strip: none;
   --bw-nav-grad: rgba(255, 255, 255, 0.14);
   --bw-nav-border: transparent;
   --bw-nav-shadow: none;
 }
 
 html[data-theme="lunar"] {
-  --hzl-sky-fallback: #080d1b;
-  --hzl-plate: rgba(36, 48, 72, 0.44);
-  --hzl-plate-strong: rgba(46, 60, 88, 0.58);
-  --hzl-plate-pop: rgba(14, 20, 34, 0.92);
+  --hzl-sky-fallback: #080f20;
+  --hzl-plate: rgba(34, 54, 92, 0.35);
+  --hzl-plate-strong: rgba(46, 72, 118, 0.48);
+  --hzl-plate-pop: rgba(14, 23, 42, 0.72);
   --accent: #3b82f6;
   --accent-strong: #2563eb;
   --accent-soft: #93c5fd;
   --accent-glow: rgba(59, 130, 246, 0.28);
+  --accent-border: rgba(96, 165, 250, 0.42);
 }
 
 html[data-theme="rust"] {
   --hzl-sky-fallback: #120a0b;
-  --hzl-plate: rgba(62, 44, 40, 0.44);
-  --hzl-plate-strong: rgba(78, 54, 48, 0.58);
-  --hzl-plate-pop: rgba(26, 16, 14, 0.92);
+  --hzl-plate: rgba(68, 42, 38, 0.35);
+  --hzl-plate-strong: rgba(88, 54, 48, 0.48);
+  --hzl-plate-pop: rgba(28, 16, 15, 0.72);
   --accent: #f97316;
   --accent-strong: #ea580c;
   --accent-soft: #fdba74;
   --accent-glow: rgba(249, 115, 22, 0.28);
+  --accent-border: rgba(251, 146, 60, 0.42);
 }
 
-html[data-theme="mojang"],
-html[data-theme="modrinth"] {
+html[data-theme="mojang"] {
   --hzl-sky-fallback: #08130f;
-  --hzl-plate: rgba(38, 58, 50, 0.44);
-  --hzl-plate-strong: rgba(48, 72, 62, 0.58);
-  --hzl-plate-pop: rgba(14, 24, 20, 0.92);
+  --hzl-plate: rgba(34, 62, 48, 0.35);
+  --hzl-plate-strong: rgba(46, 80, 62, 0.48);
+  --hzl-plate-pop: rgba(14, 26, 20, 0.72);
+  --accent: #22c55e;
+  --accent-strong: #16a34a;
+  --accent-soft: #86efac;
+  --accent-glow: rgba(34, 197, 94, 0.26);
+  --accent-border: rgba(74, 222, 128, 0.40);
+}
+
+html[data-theme="modrinth"] {
+  --hzl-sky-fallback: #071313;
+  --hzl-plate: rgba(32, 64, 60, 0.35);
+  --hzl-plate-strong: rgba(44, 82, 78, 0.48);
+  --hzl-plate-pop: rgba(13, 26, 25, 0.72);
   --accent: #10b981;
   --accent-strong: #059669;
   --accent-soft: #6ee7b7;
-  --accent-glow: rgba(16, 185, 129, 0.28);
+  --accent-glow: rgba(16, 185, 129, 0.26);
+  --accent-border: rgba(52, 211, 153, 0.40);
 }
 
 html[data-theme="feather"] {
   --hzl-sky-fallback: #07111d;
-  --hzl-plate: rgba(36, 54, 72, 0.44);
-  --hzl-plate-strong: rgba(46, 68, 90, 0.58);
-  --hzl-plate-pop: rgba(12, 22, 34, 0.92);
+  --hzl-plate: rgba(32, 58, 86, 0.35);
+  --hzl-plate-strong: rgba(44, 76, 110, 0.48);
+  --hzl-plate-pop: rgba(12, 24, 38, 0.72);
   --accent: #0ea5e9;
   --accent-strong: #0284c7;
   --accent-soft: #7dd3fc;
   --accent-glow: rgba(14, 165, 233, 0.28);
+  --accent-border: rgba(56, 189, 248, 0.42);
 }
 
 html[data-theme="cherry"] {
   --hzl-sky-fallback: #120917;
-  --hzl-plate: rgba(66, 40, 62, 0.44);
-  --hzl-plate-strong: rgba(82, 50, 76, 0.58);
-  --hzl-plate-pop: rgba(28, 14, 26, 0.92);
+  --hzl-plate: rgba(70, 38, 66, 0.35);
+  --hzl-plate-strong: rgba(90, 50, 84, 0.48);
+  --hzl-plate-pop: rgba(28, 14, 28, 0.72);
   --accent: #ec4899;
   --accent-strong: #db2777;
   --accent-soft: #f9a8d4;
   --accent-glow: rgba(236, 72, 153, 0.28);
+  --accent-border: rgba(244, 114, 182, 0.42);
 }
 
 /* Sakura Dawn Frosted Glass (Light Rose-Pearl Translucent Glass) */
@@ -169,8 +193,8 @@ html[data-theme="sakura"] {
   --hzl-plate: rgba(255, 250, 253, 0.66);
   --hzl-plate-strong: rgba(255, 246, 251, 0.82);
   --hzl-plate-inner: rgba(255, 255, 255, 0.60);
-  --hzl-plate-pop: rgba(255, 250, 253, 0.96);
-  --hzl-blur: blur(24px) saturate(150%);
+  --hzl-plate-pop: rgba(255, 250, 253, 0.84);
+  --hzl-blur: blur(26px) saturate(160%);
 
   --hzl-ink-1: #2a1224;
   --hzl-ink-2: rgba(58, 24, 48, 0.78);
@@ -178,7 +202,8 @@ html[data-theme="sakura"] {
   --hzl-fill-1: rgba(219, 39, 119, 0.065);
   --hzl-fill-2: rgba(219, 39, 119, 0.125);
   --hzl-fill-3: rgba(219, 39, 119, 0.19);
-  --hzl-hairline: rgba(190, 24, 93, 0.11);
+  --hzl-hairline: rgba(190, 24, 93, 0.12);
+  --hzl-specular: rgba(255, 255, 255, 0.65);
 
   --accent: #db2777;
   --accent-strong: #be185d;
@@ -195,11 +220,18 @@ html[data-theme="sakura"] {
   --bg-card-hover: var(--hzl-plate-strong);
   --bg-elevated: var(--hzl-plate-inner);
   --bg-input: rgba(255, 255, 255, 0.74);
+  --bg-dock: var(--hzl-plate);
   --text-main: var(--hzl-ink-1);
   --text-sub: var(--hzl-ink-2);
   --text-muted: var(--hzl-ink-3);
+  --border-col: var(--hzl-hairline);
   --border-subtle: var(--hzl-hairline);
   --border-strong: rgba(190, 24, 93, 0.18);
+  --bw-surface-top: var(--hzl-plate);
+  --bw-surface-bot: var(--hzl-plate);
+  --bw-chrome-top: var(--hzl-plate);
+  --bw-chrome-bot: var(--hzl-plate);
+  --bw-strip: none;
 }
 
 /* Crystal Ice Frosted Glass (Light Alpine Translucent Glass) */
@@ -212,8 +244,8 @@ html[data-theme="prism"] {
   --hzl-plate: rgba(248, 252, 255, 0.68);
   --hzl-plate-strong: rgba(255, 255, 255, 0.84);
   --hzl-plate-inner: rgba(255, 255, 255, 0.60);
-  --hzl-plate-pop: rgba(250, 253, 255, 0.96);
-  --hzl-blur: blur(24px) saturate(150%);
+  --hzl-plate-pop: rgba(248, 252, 255, 0.84);
+  --hzl-blur: blur(26px) saturate(160%);
 
   --hzl-ink-1: #0f172a;
   --hzl-ink-2: rgba(15, 23, 42, 0.76);
@@ -221,7 +253,8 @@ html[data-theme="prism"] {
   --hzl-fill-1: rgba(37, 99, 235, 0.065);
   --hzl-fill-2: rgba(37, 99, 235, 0.125);
   --hzl-fill-3: rgba(37, 99, 235, 0.185);
-  --hzl-hairline: rgba(37, 99, 235, 0.11);
+  --hzl-hairline: rgba(37, 99, 235, 0.12);
+  --hzl-specular: rgba(255, 255, 255, 0.65);
 
   --accent: #2563eb;
   --accent-strong: #1d4ed8;
@@ -238,11 +271,18 @@ html[data-theme="prism"] {
   --bg-card-hover: var(--hzl-plate-strong);
   --bg-elevated: var(--hzl-plate-inner);
   --bg-input: rgba(255, 255, 255, 0.76);
+  --bg-dock: var(--hzl-plate);
   --text-main: var(--hzl-ink-1);
   --text-sub: var(--hzl-ink-2);
   --text-muted: var(--hzl-ink-3);
+  --border-col: var(--hzl-hairline);
   --border-subtle: var(--hzl-hairline);
   --border-strong: rgba(37, 99, 235, 0.18);
+  --bw-surface-top: var(--hzl-plate);
+  --bw-surface-bot: var(--hzl-plate);
+  --bw-chrome-top: var(--hzl-plate);
+  --bw-chrome-bot: var(--hzl-plate);
+  --bw-strip: none;
 }
 
 /* ---------- 2. SKY CANVAS & APP SHELL GRID ---------- */
@@ -324,7 +364,7 @@ html:root:root[data-ui-sidebar="rail"] body .app-shell {
   -webkit-backdrop-filter: var(--hzl-blur) !important;
   border: 1px solid var(--hzl-hairline) !important;
   border-radius: 20px !important;
-  box-shadow: none !important;
+  box-shadow: inset 0 1px 0 var(--hzl-specular) !important;
   overflow: hidden !important;
 }
 
@@ -757,7 +797,7 @@ html:root:root[data-theme="prism"] body .app-shell header.titlebar .hzl-top-nav-
   outline: none !important;
   color: var(--hzl-ink-1) !important;
   font-size: 12px !important;
-  width: 48px !important;
+  width: 78px !important;
   min-width: 0 !important;
   max-width: none !important;
   flex: 0 0 auto !important;
@@ -766,12 +806,21 @@ html:root:root[data-theme="prism"] body .app-shell header.titlebar .hzl-top-nav-
 }
 
 :root:root body .app-shell header.titlebar .titlebar-search-pill:focus-within #globalSearchInput {
-  width: 106px !important;
+  width: 128px !important;
 }
 
 @media (min-width: 1460px) {
   :root:root body .app-shell header.titlebar #globalSearchInput {
-    width: 114px !important;
+    width: 118px !important;
+  }
+  :root:root body .app-shell header.titlebar .titlebar-search-pill:focus-within #globalSearchInput {
+    width: 156px !important;
+  }
+}
+
+@media (max-width: 1160px) {
+  :root:root body .app-shell header.titlebar #globalSearchInput {
+    width: 66px !important;
   }
 }
 
@@ -963,10 +1012,13 @@ html:root:root[data-theme="prism"] body .app-shell header.titlebar .hzl-top-nav-
 :root:root body .app-shell #tab-settings .settings-card-unit,
 :root:root body .app-shell #tab-tools .bento-card,
 :root:root body .app-shell #tab-servers .bento-card,
+:root:root body .app-shell #tab-servers .srv-card-row,
 :root:root body .app-shell #tab-packs .bento-card,
 :root:root body .app-shell #tab-worlds .bento-card,
 :root:root body .app-shell #tab-play .bento-card,
-:root:root body .app-shell #playPageLaunchSlot .home-play-card,
+:root:root body .app-shell #tab-play .dsp-block,
+:root:root body .app-shell #tab-play .pvp-client-banner,
+:root:root body .app-shell #tab-play .smart-ram-coach-bar,
 :root:root body .app-shell #tab-mods .mods-filter-tiers,
 :root:root body .app-shell .mods-filter-tiers,
 :root:root body .app-shell .horizon-rust-studio-card,
@@ -974,11 +1026,12 @@ html:root:root[data-theme="prism"] body .app-shell header.titlebar .hzl-top-nav-
 :root:root body .app-shell .packs-progress-box,
 :root:root body .app-shell .mod-compat-notice-bar {
   background: var(--hzl-plate) !important;
+  background-image: none !important;
   backdrop-filter: var(--hzl-blur) !important;
   -webkit-backdrop-filter: var(--hzl-blur) !important;
   border: 1px solid var(--hzl-hairline) !important;
   border-radius: 20px !important;
-  box-shadow: none !important;
+  box-shadow: inset 0 1px 0 var(--hzl-specular) !important;
 }
 
 :root:root body .app-shell #heroBanner .wallpaper-switcher,
@@ -1124,9 +1177,10 @@ html:root:root[data-theme="prism"] body .hzl-ed-btn.active {
   font-weight: 500;
 }
 
-/* 56px (h-14) Horizon Action Bar on Home */
-:root:root body .app-shell #tab-home #sharedLaunchBarWrap.home-play-card {
+/* 56px (h-14) Horizon Action Bar on Home & Chơi game */
+:root:root body .app-shell #sharedLaunchBarWrap.home-play-card {
   background: transparent !important;
+  background-image: none !important;
   backdrop-filter: none !important;
   border: none !important;
   box-shadow: none !important;
@@ -1136,11 +1190,11 @@ html:root:root[data-theme="prism"] body .hzl-ed-btn.active {
   gap: 8px !important;
 }
 
-:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-header {
+:root:root body .app-shell #sharedLaunchBarWrap .hpc-header {
   display: none !important;
 }
 
-:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-main-row {
+:root:root body .app-shell #sharedLaunchBarWrap .hpc-main-row {
   display: flex !important;
   align-items: stretch !important;
   flex-wrap: wrap !important;
@@ -1148,12 +1202,12 @@ html:root:root[data-theme="prism"] body .hzl-ed-btn.active {
 }
 
 @media (min-width: 1160px) {
-  :root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-main-row {
+  :root:root body .app-shell #sharedLaunchBarWrap .hpc-main-row {
     flex-wrap: nowrap !important;
   }
 }
 
-:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-launch-actions {
+:root:root body .app-shell #sharedLaunchBarWrap .hpc-launch-actions {
   order: 1;
   display: flex !important;
   align-items: stretch !important;
@@ -1161,7 +1215,7 @@ html:root:root[data-theme="prism"] body .hzl-ed-btn.active {
   flex: 0 0 auto !important;
 }
 
-:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-version-box {
+:root:root body .app-shell #sharedLaunchBarWrap .hpc-version-box {
   order: 2;
   flex: 0 1 214px !important;
   min-width: 168px !important;
@@ -1173,10 +1227,10 @@ html:root:root[data-theme="prism"] body .hzl-ed-btn.active {
   backdrop-filter: var(--hzl-blur) !important;
   -webkit-backdrop-filter: var(--hzl-blur) !important;
   border: 1px solid var(--hzl-hairline) !important;
-  box-shadow: none !important;
+  box-shadow: inset 0 1px 0 var(--hzl-specular) !important;
 }
 
-:root:root body .app-shell #tab-home #sharedLaunchBarWrap .hpc-version-box:hover {
+:root:root body .app-shell #sharedLaunchBarWrap .hpc-version-box:hover {
   background: var(--hzl-plate-strong) !important;
 }
 
@@ -1358,6 +1412,7 @@ html:root:root[data-theme="prism"] body .hzl-ed-btn.active {
   backdrop-filter: var(--hzl-blur);
   -webkit-backdrop-filter: var(--hzl-blur);
   border-radius: 20px;
+  box-shadow: inset 0 1px 0 var(--hzl-specular);
   overflow: hidden;
 }
 
@@ -1867,6 +1922,7 @@ html:root:root body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-dayl
   -webkit-backdrop-filter: var(--hzl-blur);
   border: 1px solid var(--hzl-hairline);
   border-radius: 20px;
+  box-shadow: inset 0 1px 0 var(--hzl-specular);
   padding: 18px;
   display: flex;
   flex-direction: column;
@@ -2022,22 +2078,269 @@ html:root:root[data-theme="prism"] body .hmi-install-btn {
   color: var(--live-green) !important;
 }
 
-/* Popovers & Modals use high-legibility deep frosted glass */
+:root:root body .app-shell .play-account-summary-bar,
+:root:root body .app-shell .booster-check-pill {
+  background: var(--hzl-fill-1) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  color: var(--hzl-ink-1) !important;
+  box-shadow: none !important;
+}
+
+:root:root body .app-shell .booster-check-pill:has(input:checked) {
+  background: var(--accent-glow) !important;
+  border-color: var(--accent-border) !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+/* Popovers & Modals use high-legibility translucent frosted glass */
 :root:root body .theme-popover,
 :root:root body .scale-popover,
 :root:root body .notif-popover,
 :root:root body .sidebar-profile-popover,
 :root:root body .modal-dialog-card {
   background: var(--hzl-plate-pop) !important;
-  backdrop-filter: blur(28px) saturate(165%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(165%) !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
   border: 1px solid var(--hzl-hairline) !important;
   border-radius: 20px !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38) !important;
+  box-shadow: inset 0 1px 0 var(--hzl-specular), 0 24px 64px rgba(0, 0, 0, 0.42) !important;
   color: var(--hzl-ink-1) !important;
 }
 
 :root:root body .modal-backdrop {
   background: rgba(8, 7, 18, 0.56) !important;
   backdrop-filter: blur(8px) !important;
+}
+
+/* ---------- 10. PURE HORIZON THEME STUDIO POPOVER (#themePickerPopover) ---------- */
+:root:root body .app-shell header.titlebar #themePickerPopover {
+  width: 416px !important;
+  max-width: calc(100vw - 28px) !important;
+  padding: 14px !important;
+  border-radius: 20px !important;
+  background: var(--hzl-plate-pop) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  box-shadow: inset 0 1px 0 var(--hzl-specular), 0 26px 68px rgba(0, 0, 0, 0.46) !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .hzl-theme-pop-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+  padding-bottom: 9px !important;
+  border-bottom: 1px solid var(--hzl-hairline) !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .hzl-tph-left {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .hzl-pop-pill {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  padding: 2px 7px !important;
+  border-radius: 999px !important;
+  background: var(--hzl-fill-2) !important;
+  color: var(--hzl-ink-2) !important;
+  white-space: nowrap !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .theme-swatch-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .theme-swatch-grid .ts-chip.theme-swatch:last-child {
+  grid-column: auto !important;
+  justify-content: flex-start !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .ts-chip.theme-swatch {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 9px !important;
+  height: 46px !important;
+  padding: 0 10px !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  border-radius: 13px !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  background: var(--hzl-fill-1) !important;
+  color: var(--hzl-ink-1) !important;
+  box-shadow: none !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease, box-shadow 0.14s ease !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .ts-chip.theme-swatch.is-featured {
+  grid-column: 1 / -1 !important;
+  height: 50px !important;
+  padding: 0 12px !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .ts-chip.theme-swatch:hover {
+  background: var(--hzl-fill-2) !important;
+  border-color: var(--border-strong) !important;
+  transform: translateY(-1px) !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .ts-chip.theme-swatch.active {
+  background: var(--accent-glow) !important;
+  border: 1.5px solid var(--accent) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 6px 16px var(--accent-glow) !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .ts-chip.theme-swatch.active::after {
+  content: '✓' !important;
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  margin-left: auto !important;
+  width: 17px !important;
+  height: 17px !important;
+  flex: 0 0 17px !important;
+  border-radius: 999px !important;
+  background: var(--accent) !important;
+  color: #ffffff !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .tsw-tag {
+  margin-left: auto !important;
+  padding: 2px 7px !important;
+  border-radius: 999px !important;
+  background: var(--hzl-fill-2) !important;
+  color: var(--hzl-ink-2) !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .ts-chip.theme-swatch.is-featured.active .tsw-tag {
+  margin-left: auto !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .ts-chip.theme-swatch.is-featured.active::after {
+  margin-left: 4px !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .tsw-preview {
+  width: 28px !important;
+  height: 28px !important;
+  flex: 0 0 28px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 6px rgba(0, 0, 0, 0.22) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .tsw-preview::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, transparent 52%, rgba(0, 0, 0, 0.14) 100%);
+  pointer-events: none;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .tsw-info {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+  text-align: left !important;
+  line-height: 1.2 !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .tsw-label {
+  display: block !important;
+  width: 100% !important;
+  font-family: var(--font-ui) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--hzl-ink-1) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .tsw-sub {
+  display: block !important;
+  width: 100% !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  color: var(--hzl-ink-2) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .theme-pop-quick-studio {
+  margin-top: 10px !important;
+  padding-top: 10px !important;
+  border-top: 1px solid var(--hzl-hairline) !important;
+  gap: 9px !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .tpqs-lbl {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--hzl-ink-2) !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .accent-dot-btn {
+  width: 20px !important;
+  height: 20px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .accent-dot-btn.is-auto {
+  width: auto !important;
+  height: 22px !important;
+  padding: 0 9px !important;
+  border-radius: 999px !important;
+  background: var(--hzl-fill-1) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  color: var(--hzl-ink-1) !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover .accent-dot-btn.active {
+  border-color: var(--hzl-ink-1) !important;
+  box-shadow: 0 0 0 2.5px var(--accent-glow) !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover #btnOpenUiStudioSettings {
+  height: 32px !important;
+  border-radius: 10px !important;
+  background: var(--hzl-fill-1) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+  color: var(--hzl-ink-1) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+}
+
+:root:root body .app-shell header.titlebar #themePickerPopover #btnOpenUiStudioSettings:hover {
+  background: var(--hzl-fill-2) !important;
 }

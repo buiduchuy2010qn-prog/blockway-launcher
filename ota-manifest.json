@@ -1,10 +1,10 @@
 {
-  "version": "42.2.2",
-  "releasedAt": "2026-11-13T05:35:04.433Z",
-  "notes": "v42.2.2 PRO — Installed-First Kho Mod & Pure Horizon Glass: Tự động xếp toàn bộ Mod, Shader, Resource Pack và Modpack đã cài (✓ Đã Cài) lên đầu danh sách trên mọi Core Loaders, tự động nạp thông tin các Mod đã cài nằm ngoài trang đầu từ Modrinth, và giữ đồng bộ mượt mà khi vừa cài mới.",
+  "version": "42.2.3",
+  "releasedAt": "2026-11-13T07:04:52.378Z",
+  "notes": "v42.2.3 PRO — Pure Horizon Theme Studio Redesign, Zero Text Clipping & Translucent Dark Glass: Thiết kế lại bảng Chủ đề Glass gọn đẹp chuẩn Horizon (1 hàng nổi bật + 8 ô cân đối 4×2), sửa triệt để lỗi tràn/cắt chữ ở nút Theme và ô Tìm nhanh, nâng cấp kính mờ trong suốt có chiều sâu cho BlockWay Dark và toàn bộ chủ đề tối.",
   "files": {
     "package.json": {
-      "sha256": "0773dd2407e5f3cc9ce58e20aebcd82f1b64c026479c44c9e3b90a2d4aea927a",
+      "sha256": "2f2d93a7194c842726c3c396921efaead8f9be42c3341ad7f7c4574bfbd2ebd7",
       "size": 2683
     },
     "src/aether-cloud-auth.js": {
@@ -76,16 +76,16 @@
       "size": 4383
     },
     "src/ui/horizon-glass.css": {
-      "sha256": "16ec9921c08b728ba37867c6414fc235874ab7a4f20e753caffe1fa6d641856d",
-      "size": 58241
+      "sha256": "d0972cbfac47b36a018acbda750c8cb01d8fc1a08c6431f5ccb149e131ebeeda",
+      "size": 68803
     },
     "src/ui/horizon-glass.js": {
-      "sha256": "305fd4fb9b31b164181c86bee48d877ec9a7a393d7833312fa8ae2d665b285a5",
-      "size": 24100
+      "sha256": "accf783df25d5196c192eb943190d65ce0d0a1c3aae7e4ba9bb71bcf92247af3",
+      "size": 25697
     },
     "src/ui/index.html": {
-      "sha256": "bb30f8d974a65e54691e74c026c359808ffb9af3317d3d38d9600ef16c7a08e0",
-      "size": 238189
+      "sha256": "6591c7181f1116faa9d94d3d511f18c5b153ac9ee9a7b8079add4fa28c11c536",
+      "size": 238685
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
