@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v42.2.3 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
+# ⚡ BlockWay Launcher v42.3.0 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.2.3_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.3.0_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-8_Core_Loaders_+_Horizon_Rust-f97316?style=for-the-badge" alt="8 Core Loaders" /></a>
 </p>
 
@@ -16,9 +16,14 @@
 
 ---
 
-## ✨ Điểm mới trong `v42.2.3 PRO` (Theme Studio Glass Trong Suốt, Sửa Cắt Chữ & Đồng Bộ Monorepo)
+## ✨ Điểm mới trong `v42.3.0 PRO` (Tối Ưu Sâu 3 Tầng: Java 25 Compact Headers, AppCDS, Turbo Smooth v4, dGPU & Rust P-Core / Anti-EcoQoS)
 
-0. **🌌 Hợp nhất Monorepo (`rust-engine/`), Theme Studio Kính Mờ & Ưu tiên Mod đã cài (`v42.2.3 PRO`):**
+0. **🚀 Kiến Trúc Tối Ưu Sâu 3 Tầng (`v42.3.0 PRO Deep Performance`):**
+   - **Tầng 1 — Nhân Rust (`horizon-threads` + `Cargo.toml`):** Tự động nhận diện lõi hiệu năng cao **Windows Hybrid CPU P-Core vs E-Core** qua `GetLogicalProcessorInformationEx` (`parse_windows_performance_cores`) để giữ luồng render/chunk trên P-Core; tắt **Windows 11 EcoQoS Power Throttling** (`disable_thread_power_throttling` / `disable_process_power_throttling`); bật `opt-level = 3` cho các crate nóng khi build release.
+   - **Tầng 2 — Java 25 & Turbo Smooth Core™ v4:** Tự động bật **`-XX:+UseCompactObjectHeaders`** và **`-XX:ReservedCodeCacheSize=512m`** trên Java 25+, kết hợp **Auto AppCDS (`.jsa`)** (`-Xshare:auto -XX:+AutoCreateSharedArchive`) rút ngắn thời gian nạp lớp modpack, cùng **Turbo Smooth v4** tinh chỉnh trực tiếp **`ferritecore.mixin.properties`**, **`lithium.properties`**, **`c2me.toml`**, **`moreculling.toml`** và **`gpuCulling:auto`** trong `horizon-graphics.txt` (sao lưu & hoàn tác nguyên bản 1-Click).
+   - **Tầng 3 — Windows DirectX Discrete GPU Auto-Binding:** Tự động đăng ký **`GpuPreference=2;`** trong `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` cho cả **`javaw.exe`** và **`horizon-client.exe`** (tự động bỏ qua khi bật *Chế độ Mượt Êm* `gentleMode`).
+
+1. **🌌 Hợp nhất Monorepo (`rust-engine/`), Theme Studio Kính Mờ & Ưu tiên Mod đã cài (`Pure Horizon Glass`):**
    - **Kho Mod tự động đưa gói đã cài lên đầu (`Installed-First Mod Store`):** Mọi Mod, Shader, Resource Pack và Modpack đã cài (`✓ Đã Cài`) luôn được xếp cố định ở đầu danh sách ở cả 8 Core Loaders (kể cả các gói ngoài Top 48 tìm kiếm và ngay khi vừa bấm tải cài đặt trực tiếp).
    - **Hợp nhất 100% vào repo gốc `buiduchuy2010qn-prog/blockway-launcher`:** Toàn bộ mã nguồn Nhân Rust đa phiên bản (`rust-engine/`), GitHub Actions CI (`build-rust-core.yml`, tag `rust-core`) và OTA của Launcher đều nằm chung trong 1 kho mã nguồn chính thức duy nhất.
    - **Giải nén nguyên bản & Tự phục hồi Datapack 26.3 (`Worldgen Guard`):** Phát hiện và giữ nguyên 100% cấu trúc `density_function` chuẩn Minecraft 26.3 (`left`/`right`/`input`) khi cài các Datapack thế giới lớn như *Terralith 26.3*, đồng thời tự động kiểm tra & khôi phục/cách ly Datapack lỗi trước khi vào Thế giới để chống văng game tuyệt đối.

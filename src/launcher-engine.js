@@ -626,7 +626,7 @@ function buildMultiCoreSmoothExitArgs(ramGB, cpuCores = os.cpus().length) {
     '-XX:-OmitStackTraceInFastThrow',
     '-Dfml.ignoreInvalidMinecraftCertificates=true',
     '-Dfml.ignorePatchDiscrepancies=true',
-    '-Dminecraft.launcher.brand=BlockWay-v41.3'
+    '-Dminecraft.launcher.brand=BlockWay-v42.3'
   ];
 }
 function getInstalledVersions(gameDir) {
@@ -3181,7 +3181,7 @@ function applyGentleJvmTuning(args, { javaMajor = 0, cpuCores = os.cpus().length
  */
 const DEEP_SMOOTH_BACKUP_FILE = '.blockway-deep-smooth-backup.json';
 const DEEP_SMOOTH_STATE_FILE = '.blockway-deep-smooth-state.json';
-const DEEP_SMOOTH_VERSION = 3;
+const DEEP_SMOOTH_VERSION = 4;
 const DEEP_SMOOTH_ALL_LAYERS = [
   'vanilla_io',
   'optifine',
@@ -3213,6 +3213,8 @@ function detectTargetModEnvironment(targetDir, loaderType = '') {
     hasEntityCulling: false,
     hasFerriteCore: false,
     hasLithium: false,
+    hasC2me: false,
+    hasMoreCulling: false,
     modsCount: 0,
     activeShader: ''
   };
@@ -3230,6 +3232,8 @@ function detectTargetModEnvironment(targetDir, loaderType = '') {
         if (/^entityculling[-_+.]/i.test(f)) env.hasEntityCulling = true;
         if (/^ferritecore[-_+.]/i.test(f)) env.hasFerriteCore = true;
         if (/^(?:lithium|radium|canary)[-_+.]/i.test(f)) env.hasLithium = true;
+        if (/^c2me[-_+.]/i.test(f)) env.hasC2me = true;
+        if (/^moreculling[-_+.]/i.test(f)) env.hasMoreCulling = true;
       }
     }
   } catch (_) {}
@@ -3241,6 +3245,10 @@ function detectTargetModEnvironment(targetDir, loaderType = '') {
     if (fs.existsSync(path.join(targetDir, 'config', 'modernfix-mixins.properties'))) env.hasModernFix = true;
     if (fs.existsSync(path.join(targetDir, 'config', 'immediatelyfast.json'))) env.hasImmediatelyFast = true;
     if (fs.existsSync(path.join(targetDir, 'config', 'entityculling.json'))) env.hasEntityCulling = true;
+    if (fs.existsSync(path.join(targetDir, 'config', 'ferritecore.mixin.properties'))) env.hasFerriteCore = true;
+    if (fs.existsSync(path.join(targetDir, 'config', 'lithium.properties'))) env.hasLithium = true;
+    if (fs.existsSync(path.join(targetDir, 'config', 'c2me.toml'))) env.hasC2me = true;
+    if (fs.existsSync(path.join(targetDir, 'config', 'moreculling.toml'))) env.hasMoreCulling = true;
   } catch (_) {}
 
   try {
@@ -3302,11 +3310,17 @@ function inspectDeepGameSmoothState({ gameDir, instanceDir = '', loaderType = ''
     'config/sodium-options.json',
     'config/embeddium-options.json',
     'config/modernfix-mixins.properties',
+    'config/ferritecore.mixin.properties',
+    'config/lithium.properties',
+    'config/c2me.toml',
+    'config/moreculling.toml',
     'config/immediatelyfast.json',
     'config/entityculling.json',
     'config/exordium.json',
     'config/lambdynlights.toml',
-    'config/dynamic_fps.json'
+    'config/dynamic_fps.json',
+    'horizon-graphics.txt',
+    'horizon-extras.txt'
   ];
   const existingFiles = trackedRelPaths.filter((rel) => {
     try { return fs.existsSync(path.join(targetDir, ...rel.split('/'))); } catch (_) { return false; }
@@ -3358,6 +3372,8 @@ function applyDeepGameSmoothEngine({
 
   const env = detectTargetModEnvironment(targetDir, loaderType);
   const shaderActive = Boolean(env.activeShader);
+  const isLowSpec = normProfile === 'ultra_low';
+  const lowerLoader = String(loaderType || '').toLowerCase();
   const statePath = path.join(targetDir, DEEP_SMOOTH_STATE_FILE);
   const backupPath = path.join(targetDir, DEEP_SMOOTH_BACKUP_FILE);
   const prevState = readDeepSmoothJsonSafe(statePath);
@@ -3506,6 +3522,33 @@ function applyDeepGameSmoothEngine({
     touchedFiles.push(relPath);
   };
 
+  // Helper 4: Simple TOML file merge preserving existing sections & pure LF
+  const applyTomlSimpleFile = (relPath, entriesMap, headerComment, sectionHeader = '') => {
+    const absPath = path.join(targetDir, ...relPath.split('/'));
+    const existed = fs.existsSync(absPath);
+    const rawBefore = existed ? fs.readFileSync(absPath, 'utf8') : '';
+    if (!(relPath in backup.rawFileBackups)) {
+      backup.rawFileBackups[relPath] = { existed, content: rawBefore };
+    }
+    let content = existed ? rawBefore.replace(/\r\n/g, '\n') : '';
+    if (!content) {
+      if (headerComment) content += `# ${headerComment}\n`;
+      if (sectionHeader) content += `${sectionHeader}\n`;
+    }
+    for (const [k, v] of Object.entries(entriesMap)) {
+      const esc = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const rx = new RegExp(`^([ \\t]*)${esc}\\s*=.*$`, 'm');
+      if (rx.test(content)) {
+        content = content.replace(rx, `$1${k} = ${v}`);
+      } else {
+        content += (content && !content.endsWith('\n') ? '\n' : '') + `${k} = ${v}\n`;
+      }
+    }
+    fs.mkdirSync(path.dirname(absPath), { recursive: true });
+    fs.writeFileSync(absPath, content, 'utf8');
+    touchedFiles.push(relPath);
+  };
+
   try {
     // LAYER 1: options.txt (Windows Async Disk Chunk I/O + Mouse Polling + Harmonic Frame Pacing)
     if (normLayers.includes('vanilla_io')) {
@@ -3569,6 +3612,20 @@ function applyDeepGameSmoothEngine({
       }
 
       applyColonKvFile('options.txt', muts);
+
+      if (env.hasC2me) {
+        const c2meParallelism = Math.max(2, Math.min(6, Math.floor((os.cpus()?.length || 4) / 2)));
+        applyTomlSimpleFile(
+          'config/c2me.toml',
+          {
+            async: 'true',
+            globalExecutorParallelism: String(c2meParallelism)
+          },
+          'BlockWay Turbo Smooth Core v4 - C2ME',
+          '[ioSystem]'
+        );
+        highlights.push(`c2me.toml: Bật C2ME Async I/O & tối ưu ${c2meParallelism} luồng chunk song song`);
+      }
     }
 
     // LAYER 2: optionsof.txt (Deep OptiFine Pipeline + Automatic Shader Conflict Guard)
@@ -3632,7 +3689,6 @@ function applyDeepGameSmoothEngine({
         }
       };
       applyJsonConfigFile('config/sodium-options.json', sodiumPatch);
-      const lowerLoader = String(loaderType || '').toLowerCase();
       if (
         env.hasEmbeddium
         || lowerLoader === 'forge'
@@ -3644,7 +3700,7 @@ function applyDeepGameSmoothEngine({
       highlights.push(`sodium-options.json: Hàng đợi khung hình 1-frame (độ trễ chuột 0ms), ${optimalChunkThreads} luồng chunk (bảo vệ nhân P-core) & hoãn chunk ALWAYS`);
     }
 
-    // LAYER 4: config/modernfix-mixins.properties (-35~50% RAM & Render-Thread Priority Protection)
+    // LAYER 4: config/modernfix-mixins.properties, FerriteCore & Lithium (-35~50% RAM & Render-Thread Priority Protection)
     if (normLayers.includes('modernfix')) {
       applyPropertiesFile(
         'config/modernfix-mixins.properties',
@@ -3658,7 +3714,33 @@ function applyDeepGameSmoothEngine({
         },
         'BlockWay Turbo Smooth Core - ModernFix Deep RAM & Thread Priority Config'
       );
-      highlights.push('modernfix-mixins.properties: Kích hoạt dynamic_resources=true, ưu tiên luồng vẽ Render (thread_priorities=true) & chống khựng nạp thế giới');
+      if (env.hasFerriteCore || ['fabric', 'quilt', 'forge', 'neoforge'].includes(lowerLoader)) {
+        applyPropertiesFile(
+          'config/ferritecore.mixin.properties',
+          {
+            replaceBakedQuad: 'true',
+            populateNeighborTable: 'true',
+            cacheMultipartModels: 'true',
+            modelSides: 'true',
+            threaddetec: 'false'
+          },
+          'BlockWay Turbo Smooth Core v4 - FerriteCore Deep Memory Deduplication'
+        );
+      }
+      if (env.hasLithium || ['fabric', 'quilt', 'neoforge'].includes(lowerLoader)) {
+        applyPropertiesFile(
+          'config/lithium.properties',
+          {
+            'mixin.ai.nearby_entity_tracking': 'true',
+            'mixin.chunk.serialization': 'true',
+            'mixin.world.chunk_access': 'true',
+            'mixin.world.tick_scheduler': 'true',
+            'mixin.entity.collisions.movement': 'true'
+          },
+          'BlockWay Turbo Smooth Core v4 - Lithium Tick & Chunk Pipeline'
+        );
+      }
+      highlights.push('modernfix, ferritecore & lithium: Kích hoạt dynamic_resources, nén bảng mô hình RAM & tối ưu luồng tick');
     }
 
     // LAYER 5: HUD, Culling & Dynamic Light Anti-Stutter (ImmediatelyFast + EntityCulling + Exordium 30Hz Uncap + LambDynLights + DynamicFPS)
@@ -3713,6 +3795,18 @@ function applyDeepGameSmoothEngine({
           touchedFiles.push(ldlRel);
         }
       }
+      if (env.hasMoreCulling || lowerLoader === 'fabric' || lowerLoader === 'quilt') {
+        applyTomlSimpleFile(
+          'config/moreculling.toml',
+          {
+            useBlockStateCulling: 'true',
+            useCustomItemFrameRenderer: 'true',
+            itemFrameMapCulling: 'true',
+            leavesCullingMode: '"FAST"'
+          },
+          'BlockWay Turbo Smooth Core v4 - MoreCulling'
+        );
+      }
       // 5d. Rust Horizon Engine native culling & block-entity cache (horizon-graphics.txt & horizon-extras.txt)
       applyColonKvFile('horizon-graphics.txt', [
         { key: 'preset', value: 'custom' },
@@ -3734,7 +3828,7 @@ function applyDeepGameSmoothEngine({
         { key: 'framePacing', value: 'efficient' },
         { key: 'shadowCache', value: 'true' },
         { key: 'batchTranslucent', value: 'true' },
-        { key: 'gpuCulling', value: 'true' }
+        { key: 'gpuCulling', value: 'auto' }
       ]);
       applyColonKvFile('horizon-extras.txt', [
         { key: 'pregen', value: 'true' },
@@ -6315,6 +6409,25 @@ async function launchMinecraft(config, callbacks = {}) {
   const customArgs = (deepSmoothEngine !== false && normalizeDeepSmoothLayers(deepSmoothLayers).includes('jvm_lowlatency'))
     ? applyDeepSmoothJvmFlags(gentleCustomArgs, { enabled: true })
     : gentleCustomArgs;
+  if (deepSmoothEngine !== false && normalizeDeepSmoothLayers(deepSmoothLayers).includes('jvm_lowlatency')) {
+    const resolvedJavaMajor = getJavaMajorVersion(resolvedJava) || ramCoach.javaMajor || 0;
+    const appCdsArgs = buildJavaAppCdsArgs({
+      rootDir,
+      mcVersion,
+      loaderType: effectiveLoaderType,
+      javaMajor: resolvedJavaMajor,
+      enabled: true
+    });
+    for (const flag of appCdsArgs) {
+      const prefix = flag.startsWith('-XX:SharedArchiveFile=')
+        ? '-XX:SharedArchiveFile='
+        : (flag.startsWith('-Xshare:') ? '-Xshare:' : '');
+      const exists = prefix
+        ? customArgs.some((a) => String(a).startsWith(prefix))
+        : customArgs.includes(flag);
+      if (!exists) customArgs.push(flag);
+    }
+  }
 
   const launcher = new Client();
 
@@ -6475,6 +6588,7 @@ async function launchMinecraft(config, callbacks = {}) {
   // v41.1.0 PRO: Inject Linux GPU Driver multi-threaded OpenGL & Hybrid dGPU Prime Offload variables
   if (deepSmoothEngine !== false) {
     applyCrossPlatformDriverEnv({ gentleMode: gentleOn });
+    ensureWindowsHighPerfGpuPreference([resolvedJava], { gentleMode: gentleOn });
   }
 
   const proc = await launcher.launch(launchOpts);
@@ -6536,6 +6650,67 @@ function applyCrossPlatformDriverEnv({ gentleMode = false, targetEnv = process.e
     }
   }
   return applied;
+}
+
+const _gpuPrefAppliedSet = new Set();
+
+function ensureWindowsHighPerfGpuPreference(exePaths = [], { gentleMode = false, platform = process.platform, dryRun = false } = {}) {
+  if (platform !== 'win32' || gentleMode) {
+    return { ok: true, skipped: true, entries: [] };
+  }
+  const rawList = Array.isArray(exePaths) ? exePaths : [exePaths];
+  const candidates = [];
+  const seen = new Set();
+  const pushCandidate = (p) => {
+    if (!p || typeof p !== 'string') return;
+    const trimmed = p.trim();
+    if (!trimmed || trimmed === 'java' || trimmed === 'javaw') return;
+    const absExe = path.win32.isAbsolute(trimmed) ? path.win32.normalize(trimmed) : path.resolve(trimmed);
+    const lower = absExe.toLowerCase();
+    if (seen.has(lower)) return;
+    seen.add(lower);
+    candidates.push(absExe);
+  };
+
+  for (const item of rawList) {
+    if (!item || typeof item !== 'string') continue;
+    const trimmed = item.trim();
+    if (!trimmed || trimmed === 'java' || trimmed === 'javaw') continue;
+    const absExe = path.win32.isAbsolute(trimmed) ? path.win32.normalize(trimmed) : path.resolve(trimmed);
+    pushCandidate(absExe);
+    if (/[\\/]java\.exe$/i.test(absExe)) {
+      const siblingJavaw = absExe.replace(/java\.exe$/i, 'javaw.exe');
+      if (dryRun || fs.existsSync(siblingJavaw)) {
+        pushCandidate(siblingJavaw);
+      }
+    }
+  }
+
+  const regKey = 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences';
+  const valueData = 'GpuPreference=2;';
+  const entries = candidates.map((absExe) => ({
+    exePath: absExe,
+    regKey,
+    valueData,
+    regArgs: ['add', regKey, '/v', absExe, '/t', 'REG_SZ', '/d', valueData, '/f']
+  }));
+
+  if (dryRun === true) {
+    return { ok: true, skipped: false, dryRun: true, entries };
+  }
+
+  for (const entry of entries) {
+    const lower = entry.exePath.toLowerCase();
+    if (!fs.existsSync(entry.exePath) || _gpuPrefAppliedSet.has(lower)) continue;
+    _gpuPrefAppliedSet.add(lower);
+    try {
+      const child = spawn('reg.exe', entry.regArgs, { windowsHide: true, stdio: 'ignore' });
+      child.on('error', () => {});
+      child.unref?.();
+    } catch (_) {}
+  }
+
+  return { ok: true, skipped: false, entries };
 }
 
 function countDirItems(dirPath, filterFn) {
@@ -12197,18 +12372,49 @@ function buildGenerationalZgcArgs(javaMajor, cpuCores = os.cpus().length) {
   if (javaMajor >= 21 && javaMajor <= 23) {
     args.push('-XX:+ZGenerational');
   }
+  if (Number(javaMajor) >= 24) {
+    args.push('-XX:+UseCompactObjectHeaders');
+  }
   args.push(
     '-XX:+AlwaysPreTouch',
     '-XX:ZUncommitDelay=45',
     `-XX:ConcGCThreads=${concThreads}`,
+    '-XX:ReservedCodeCacheSize=512m',
     '-XX:+DisableExplicitGC',
     '-XX:+PerfDisableSharedMem',
     '-XX:-OmitStackTraceInFastThrow',
     '-Dfml.ignoreInvalidMinecraftCertificates=true',
     '-Dfml.ignorePatchDiscrepancies=true',
-    '-Dminecraft.launcher.brand=BlockWay-Pro'
+    '-Dminecraft.launcher.brand=BlockWay-v42.3'
   );
   return args;
+}
+
+function buildJavaAppCdsArgs({ rootDir, mcVersion, loaderType = 'vanilla', javaMajor = 0, enabled = true } = {}) {
+  const major = Number(javaMajor);
+  if (enabled === false || !Number.isFinite(major) || major < 21 || !rootDir || !mcVersion) {
+    return [];
+  }
+  const safeMcVer = String(mcVersion).trim().replace(/[^a-zA-Z0-9._-]/g, '_') || 'unknown';
+  const safeLoader = String(loaderType || 'vanilla').trim().toLowerCase().replace(/[^a-zA-Z0-9._-]/g, '_') || 'vanilla';
+  const filename = `bw-cds-${safeMcVer}-${safeLoader}-j${major}.jsa`;
+  let cdsDir = path.join(rootDir, 'cache', 'appcds');
+  let cdsPath = path.join(cdsDir, filename);
+  if (/[^\x20-\x7E]/.test(cdsPath)) {
+    cdsDir = path.join(os.tmpdir(), 'blockway-appcds');
+    cdsPath = path.join(cdsDir, filename);
+    if (/[^\x20-\x7E]/.test(cdsPath)) {
+      return [];
+    }
+  }
+  try {
+    fs.mkdirSync(cdsDir, { recursive: true });
+  } catch (_) {}
+  return [
+    '-Xshare:auto',
+    '-XX:+AutoCreateSharedArchive',
+    `-XX:SharedArchiveFile=${cdsPath}`
+  ];
 }
 
 function computeSmartRamAndJvmAdvice({
@@ -12306,6 +12512,12 @@ function computeSmartRamAndJvmAdvice({
     jvmArgs = buildMultiCoreSmoothExitArgs(effectiveRamGB, cpuCores);
     if (javaMajor >= 17 && !jvmArgs.some((a) => a.startsWith('-XX:G1PeriodicGCInterval='))) {
       jvmArgs.push('-XX:G1PeriodicGCInterval=60000');
+    }
+    if (javaMajor >= 24 && !jvmArgs.includes('-XX:+UseCompactObjectHeaders')) {
+      jvmArgs.push('-XX:+UseCompactObjectHeaders');
+    }
+    if (modsCount > 20 && !jvmArgs.some((a) => a.startsWith('-XX:ReservedCodeCacheSize='))) {
+      jvmArgs.push('-XX:ReservedCodeCacheSize=512m');
     }
   }
 
@@ -16080,6 +16292,9 @@ async function launchHorizonRustClient({
     }
   } catch (_) {}
 
+  ensureWindowsHighPerfGpuPreference([hz.clientPath], { gentleMode: Boolean(config.gentleSmoothMode) });
+  applyCrossPlatformDriverEnv({ gentleMode: Boolean(config.gentleSmoothMode), targetEnv: env });
+
   const spawnStartedAt = Date.now();
   const proc = spawn(hz.clientPath, args, {
     cwd: gameDirectory,
@@ -16357,5 +16572,8 @@ module.exports = {
   inspectWorldgenDatapackDir,
   tryInstallNative263DatapackArchive,
   sanitizeCorruptedWorldgenDatapacks,
-  sortModStoreEntriesInstalledFirst
+  sortModStoreEntriesInstalledFirst,
+  buildGenerationalZgcArgs,
+  buildJavaAppCdsArgs,
+  ensureWindowsHighPerfGpuPreference
 };

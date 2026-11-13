@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>BlockWay Launcher v42.2.3 PRO — Every World, One Place</title>
+  <title>BlockWay Launcher v42.3.0 PRO — Every World, One Place</title>
   <link rel="icon" href="app-icon.ico" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="layout-v33.css" />
@@ -290,7 +290,7 @@
           </div>
           <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
             <span>BlockWay OTA</span>
-            <strong id="titlebarUpdateVer">v42.2.3</strong>
+            <strong id="titlebarUpdateVer">v42.3.0</strong>
           </button>
         </div>
       </aside>
@@ -573,14 +573,14 @@
                         <div class="hrw-head">
                           <div class="hrw-title">
                             <span>Nhật ký &amp; Trạng thái Nhân</span>
-                            <small class="hzl-patch-ver-tag">v42.2.3 PRO · Pure Glass</small>
+                            <small class="hzl-patch-ver-tag">v42.3.0 PRO · Pure Glass</small>
                           </div>
                           <button type="button" class="hrw-view-all" id="btnHomeOpenChangelog">Cài đặt ›</button>
                         </div>
                         <ul class="hzl-patch-list">
+                          <li>Tối ưu sâu 3 tầng v42.3.0: <strong>Java 25 Compact Headers + Auto AppCDS</strong>, <strong>Turbo Smooth v4</strong> (FerriteCore/Lithium/C2ME/MoreCulling/<code>gpuCulling:auto</code>), <strong>Windows dGPU Auto-Binding</strong> &amp; <strong>Rust P-Core / Anti-EcoQoS</strong>.</li>
                           <li>Giao diện kính mờ (Frosted Glass 24px) chuẩn Horizon: điều hướng trên thanh nổi, danh sách 8 Core bên trái, triệt tiêu ảnh nền dư thừa.</li>
-                          <li>Hỗ trợ song song <strong>Nhân Rust (Horizon Vulkan / WGSL)</strong> và đầy đủ <strong>8 Core Java</strong> kèm bộ biên dịch <code>.jar → .hmod</code>.</li>
-                          <li>Kho Mod tự động đưa <strong>các Mod / Shader / Resource Pack đã cài lên đầu danh sách</strong>, hiển thị hàng ngang kèm Sticky Inspector &amp; ảnh gốc từ Modrinth.</li>
+                          <li>Hỗ trợ song song <strong>Nhân Rust (Horizon Vulkan / WGSL)</strong> và đầy đủ <strong>8 Core Java</strong> kèm Kho Mod tự đưa gói đã cài lên đầu danh sách.</li>
                         </ul>
                       </div>
                     </div>
@@ -1718,25 +1718,25 @@
 
           <div class="settings-bento-4" style="margin-bottom:16px;">
             <div class="v413-tools-group-label">⚡ Tối ưu</div>
-            <!-- SIGNATURE FEATURE (v41.2.0 PRO): TURBO SMOOTH CORE™ — 6-LAYER DEEP GAME FILE OPTIMIZER -->
+            <!-- SIGNATURE FEATURE (v42.3.0 PRO): TURBO SMOOTH CORE™ v4 — 6-LAYER DEEP GAME FILE OPTIMIZER -->
             <div class="bento-card settings-card-unit turbo-signature-card" id="turboSmoothSignatureCard" style="grid-column: 1 / -1;">
               <div class="dsp-head">
                 <div class="dsp-head-left" style="flex-wrap:wrap;gap:8px;">
                   <span class="ds-sig-pill">★ ĐẶC BIỆT</span>
-                  <h3>⚡ Turbo Smooth Core™ — Tối Ưu Sâu 6 Tầng Tệp Cấu Hình Game</h3>
+                  <h3>⚡ Turbo Smooth Core™ v4 — Tối Ưu Sâu 6 Tầng &amp; Java 25 / dGPU / Rust</h3>
                 </div>
                 <span class="installed-count-tag is-turbo-status" id="toolsDeepSmoothBadge">🟢 Tự bật khi Chơi</span>
               </div>
               <p class="settings-card-desc">
-                Can thiệp trực tiếp tệp cấu hình <strong>.minecraft &amp; Modpack</strong>: chống khựng ổ cứng, bảo vệ Shader, đa luồng Sodium &amp; giảm 40% RAM (hoàn tác 1-Click).
+                Can thiệp trực tiếp tệp cấu hình <strong>.minecraft &amp; Modpack</strong> qua 6 tầng nâng cấp: C2ME I/O, bảo vệ Shader, Sodium đa luồng, FerriteCore/Lithium/ModernFix, MoreCulling + Rust Auto-GPU (<code>gpuCulling:auto</code>), Java 25 Compact Headers + Auto AppCDS &amp; ép Windows dGPU (hoàn tác 1-Click).
               </p>
               <div class="turbo-layer-tags-row">
-                <span class="turbo-mini-tag">⚡ Chống đơ ổ cứng (options.txt)</span>
+                <span class="turbo-mini-tag">⚡ Async I/O &amp; C2ME (options.txt)</span>
                 <span class="turbo-mini-tag">🛡️ OptiFine + Bảo vệ Shader</span>
                 <span class="turbo-mini-tag">🧵 Đa luồng Sodium / Embeddium</span>
-                <span class="turbo-mini-tag">🚀 Giảm 40% RAM (ModernFix)</span>
-                <span class="turbo-mini-tag">🎯 Gom vẽ HUD &amp; Ẩn quái khuất</span>
-                <span class="turbo-mini-tag">☕ Khóa khựng JVM &amp; IPv4</span>
+                <span class="turbo-mini-tag">🚀 FerriteCore · Lithium · ModernFix</span>
+                <span class="turbo-mini-tag">🎯 MoreCulling &amp; Rust Auto-GPU</span>
+                <span class="turbo-mini-tag">☕ Java 25 Compact Headers · AppCDS · dGPU</span>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
                 <button class="btn-fps-boost-1click" id="btnToolsOpenDeepSmooth">⚡ Mở Bảng Điều Khiển 6 Tầng</button>
@@ -1921,7 +1921,7 @@
               </div>
             </div>
             <div class="console-terminal" id="consoleOutput">
-              <div class="log-entry info">[BlockWay Launcher v42.2.3 PRO] Horizon Glass Edition — Sẵn sàng khởi chạy.</div>
+              <div class="log-entry info">[BlockWay Launcher v42.3.0 PRO] Horizon Glass Edition — Sẵn sàng khởi chạy.</div>
             </div>
           </div>
         </section>
@@ -1943,7 +1943,7 @@
                 📦 GitHub Repo
               </button>
               <button class="btn-sync-skin" id="btnCheckUpdate">
-                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v42.2.3</span>)
+                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v42.3.0</span>)
               </button>
             </div>
           </div>
@@ -2440,7 +2440,7 @@
 
           <!-- 6 DEEP FILE OPTIMIZATION LAYERS -->
           <div class="ds-sec-head">
-            <strong>2. 6 Tầng Tệp Cấu Hình Được Tối Ưu Trực Tiếp</strong>
+            <strong>2. 6 Tầng Tệp Cấu Hình &amp; Hệ Thống Được Tối Ưu Trực Tiếp (v4)</strong>
             <button type="button" class="ds-check-all-link" id="btnDsSelectAllLayers">✓ Bật đủ 6 tầng</button>
           </div>
           <div class="ds-layers-grid" id="dsLayersGrid">
@@ -2448,10 +2448,10 @@
               <input type="checkbox" data-dslayer="vanilla_io" checked />
               <div class="dsl-main">
                 <div class="dsl-top">
-                  <strong>1. Chống đơ ổ cứng &amp; Chuột 1:1</strong>
-                  <span class="dsl-file-pill">options.txt</span>
+                  <strong>1. Chống đơ ổ cứng, C2ME &amp; Chuột 1:1</strong>
+                  <span class="dsl-file-pill">options.txt • c2me</span>
                 </div>
-                <span>Tắt ghi đồng bộ gây khựng 0.5s khi lưu vùng đất mới &amp; tắt phím đọc nhầm Ctrl+B.</span>
+                <span>Tắt ghi đồng bộ gây khựng 0.5s, tối ưu luồng I/O C2ME &amp; tắt phím đọc nhầm Ctrl+B.</span>
               </div>
             </label>
 
@@ -2481,10 +2481,10 @@
               <input type="checkbox" data-dslayer="modernfix" checked />
               <div class="dsl-main">
                 <div class="dsl-top">
-                  <strong>4. Giải phóng 40% RAM Modpack</strong>
-                  <span class="dsl-file-pill" id="dsLayerTagModernfix">modernfix</span>
+                  <strong>4. FerriteCore · Lithium · ModernFix</strong>
+                  <span class="dsl-file-pill" id="dsLayerTagModernfix">ferrite • lithium</span>
                 </div>
-                <span>Nạp mô hình 3D linh hoạt giúp vào gói nhiều Mod nhanh gấp đôi và nhẹ hẳn RAM.</span>
+                <span>Nạp mô hình 3D FerriteCore/ModernFix &amp; tối ưu tick/chunk Lithium giúp nhẹ hẳn RAM.</span>
               </div>
             </label>
 
@@ -2492,10 +2492,10 @@
               <input type="checkbox" data-dslayer="culling_hud" checked />
               <div class="dsl-main">
                 <div class="dsl-top">
-                  <strong>5. Gom nét vẽ HUD &amp; Ẩn quái khuất</strong>
-                  <span class="dsl-file-pill" id="dsLayerTagCulling">culling + hud</span>
+                  <strong>5. MoreCulling, HUD &amp; Rust Auto-GPU</strong>
+                  <span class="dsl-file-pill" id="dsLayerTagCulling">moreculling • gpu</span>
                 </div>
-                <span>Gộp hàng trăm lệnh vẽ thanh máu/chữ &amp; ngừng tính toán thực thể khuất sau tường.</span>
+                <span>Gộp lệnh vẽ HUD, lọc mặt khối MoreCulling &amp; bật Rust Auto-GPU (<code>gpuCulling:auto</code>).</span>
               </div>
             </label>
 
@@ -2503,10 +2503,10 @@
               <input type="checkbox" data-dslayer="jvm_lowlatency" checked />
               <div class="dsl-main">
                 <div class="dsl-top">
-                  <strong>6. Chống khựng RAM &amp; Ưu tiên IPv4</strong>
-                  <span class="dsl-file-pill">JVM Engine</span>
+                  <strong>6. Java 25 Compact Headers, AppCDS &amp; dGPU</strong>
+                  <span class="dsl-file-pill">JVM • AppCDS • dGPU</span>
                 </div>
-                <span>Chặn thu gom rác đột ngột gây tụt FPS, tắt ghi nháp ổ cứng &amp; vào máy chủ nhanh.</span>
+                <span>Bật Compact Headers, Auto AppCDS (<code>.jsa</code>), ZGC mượt &amp; ép Windows dGPU (<code>GpuPreference=2;</code>).</span>
               </div>
             </label>
           </div>

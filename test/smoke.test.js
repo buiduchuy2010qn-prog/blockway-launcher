@@ -384,3 +384,130 @@ test('9. Pure Horizon Theme Studio popover overflow guard & translucent dark gla
     assert.ok(glassJs.includes(`lunar:`) && glassJs.includes(`${field}:`), `SCENE_PALETTES must define ${field} for dark frosted glass themes`);
   }
 });
+
+test('10. v42.3.0 PRO Deep Java (Compact Headers + AppCDS + Turbo Smooth v4), dGPU Pref & Rust Hybrid P-Core / Anti-EcoQoS', () => {
+  const Module = require('node:module');
+  const localNm = path.join(REPO_ROOT, 'node_modules');
+  const installedAppNm = path.join(
+    process.env.LOCALAPPDATA || '',
+    'Programs',
+    'aether-craft-launcher',
+    'AetherCraft',
+    'resources',
+    'app',
+    'node_modules'
+  );
+  if (!fs.existsSync(localNm) && installedAppNm && fs.existsSync(installedAppNm)) {
+    process.env.NODE_PATH = process.env.NODE_PATH ? `${process.env.NODE_PATH}${path.delimiter}${installedAppNm}` : installedAppNm;
+    Module._initPaths();
+  }
+  const engine = require('../src/launcher-engine');
+
+  // 10a. Java 25 Compact Object Headers & ReservedCodeCacheSize vs Java 21 ZGenerational
+  const zgc25 = engine.buildGenerationalZgcArgs(25, 12);
+  assert.ok(zgc25.includes('-XX:+UseCompactObjectHeaders'), 'Java 25 must include -XX:+UseCompactObjectHeaders');
+  assert.ok(zgc25.includes('-XX:ReservedCodeCacheSize=512m'), 'Java 25 must include -XX:ReservedCodeCacheSize=512m');
+  const zgc21 = engine.buildGenerationalZgcArgs(21, 12);
+  assert.ok(zgc21.includes('-XX:+ZGenerational'), 'Java 21 must include -XX:+ZGenerational');
+  assert.ok(!zgc21.includes('-XX:+UseCompactObjectHeaders'), 'Java 21 must NOT include -XX:+UseCompactObjectHeaders');
+
+  const tmpAsciiDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-v423-test-'));
+  try {
+    // 10b. Auto AppCDS (.jsa) on Java 25 vs empty on Java 17
+    const cds25 = engine.buildJavaAppCdsArgs({
+      rootDir: tmpAsciiDir,
+      mcVersion: '26.3',
+      loaderType: 'fabric',
+      javaMajor: 25
+    });
+    assert.ok(Array.isArray(cds25) && cds25.length >= 3, 'Java 25 AppCDS args must contain archive flags');
+    assert.equal(cds25[0], '-Xshare:auto');
+    assert.equal(cds25[1], '-XX:+AutoCreateSharedArchive');
+    assert.ok(cds25[cds25.length - 1].endsWith('.jsa'), 'AppCDS SharedArchiveFile flag must end with .jsa');
+    assert.deepEqual(
+      engine.buildJavaAppCdsArgs({
+        rootDir: tmpAsciiDir,
+        mcVersion: '26.3',
+        loaderType: 'fabric',
+        javaMajor: 17
+      }),
+      [],
+      'Java 17 must return empty AppCDS args'
+    );
+
+    // 10c. Turbo Smooth v4 apply & clean revert for FerriteCore, Lithium, C2ME, MoreCulling & gpuCulling:auto
+    const tmpSmoothDir = path.join(tmpAsciiDir, 'smooth-game');
+    const modsDir = path.join(tmpSmoothDir, 'mods');
+    fs.mkdirSync(modsDir, { recursive: true });
+    for (const jarName of ['ferritecore-7.0.jar', 'lithium-0.14.jar', 'c2me-0.3.jar', 'moreculling-1.0.jar']) {
+      fs.writeFileSync(path.join(modsDir, jarName), 'mock-jar', 'utf8');
+    }
+
+    const applyRes = engine.applyDeepGameSmoothEngine({ gameDir: tmpSmoothDir, loaderType: 'fabric' });
+    assert.equal(applyRes.ok, true, 'applyDeepGameSmoothEngine must succeed');
+
+    const ferriteCfg = fs.readFileSync(path.join(tmpSmoothDir, 'config', 'ferritecore.mixin.properties'), 'utf8');
+    assert.ok(ferriteCfg.includes('replaceBakedQuad=true'), 'ferritecore.mixin.properties must set replaceBakedQuad=true');
+
+    const lithiumCfg = fs.readFileSync(path.join(tmpSmoothDir, 'config', 'lithium.properties'), 'utf8');
+    assert.ok(lithiumCfg.includes('mixin.ai.nearby_entity_tracking=true'), 'lithium.properties must set mixin.ai.nearby_entity_tracking=true');
+
+    const c2meCfg = fs.readFileSync(path.join(tmpSmoothDir, 'config', 'c2me.toml'), 'utf8');
+    assert.ok(c2meCfg.includes('globalExecutorParallelism'), 'c2me.toml must configure globalExecutorParallelism');
+
+    const moreCullingCfg = fs.readFileSync(path.join(tmpSmoothDir, 'config', 'moreculling.toml'), 'utf8');
+    assert.ok(moreCullingCfg.includes('useBlockStateCulling = true'), 'moreculling.toml must set useBlockStateCulling = true');
+
+    const hzGfx = fs.readFileSync(path.join(tmpSmoothDir, 'horizon-graphics.txt'), 'utf8');
+    assert.ok(hzGfx.includes('gpuCulling:auto'), 'horizon-graphics.txt must set gpuCulling:auto');
+
+    const revertRes = engine.revertDeepGameSmoothEngine({ gameDir: tmpSmoothDir });
+    assert.equal(revertRes.ok, true, 'revertDeepGameSmoothEngine must succeed');
+    for (const rel of [
+      'config/ferritecore.mixin.properties',
+      'config/lithium.properties',
+      'config/c2me.toml',
+      'config/moreculling.toml',
+      'horizon-graphics.txt'
+    ]) {
+      assert.equal(
+        fs.existsSync(path.join(tmpSmoothDir, ...rel.split('/'))),
+        false,
+        `revertDeepGameSmoothEngine must remove newly created ${rel}`
+      );
+    }
+  } finally {
+    fs.rmSync(tmpAsciiDir, { recursive: true, force: true });
+  }
+
+  // 10d. Windows DirectX High-Performance dGPU preference
+  const gpuRes = engine.ensureWindowsHighPerfGpuPreference(
+    ['C:\\Java\\bin\\javaw.exe', 'C:\\Horizon\\horizon-client.exe'],
+    { platform: 'win32', gentleMode: false, dryRun: true }
+  );
+  assert.equal(gpuRes.ok, true);
+  assert.ok(Array.isArray(gpuRes.entries) && gpuRes.entries.length >= 2);
+  for (const entry of gpuRes.entries) {
+    assert.equal(entry.regKey, 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences');
+    assert.equal(entry.valueData, 'GpuPreference=2;');
+  }
+  const gpuGentle = engine.ensureWindowsHighPerfGpuPreference(
+    ['C:\\Java\\bin\\javaw.exe'],
+    { platform: 'win32', gentleMode: true, dryRun: true }
+  );
+  assert.equal(gpuGentle.skipped, true, 'gentleMode: true must skip dGPU registry override');
+
+  // 10e. Rust horizon-threads Windows Hybrid P-Core & Anti-EcoQoS symbols
+  const threadsRs = fs.readFileSync(
+    path.join(REPO_ROOT, 'rust-engine', 'crates', 'horizon-threads', 'src', 'lib.rs'),
+    'utf8'
+  );
+  for (const sym of [
+    'parse_windows_performance_cores',
+    'GetLogicalProcessorInformationEx',
+    'disable_thread_power_throttling',
+    'disable_process_power_throttling'
+  ]) {
+    assert.ok(threadsRs.includes(sym), `horizon-threads/src/lib.rs must include ${sym}`);
+  }
+});

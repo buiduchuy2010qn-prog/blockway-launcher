@@ -1,19 +1,19 @@
 {
-  "version": "42.2.3",
-  "releasedAt": "2026-11-13T07:04:52.378Z",
-  "notes": "v42.2.3 PRO — Pure Horizon Theme Studio Redesign, Zero Text Clipping & Translucent Dark Glass: Thiết kế lại bảng Chủ đề Glass gọn đẹp chuẩn Horizon (1 hàng nổi bật + 8 ô cân đối 4×2), sửa triệt để lỗi tràn/cắt chữ ở nút Theme và ô Tìm nhanh, nâng cấp kính mờ trong suốt có chiều sâu cho BlockWay Dark và toàn bộ chủ đề tối.",
+  "version": "42.3.0",
+  "releasedAt": "2026-11-13T10:48:09.693Z",
+  "notes": "v42.3.0 PRO — Kiến Trúc Tối Ưu Sâu 3 Tầng: Java 25 Compact Object Headers + Auto AppCDS (.jsa), Turbo Smooth Core™ v4 (FerriteCore, Lithium, C2ME, MoreCulling & Rust gpuCulling:auto), Windows DirectX Discrete GPU Auto-Binding (GpuPreference=2; cho javaw.exe & horizon-client.exe), và Nhân Rust Windows Hybrid P-Core + Anti-EcoQoS.",
   "files": {
     "package.json": {
-      "sha256": "2f2d93a7194c842726c3c396921efaead8f9be42c3341ad7f7c4574bfbd2ebd7",
-      "size": 2683
+      "sha256": "caa72adb8f6e688786b7656ce93c0e5987b4a3b2c439055f48add106d0754d6b",
+      "size": 2790
     },
     "src/aether-cloud-auth.js": {
       "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
       "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "ef5bd48900ba34d6f935d81f931520f638a03c251ea438b678aa9eb2cbcc12fb",
-      "size": 678291
+      "sha256": "2fb6e6021a11d73157ad1b24544a7aa70e67114ed1484cf1ad46c54688501182",
+      "size": 687004
     },
     "src/main.js": {
       "sha256": "c9da011b049ca4973caa11e7de6efab3378c37eede13b105e1d2ba5a4d60e7de",
@@ -84,8 +84,8 @@
       "size": 25697
     },
     "src/ui/index.html": {
-      "sha256": "6591c7181f1116faa9d94d3d511f18c5b153ac9ee9a7b8079add4fa28c11c536",
-      "size": 238685
+      "sha256": "1d37dc24489d63edd84ceab0c6f606857e09cb65028c6f9129a015902f3e1634",
+      "size": 239044
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",

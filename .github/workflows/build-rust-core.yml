@@ -47,6 +47,7 @@ jobs:
       - name: Verify multi-version profile, native Rust client mods & multi-channel modpack porter unit tests
         run: |
           set -euo pipefail
+          cargo test --locked -p horizon-threads
           cargo test --locked -p horizon-core --lib version_profile
           cargo test --locked -p horizon-client --lib blockway_native_mods
           cargo test --locked -p horizon-port-pack --lib port_jar
