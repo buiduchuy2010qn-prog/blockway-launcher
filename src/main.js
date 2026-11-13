@@ -1060,7 +1060,12 @@ ipcMain.handle('mc:loaders', async (_e, mcVersion, loaderType, gameDir) => {
 ipcMain.handle('modrinth:search', async (_e, params) => {
   try {
     const hits = await searchModrinth(params || {});
-    return { ok: true, hits, totalHits: hits.totalHits || hits.length };
+    return {
+      ok: true,
+      hits,
+      totalHits: hits.totalHits || hits.length,
+      modrinthHitCount: typeof hits.modrinthHitCount === 'number' ? hits.modrinthHitCount : hits.length
+    };
   } catch (err) {
     return { ok: false, error: err.message };
   }

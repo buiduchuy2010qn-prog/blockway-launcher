@@ -1764,6 +1764,10 @@ html:root:root body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-dayl
   transform: none !important;
 }
 
+:root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-card.is-installed-card:not(.is-selected) {
+  border-color: rgba(74, 222, 128, 0.24) !important;
+}
+
 :root:root body .app-shell .hzl-mods-split:not(.is-single-col) #modrinthResultsGrid .mod-card.is-selected {
   background: var(--hzl-plate-strong) !important;
   border-color: var(--accent-border) !important;

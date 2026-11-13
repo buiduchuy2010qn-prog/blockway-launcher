@@ -323,3 +323,37 @@ test('7. Unified Monorepo: Rust engine lives in rust-engine/ and zero separate-r
     );
   }
 });
+
+test('8. Kho Mod sorts already-installed addons continuously to the top', () => {
+  const engine = require('../src/launcher-engine');
+  const mixed = [
+    { slug: 'ferrite-core', isInstalledExact: true, isBuiltinLocked: false },
+    { slug: 'yacl', isInstalledExact: false, isBuiltinLocked: false },
+    { slug: 'fabric-language-kotlin', isInstalledExact: true, isBuiltinLocked: false },
+    { slug: 'sodium', isInstalledExact: true, isBuiltinLocked: true },
+    { slug: 'xaeros-minimap', isInstalledExact: true, isBuiltinLocked: false },
+    { slug: 'entity-texture-features', isInstalledExact: false, isBuiltinLocked: false },
+    { slug: 'architectury-api', isInstalledExact: false, isBuiltinLocked: false },
+    { slug: 'sodium-extra', isInstalledExact: true, isBuiltinLocked: false }
+  ];
+  const sorted = engine.sortModStoreEntriesInstalledFirst(mixed);
+  assert.deepEqual(
+    sorted.map((x) => x.slug),
+    [
+      'ferrite-core',
+      'fabric-language-kotlin',
+      'xaeros-minimap',
+      'sodium-extra',
+      'sodium',
+      'yacl',
+      'entity-texture-features',
+      'architectury-api'
+    ],
+    'Installed addons must appear first in original popularity order, followed by builtin engine and uninstalled items'
+  );
+
+  const storeUi = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/store-features.js'), 'utf8');
+  assert.ok(storeUi.includes('getModCardSortRank'), 'store-features.js must define getModCardSortRank');
+  assert.ok(storeUi.includes('is-installed-card'), 'store-features.js must tag installed cards with is-installed-card');
+  assert.ok(storeUi.includes('promoteCardToInstalledGroup'), 'store-features.js must promote newly installed cards to the installed block');
+});

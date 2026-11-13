@@ -1192,7 +1192,9 @@ async function searchModrinth({
   sortBy = 'downloads',
   offset = 0,
   limit = 48,
-  allVersions = false
+  allVersions = false,
+  gameDir = '',
+  rootDir = ''
 }) {
   const isHorizonRust = isRustCoreType(loaderType);
   const cleanQuery = String(query || '').trim();
@@ -1287,6 +1289,7 @@ async function searchModrinth({
     projectType: h.project_type || projectType
   });
 
+  const rawModrinthHitCount = Array.isArray(res?.hits) ? res.hits.length : 0;
   let modrinthHits = (res.hits || []).map(mapModrinthHit);
   if (isHorizonRust && projectType === 'mod' && !allVersions && !cleanQuery) {
     // Exclude companion datapacks that depend on heavy JVM-only mods (Cobblemon / Pixelmon / Origins)
@@ -1392,6 +1395,89 @@ async function searchModrinth({
     }
   }
 
+  // Enrich page-1 results with any already-installed Modrinth addons not present in the top-48 page
+  if (safeOffset === 0 && (gameDir || rootDir)) {
+    try {
+      const existingSlugs = new Set(
+        [...prependedHits, ...modrinthHits]
+          .map((h) => String(h.slug || '').toLowerCase())
+          .filter(Boolean)
+      );
+      const candidateInstalledSlugs = [];
+      if (isHorizonRust && projectType === 'mod') {
+        const hzState = await listHorizonRustMods({ gameDir: gameDir || rootDir, rootDir: rootDir || gameDir });
+        if (hzState?.ok) {
+          const slugList = Array.isArray(hzState.installedSlugs) ? hzState.installedSlugs : [];
+          const hList = Array.isArray(hzState.mods) ? hzState.mods : [];
+          const dpList = Array.isArray(hzState.datapacks) ? hzState.datapacks : [];
+          for (const s of slugList) candidateInstalledSlugs.push(String(s || '').toLowerCase());
+          for (const m of hList) candidateInstalledSlugs.push(String(m?.id || '').toLowerCase());
+          for (const d of dpList) candidateInstalledSlugs.push(String(d?.id || '').toLowerCase());
+        }
+      } else {
+        const folderType = projectType === 'shader' ? 'shaderpacks' : projectType === 'resourcepack' ? 'resourcepacks' : 'mods';
+        const rawLocal = listLocalAddons(gameDir || rootDir, folderType);
+        const localItems = (Array.isArray(rawLocal) ? rawLocal : (rawLocal?.items || [])).filter((i) => i && i.enabled);
+        for (const li of localItems) {
+          if (projectType === 'mod' && !allVersions && mcVersion) {
+            const gVers = Array.isArray(li.gameVersions) ? li.gameVersions : [];
+            const matchesMc = gVers.length > 0
+              ? gVers.includes(mcVersion)
+              : (!li.mcVersion || li.mcVersion === mcVersion);
+            if (!matchesMc) continue;
+          }
+          const slugCand = (li.slug && !/[A-Z]/.test(li.slug) ? li.slug.toLowerCase() : '')
+            || matchKnownSlugByFilename(li.cleanName || li.name || '');
+          if (slugCand) candidateInstalledSlugs.push(slugCand.toLowerCase());
+        }
+      }
+      const missingInstalledSlugs = [...new Set(candidateInstalledSlugs)]
+        .filter((s) => s && !s.startsWith('hzreg:') && !existingSlugs.has(s) && /^[a-z0-9][a-z0-9-_]{1,63}$/.test(s))
+        .slice(0, 36);
+      if (missingInstalledSlugs.length > 0) {
+        const batchUrl = `https://api.modrinth.com/v2/projects?ids=${encodeURIComponent(JSON.stringify(missingInstalledSlugs))}`;
+        const batchProjects = await fetchJson(batchUrl);
+        if (Array.isArray(batchProjects) && batchProjects.length > 0) {
+          const cleanQueryLower = cleanQuery.toLowerCase();
+          const cleanCatLower = cleanCat.toLowerCase();
+          const extraInstalledHits = [];
+          for (const p of batchProjects) {
+            if (!p || !p.slug) continue;
+            const pTypeOk = p.project_type === projectType
+              || (isHorizonRust && projectType === 'mod' && (p.project_type === 'mod' || p.project_type === 'datapack'));
+            if (!pTypeOk) continue;
+            const mergedCats = [...new Set([...(p.loaders || []), ...(p.categories || [])])]
+              .map((c) => String(c || '').toLowerCase())
+              .filter(Boolean);
+            if (cleanCatLower && !mergedCats.includes(cleanCatLower)) continue;
+            if (cleanQueryLower) {
+              const hay = `${p.title || ''} ${p.slug || ''} ${p.description || ''}`.toLowerCase();
+              if (!hay.includes(cleanQueryLower)) continue;
+            }
+            extraInstalledHits.push({
+              projectId: p.id,
+              slug: p.slug,
+              title: p.title,
+              description: p.description || '',
+              iconUrl: p.icon_url || '',
+              downloads: Number(p.downloads) || 0,
+              follows: Number(p.followers) || 0,
+              author: p.author || 'Modrinth',
+              categories: mergedCats.slice(0, 12),
+              displayCategories: (Array.isArray(p.additional_categories) && p.additional_categories.length ? p.additional_categories : (p.categories || [])).slice(0, 12),
+              versions: Array.isArray(p.game_versions) ? p.game_versions : [],
+              clientSide: p.client_side || '',
+              serverSide: p.server_side || '',
+              projectType: p.project_type || projectType
+            });
+          }
+          extraInstalledHits.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
+          prependedHits.push(...extraInstalledHits);
+        }
+      }
+    } catch (_) {}
+  }
+
   const seenSlugs = new Set();
   const hits = [];
   for (const item of [...prependedHits, ...modrinthHits]) {
@@ -1401,7 +1487,28 @@ async function searchModrinth({
     hits.push(item);
   }
   hits.totalHits = (res.total_hits || modrinthHits.length) + prependedHits.length;
+  hits.modrinthHitCount = rawModrinthHitCount;
   return hits;
+}
+
+function getModStoreEntrySortRank(entry) {
+  if (entry?.isInstalledExact && !entry?.isBuiltinLocked) return 0;
+  if (entry?.isInstalledExact && entry?.isBuiltinLocked) return 1;
+  return 2;
+}
+
+/**
+ * Stably sort Mod Store items so installed addons always appear first above uninstalled items.
+ */
+function sortModStoreEntriesInstalledFirst(entries = []) {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .map((entry, idx) => ({ entry, idx }))
+    .sort((a, b) => {
+      const rankDiff = getModStoreEntrySortRank(a.entry) - getModStoreEntrySortRank(b.entry);
+      return rankDiff !== 0 ? rankDiff : (a.idx - b.idx);
+    })
+    .map((x) => x.entry);
 }
 
 const KNOWN_MOD_SLUG_PREFIXES = {
@@ -16249,5 +16356,6 @@ module.exports = {
   isPackMcmetaNative263,
   inspectWorldgenDatapackDir,
   tryInstallNative263DatapackArchive,
-  sanitizeCorruptedWorldgenDatapacks
+  sanitizeCorruptedWorldgenDatapacks,
+  sortModStoreEntriesInstalledFirst
 };

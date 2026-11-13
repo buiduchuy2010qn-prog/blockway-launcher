@@ -1,23 +1,23 @@
 {
-  "version": "42.2.1",
-  "releasedAt": "2026-11-12T21:43:04.495Z",
-  "notes": "v42.2.1 PRO — Bản vá chuẩn hóa LF OTA SHA-256 & gia cố bảo mật: Chuẩn hóa toàn bộ mã nguồn về LF thuần tránh lệch mã băm giữa Windows/Linux, xác thực SHA-256 + tên miền GitHub trước khi giải nén nâng cấp Nhân Horizon Rust, thay thế innerHTML an toàn bằng DOM textContent, và sửa lỗi đóng gói monorepo xtask/26.3.",
+  "version": "42.2.2",
+  "releasedAt": "2026-11-13T05:35:04.433Z",
+  "notes": "v42.2.2 PRO — Installed-First Kho Mod & Pure Horizon Glass: Tự động xếp toàn bộ Mod, Shader, Resource Pack và Modpack đã cài (✓ Đã Cài) lên đầu danh sách trên mọi Core Loaders, tự động nạp thông tin các Mod đã cài nằm ngoài trang đầu từ Modrinth, và giữ đồng bộ mượt mà khi vừa cài mới.",
   "files": {
     "package.json": {
-      "sha256": "20b72c71f023d4ba8006a29440df054391ddc1ba3d46f073572fb8f99e1da57d",
-      "size": 2656
+      "sha256": "0773dd2407e5f3cc9ce58e20aebcd82f1b64c026479c44c9e3b90a2d4aea927a",
+      "size": 2683
     },
     "src/aether-cloud-auth.js": {
       "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
       "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "2d461156c219daf12e0018985786f2abdbd33b1b80122127076c87193f04c7c3",
-      "size": 672842
+      "sha256": "ef5bd48900ba34d6f935d81f931520f638a03c251ea438b678aa9eb2cbcc12fb",
+      "size": 678291
     },
     "src/main.js": {
-      "sha256": "3ca5c10f6e715b48a5b02749c5e325fb7d6e0889974906d8cb96d6ed77064ffc",
-      "size": 117157
+      "sha256": "c9da011b049ca4973caa11e7de6efab3378c37eede13b105e1d2ba5a4d60e7de",
+      "size": 117284
     },
     "src/microsoft-auth.js": {
       "sha256": "7df3ec8fd3fab2e80ca80ccaf4e7b7466d7f9de16d23e44c3caa15965555bd7d",
@@ -76,16 +76,16 @@
       "size": 4383
     },
     "src/ui/horizon-glass.css": {
-      "sha256": "ceb8fb1307ebd3bc8fba41fd4ca0546e78ebf0763089eb93ea25fd572c078a74",
-      "size": 58053
+      "sha256": "16ec9921c08b728ba37867c6414fc235874ab7a4f20e753caffe1fa6d641856d",
+      "size": 58241
     },
     "src/ui/horizon-glass.js": {
       "sha256": "305fd4fb9b31b164181c86bee48d877ec9a7a393d7833312fa8ae2d665b285a5",
       "size": 24100
     },
     "src/ui/index.html": {
-      "sha256": "d847bb567b68064dcf5668e9809df1cbb644875a0e7d5f93b5076cecf62b7207",
-      "size": 238138
+      "sha256": "bb30f8d974a65e54691e74c026c359808ffb9af3317d3d38d9600ef16c7a08e0",
+      "size": 238189
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
@@ -108,8 +108,8 @@
       "size": 477198
     },
     "src/ui/store-features.js": {
-      "sha256": "654873fd9f76c159f0be2452cb3a8e9ec8ec69db0c0c53fb7053a4e0c2f358ac",
-      "size": 520968
+      "sha256": "14aba29a5e88671ba34e98ba12d3f9bcc761b1335391c7e4f50b03b3a7b46bc3",
+      "size": 525516
     },
     "src/ui/styles.css": {
       "sha256": "7b942245d70a9cc56ab3107a4c67ed64da15e619a7d6b0402457148403961048",

@@ -872,7 +872,9 @@ async function loadModrinthStore(append = false) {
     sortBy: state.modSortBy || 'downloads',
     offset: state.modOffset || 0,
     limit: pageSize,
-    allVersions: Boolean(state.modAllVersions)
+    allVersions: Boolean(state.modAllVersions),
+    gameDir: target.dir,
+    rootDir: state.gameDir
   });
   if (reqSeq !== _modStoreLoadSeq || state.activeModStoreType !== reqProjectType) return;
 
@@ -884,8 +886,16 @@ async function loadModrinthStore(append = false) {
 
   const newHits = res.hits || [];
   const totalHits = res.totalHits || newHits.length;
-  state.modAccumulatedHits = append ? [...(state.modAccumulatedHits || []), ...newHits] : newHits;
-  state.modOffset = state.modAccumulatedHits.length;
+  const mergedHits = append ? [...(state.modAccumulatedHits || []), ...newHits] : [...newHits];
+  const seenHitKeys = new Set();
+  state.modAccumulatedHits = mergedHits.filter((it) => {
+    const k = String(it?.slug || it?.projectId || '').toLowerCase();
+    if (!k || seenHitKeys.has(k)) return false;
+    seenHitKeys.add(k);
+    return true;
+  });
+  const stepCount = typeof res.modrinthHitCount === 'number' ? res.modrinthHitCount : newHits.length;
+  state.modOffset = (append ? (state.modOffset || 0) : 0) + stepCount;
 
   if (totalBadge) {
     totalBadge.textContent = `Hiện ${state.modAccumulatedHits.length} / ${totalHits.toLocaleString('vi-VN')}+ Gói`;
@@ -1412,7 +1422,7 @@ async function loadModrinthStore(append = false) {
 
   const currentRenderSeq = ++_horizonProbeRenderSeq;
 
-  const cardsHtml = visibleHits.map((item) => {
+  const evaluatedCards = visibleHits.map((item, origIdx) => {
     const dl = item.downloads >= 1000000
       ? `${(item.downloads / 1000000).toFixed(1)}M tải`
       : item.downloads >= 1000
@@ -1634,7 +1644,7 @@ async function loadModrinthStore(append = false) {
     const safeSlug = escapeHtml(item.slug);
     const safeBtnTitle = escapeHtml(btnTitle);
     const extraBtnAttrs = `${(isProbePending || isBuiltinLocked) ? 'disabled' : ''} ${isProbePending ? 'data-hzprobe="1"' : ''} data-fallbackver="${escapeHtml(fallbackJavaVer)}" data-fallbackcore="${escapeHtml(fallbackJavaLoaderKey)}"`;
-    return `<div class="mod-card" data-modslug="${safeSlug}">
+    const cardHtml = `<div class="mod-card${isInstalledExact && !isBuiltinLocked ? ' is-installed-card' : ''}${isBuiltinLocked ? ' is-builtin-card' : ''}" data-modslug="${safeSlug}">
       <div class="mod-card-top">
         <img class="mod-icon" src="${safeIconUrl}" alt="" loading="lazy" decoding="async" />
         <div class="mod-head-info">
@@ -1649,19 +1659,32 @@ async function loadModrinthStore(append = false) {
         <button class="btn-install-mod ${isInstalledExact ? 'installed' : ''} ${needsConfigSwitch ? 'needs-switch' : ''}" ${extraBtnAttrs} data-slug="${safeSlug}" data-title="${safeTitle}" data-targetver="${escapeHtml(targetInstallVer)}" data-targetcore="${escapeHtml(targetInstallCore)}" data-needsswitch="${needsConfigSwitch ? '1' : '0'}" data-hzkind="${escapeHtml(horizonUiClass?.kind || '')}" title="${safeBtnTitle}">${escapeHtml(btnText)}</button>
       </div>
     </div>`;
-  }).join('');
+    return { item, origIdx, isInstalledExact, isBuiltinLocked, html: cardHtml };
+  });
 
-  const hasMore = state.modAccumulatedHits.length < totalHits && newHits.length > 0;
+  const getModCardSortRank = (entry) => {
+    if (entry.isInstalledExact && !entry.isBuiltinLocked) return 0;
+    if (entry.isInstalledExact && entry.isBuiltinLocked) return 1;
+    return 2;
+  };
+  evaluatedCards.sort((a, b) => {
+    const rDiff = getModCardSortRank(a) - getModCardSortRank(b);
+    return rDiff !== 0 ? rDiff : (a.origIdx - b.origIdx);
+  });
+  const sortedVisibleHits = evaluatedCards.map((c) => c.item);
+  const cardsHtml = evaluatedCards.map((c) => c.html).join('');
+
+  const hasMore = (state.modOffset < totalHits || state.modAccumulatedHits.length < totalHits) && newHits.length > 0;
   const loadMoreHtml = hasMore
     ? `<div style="grid-column:1/-1;display:flex;justify-content:center;padding:14px 0 22px 0;">
          <button id="btnLoadMoreMods" class="btn-fps-boost-1click" style="padding:10px 28px;font-size:13px;">
-           ➕ Xem Thêm 48 Gói Tiếp Theo (Đang hiện ${visibleHits.length} / ${totalHits.toLocaleString('vi-VN')}+ gói phù hợp)
+           ➕ Xem Thêm 48 Gói Tiếp Theo (Đang hiện ${sortedVisibleHits.length} / ${totalHits.toLocaleString('vi-VN')}+ gói phù hợp)
          </button>
        </div>`
     : '';
 
   grid.innerHTML = cardsHtml + loadMoreHtml;
-  window.__bwVisibleModHits = visibleHits;
+  window.__bwVisibleModHits = sortedVisibleHits;
   window.dispatchEvent(new CustomEvent('bw:mods-rendered'));
 
   // Background pre-install verification queue for Horizon Rust candidate cards (horizon-port-jar real inspection!)
@@ -1927,6 +1950,47 @@ async function loadModrinthStore(append = false) {
         if (curTarget.isPack && typeof refreshPackInstances === 'function') {
           await refreshPackInstances();
         }
+        const cardEl = btn.closest('.mod-card');
+        if (cardEl && !r.builtinEngine) {
+          cardEl.classList.add('is-installed-card');
+        }
+        const promoteCardToInstalledGroup = (el) => {
+          if (!el || !grid) return;
+          const firstUninstalled = grid.querySelector('.mod-card:not(.is-installed-card):not(.is-builtin-card)')
+            || grid.querySelector('.mod-card:not(.is-installed-card)');
+          if (firstUninstalled && el !== firstUninstalled && (el.compareDocumentPosition(firstUninstalled) & Node.DOCUMENT_POSITION_PRECEDING)) {
+            grid.insertBefore(el, firstUninstalled);
+          }
+        };
+        if (Array.isArray(r.installedDeps) && r.installedDeps.length > 0) {
+          const depTokens = r.installedDeps.map((d) => String(d || '').toLowerCase().replace(/[^a-z0-9]+/g, ''));
+          grid.querySelectorAll('.mod-card:not(.is-installed-card)').forEach((otherCard) => {
+            const otherSlug = String(otherCard.dataset.modslug || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+            if (!otherSlug) return;
+            const matchedDep = depTokens.some((tok) => tok && (otherSlug === tok || otherSlug.includes(tok) || tok.includes(otherSlug)));
+            if (!matchedDep) return;
+            otherCard.classList.add('is-installed-card');
+            const otherBtn = otherCard.querySelector('.btn-install-mod');
+            if (otherBtn) {
+              otherBtn.classList.add('installed');
+              otherBtn.classList.remove('needs-switch');
+              otherBtn.textContent = curTarget.core === 'horizon'
+                ? '✓ Đã Cài (Rust)'
+                : `✓ Đã Cài (${curTarget.isPack ? 'Trong Gói' : curTarget.mcVersion})`;
+            }
+            promoteCardToInstalledGroup(otherCard);
+          });
+        }
+        if (cardEl && !needsSwitch && !r.builtinEngine) {
+          promoteCardToInstalledGroup(cardEl);
+        }
+        if (Array.isArray(window.__bwVisibleModHits)) {
+          const hitBySlug = new Map(window.__bwVisibleModHits.map((h) => [String(h.slug || ''), h]));
+          window.__bwVisibleModHits = [...grid.querySelectorAll('.mod-card')]
+            .map((c) => hitBySlug.get(String(c.dataset.modslug || '')))
+            .filter(Boolean);
+        }
+        window.dispatchEvent(new CustomEvent('bw:mod-card-updated', { detail: { slug: btn.dataset.slug } }));
         if (needsSwitch) loadModrinthStore(false);
       } else if (r?.incompatibleWithRust) {
         // Hard block fallback: convert button into Core Switch to Fabric/Forge, NEVER mark installed!
@@ -3106,10 +3170,29 @@ function packJavaForMc(mcVer) {
   return 'Java 8';
 }
 
+function isPackItemInstalled(it) {
+  const insts = Array.isArray(packHub.instances) ? packHub.instances : [];
+  const targetTitle = String(it?.title || '').trim().toLowerCase();
+  const targetId = String(it?.id || '');
+  return insts.some((inst) => (
+    (inst?.source === it?.source && String(inst?.sourceId || inst?.id || '') === targetId && targetId !== '')
+    || (targetTitle && String(inst?.name || '').trim().toLowerCase() === targetTitle)
+  ));
+}
+
 function packRenderCards(items, append) {
   const grid = document.getElementById('packsResultsGrid');
   if (!grid) return;
-  const html = items.map((it) => {
+  let renderList = items;
+  if (!append && Array.isArray(items) && items.length > 0) {
+    renderList = items
+      .map((it, idx) => ({ it, idx, installed: isPackItemInstalled(it) }))
+      .sort((a, b) => (a.installed === b.installed ? a.idx - b.idx : (a.installed ? -1 : 1)))
+      .map((x) => x.it);
+    packHub.items = [...renderList];
+  }
+  const html = renderList.map((it) => {
+    const installedPack = isPackItemInstalled(it);
     const sm = packSourceMeta(it.source);
     const vers = (it.mcVersions || []).slice(0, 3);
     const more = (it.mcVersions || []).length - vers.length;
@@ -3120,7 +3203,7 @@ function packRenderCards(items, append) {
     const safeMapBanner = ((it.kind === 'world' || packHub.kind === 'world') && /^https?:\/\//i.test(String(it.bannerUrl || '')))
       ? escapeHtml(it.bannerUrl)
       : '';
-    return `<div class="pack-card${safeMapBanner ? ' has-map-banner' : ''}" data-uid="${escapeHtml(it.uid)}">
+    return `<div class="pack-card${safeMapBanner ? ' has-map-banner' : ''}${installedPack ? ' is-installed-card' : ''}" data-uid="${escapeHtml(it.uid)}">
       ${safeMapBanner ? `<div class="pack-card-map-banner"><img src="${safeMapBanner}" alt="" loading="lazy" /></div>` : ''}
       <div class="pack-card-top">
         ${packIconHtml(it.iconUrl)}
@@ -3141,7 +3224,7 @@ function packRenderCards(items, append) {
       </div>
       <div class="pack-card-foot">
         <span class="pack-dl">${it.downloads ? `⬇ ${packFmtNum(it.downloads)} lượt tải` : (it.source === 'atlauncher' ? '🅰️ Gói ATLauncher' : '')}</span>
-        <button class="btn-install-mod pack-open-btn" data-popen="${escapeHtml(it.uid)}">Chi tiết &amp; Cài ›</button>
+        <button class="btn-install-mod pack-open-btn${installedPack ? ' installed' : ''}" data-popen="${escapeHtml(it.uid)}">${installedPack ? '✓ Đã Cài • Chi tiết ›' : 'Chi tiết &amp; Cài ›'}</button>
       </div>
     </div>`;
   }).join('');
