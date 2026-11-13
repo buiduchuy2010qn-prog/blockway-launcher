@@ -1,23 +1,23 @@
 {
-  "version": "42.3.0",
-  "releasedAt": "2026-11-13T10:48:09.693Z",
-  "notes": "v42.3.0 PRO — Kiến Trúc Tối Ưu Sâu 3 Tầng: Java 25 Compact Object Headers + Auto AppCDS (.jsa), Turbo Smooth Core™ v4 (FerriteCore, Lithium, C2ME, MoreCulling & Rust gpuCulling:auto), Windows DirectX Discrete GPU Auto-Binding (GpuPreference=2; cho javaw.exe & horizon-client.exe), và Nhân Rust Windows Hybrid P-Core + Anti-EcoQoS.",
+  "version": "42.4.0",
+  "releasedAt": "2026-11-13T11:23:47.765Z",
+  "notes": "v42.4.0 PRO — Ultra-Light Rust Core (Win32 HeapCompact, mimalloc v3 PURGE_DECOMMITS=1 & PAGE_FULL_RETAIN=0, 1 MiB stacks, 3s idle release, strip debuginfo), Full-Version Smooth v5 (1.8.9–26.3 VBO/FBO, menuBackgroundBlurriness:0, BadOptimizations + 1-Click Revert, smart G1GC cap & AlwaysPreTouch), và 120Hz Ultra-Light Launcher (content-visibility: auto, GPU Zero-Copy & 1 FPS Gameplay Hibernation).",
   "files": {
     "package.json": {
-      "sha256": "caa72adb8f6e688786b7656ce93c0e5987b4a3b2c439055f48add106d0754d6b",
-      "size": 2790
+      "sha256": "1cd5160473e2e3b35c613cee3b082681233c044c04dcc4646e89d9fc1de51557",
+      "size": 2850
     },
     "src/aether-cloud-auth.js": {
       "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
       "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "2fb6e6021a11d73157ad1b24544a7aa70e67114ed1484cf1ad46c54688501182",
-      "size": 687004
+      "sha256": "4a566ecc39bace20b2e244861b47430f0ca302be59e2fe0b75bdecde644737a4",
+      "size": 693374
     },
     "src/main.js": {
-      "sha256": "c9da011b049ca4973caa11e7de6efab3378c37eede13b105e1d2ba5a4d60e7de",
-      "size": 117284
+      "sha256": "aff601364f0fa92e2ac2f0e40acfc931bd5f5f6e46f0c17513eeb14ff5e9c484",
+      "size": 118749
     },
     "src/microsoft-auth.js": {
       "sha256": "7df3ec8fd3fab2e80ca80ccaf4e7b7466d7f9de16d23e44c3caa15965555bd7d",
@@ -76,16 +76,16 @@
       "size": 4383
     },
     "src/ui/horizon-glass.css": {
-      "sha256": "d0972cbfac47b36a018acbda750c8cb01d8fc1a08c6431f5ccb149e131ebeeda",
-      "size": 68803
+      "sha256": "91a268cf752eef7843d8fddb0b2ee8870b43db1e0e97baf0d7c652984076d204",
+      "size": 69876
     },
     "src/ui/horizon-glass.js": {
       "sha256": "accf783df25d5196c192eb943190d65ce0d0a1c3aae7e4ba9bb71bcf92247af3",
       "size": 25697
     },
     "src/ui/index.html": {
-      "sha256": "1d37dc24489d63edd84ceab0c6f606857e09cb65028c6f9129a015902f3e1634",
-      "size": 239044
+      "sha256": "c98c2dc47f7da6d98c9a40f0f7acd4130ff71b1dd39f10a21e6fd4610822d0ca",
+      "size": 239258
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",

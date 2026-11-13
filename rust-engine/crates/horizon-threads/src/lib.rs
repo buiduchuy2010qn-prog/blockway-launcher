@@ -711,18 +711,25 @@ pub fn heap_tag(name: &'static str) -> Option<heap_census::Tag> {
     HEAP_CENSUS.then(|| heap_census::tag(name))
 }
 
-/// `mi_option_purge_delay` in mimalloc.h (index 15 in v2 and v3); the bindings
-/// don't name it.
+/// `mi_option_e` indices in mimalloc v3 (`mimalloc.h` lines 437-478); the bindings
+/// don't name them.
+const PURGE_DECOMMITS: libmimalloc_sys::mi_option_t = 5;
 const PURGE_DELAY: libmimalloc_sys::mi_option_t = 15;
+const ARENA_PURGE_MULT: libmimalloc_sys::mi_option_t = 24;
+const PAGE_FULL_RETAIN: libmimalloc_sys::mi_option_t = 36;
 
-/// Set the allocator up, first thing in `main`: free pages go back to the OS
-/// at once instead of a second later. With mimalloc's delay the game held a
-/// quarter more memory than with the system heap; without it a few percent,
-/// and generation keeps most of its speed-up.
+/// Set the allocator up, first thing in `main`: free pages decommit back to the OS
+/// at once instead of a second later, and idle worker heaps retain no extra full
+/// small pages. With mimalloc's delay the game held a quarter more memory than
+/// with the system heap; without it a few percent, and generation keeps most of
+/// its speed-up.
 pub fn configure_allocator() {
-    // SAFETY: sets one integer option, which mimalloc reads at each purge.
+    // SAFETY: sets integer options, which mimalloc reads at each purge and page retirement.
     unsafe {
+        libmimalloc_sys::mi_option_set(PURGE_DECOMMITS, 1);
         libmimalloc_sys::mi_option_set(PURGE_DELAY, 0);
+        libmimalloc_sys::mi_option_set(ARENA_PURGE_MULT, 1);
+        libmimalloc_sys::mi_option_set(PAGE_FULL_RETAIN, 0);
     }
     #[cfg(windows)]
     {
@@ -793,7 +800,52 @@ fn release() {
     }
 }
 
-#[cfg(not(any(all(target_os = "linux", target_env = "gnu"), target_vendor = "apple")))]
+#[cfg(windows)]
+fn compact_windows_process_heaps() -> usize {
+    use std::ffi::c_void;
+    type GetProcessHeapsFn = unsafe extern "system" fn(u32, *mut *mut c_void) -> u32;
+    type HeapCompactFn = unsafe extern "system" fn(*mut c_void, u32) -> usize;
+
+    let (Some(get_heaps_ptr), Some(compact_ptr)) = (
+        kernel32_proc(c"GetProcessHeaps"),
+        kernel32_proc(c"HeapCompact"),
+    ) else {
+        return 0;
+    };
+    // SAFETY: `get_heaps_ptr` and `compact_ptr` were resolved from `kernel32.dll`
+    // for `GetProcessHeaps` and `HeapCompact` with matching Win32 system ABI signatures.
+    let (get_process_heaps, heap_compact) = unsafe {
+        (
+            std::mem::transmute::<*mut c_void, GetProcessHeapsFn>(get_heaps_ptr),
+            std::mem::transmute::<*mut c_void, HeapCompactFn>(compact_ptr),
+        )
+    };
+
+    let mut heaps = [std::ptr::null_mut(); 64];
+    // SAFETY: `heaps` has room for `heaps.len()` handles and is writable.
+    let count = unsafe { get_process_heaps(heaps.len() as u32, heaps.as_mut_ptr()) };
+    let limit = (count as usize).min(heaps.len());
+    let mut compacted = 0usize;
+    for &heap in &heaps[..limit] {
+        if !heap.is_null() {
+            // SAFETY: `heap` is an active process heap handle returned by `GetProcessHeaps`.
+            let _ = unsafe { heap_compact(heap, 0) };
+            compacted += 1;
+        }
+    }
+    compacted
+}
+
+#[cfg(windows)]
+fn release() {
+    let _ = compact_windows_process_heaps();
+}
+
+#[cfg(not(any(
+    all(target_os = "linux", target_env = "gnu"),
+    target_vendor = "apple",
+    windows
+)))]
 fn release() {}
 
 /// The REPARSE_DATA_BUFFER of a mount point naming `name` (UTF-16, `\??\` prefixed). The length
@@ -1051,17 +1103,21 @@ mod tests {
         .unwrap();
     }
 
-    /// The option set is the purge delay: mimalloc v3's default for it is
-    /// 1000 ms, and it is 0 once configured.
+    /// The options set configure immediate physical page decommit and zero idle
+    /// full-page retention: mimalloc v3's default purge delay is 1000 ms, and it
+    /// is 0 once configured.
     #[test]
     fn configuring_the_allocator_purges_at_once() {
-        // SAFETY: reads and sets one integer option.
-        let get = || unsafe { libmimalloc_sys::mi_option_get(super::PURGE_DELAY) };
+        // SAFETY: reads and sets integer options.
+        let get = |opt| unsafe { libmimalloc_sys::mi_option_get(opt) };
         if std::env::var_os("MIMALLOC_PURGE_DELAY").is_none() {
-            assert_eq!(get(), 1000);
+            assert_eq!(get(super::PURGE_DELAY), 1000);
         }
         super::configure_allocator();
-        assert_eq!(get(), 0);
+        assert_eq!(get(super::PURGE_DECOMMITS), 1);
+        assert_eq!(get(super::PURGE_DELAY), 0);
+        assert_eq!(get(super::ARENA_PURGE_MULT), 1);
+        assert_eq!(get(super::PAGE_FULL_RETAIN), 0);
     }
 }
 
@@ -1155,5 +1211,11 @@ mod windows_hybrid_tests {
     fn power_throttling_calls_complete_cleanly() {
         let _ = super::disable_thread_power_throttling();
         let _ = super::disable_process_power_throttling();
+    }
+
+    #[test]
+    fn compact_windows_process_heaps_compacts_at_least_default_heap() {
+        use super::compact_windows_process_heaps;
+        assert!(compact_windows_process_heaps() >= 1);
     }
 }

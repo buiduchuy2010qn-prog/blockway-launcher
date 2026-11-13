@@ -511,3 +511,116 @@ test('10. v42.3.0 PRO Deep Java (Compact Headers + AppCDS + Turbo Smooth v4), dG
     assert.ok(threadsRs.includes(sym), `horizon-threads/src/lib.rs must include ${sym}`);
   }
 });
+
+test('11. v42.4.0 PRO Full-Version Smooth v5 (1.8.9 -> 26.3), Ultra-Light Rust HeapCompact & 120Hz Launcher Hibernation', () => {
+  const Module = require('node:module');
+  const localNm = path.join(REPO_ROOT, 'node_modules');
+  const installedAppNm = path.join(
+    process.env.LOCALAPPDATA || '',
+    'Programs',
+    'aether-craft-launcher',
+    'AetherCraft',
+    'resources',
+    'app',
+    'node_modules'
+  );
+  if (!fs.existsSync(localNm) && installedAppNm && fs.existsSync(installedAppNm)) {
+    process.env.NODE_PATH = process.env.NODE_PATH ? `${process.env.NODE_PATH}${path.delimiter}${installedAppNm}` : installedAppNm;
+    Module._initPaths();
+  }
+  const engine = require('../src/launcher-engine');
+
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-v424-test-'));
+  try {
+    // 11a. Legacy 1.8.9 esports tuning writes useVbo/fboEnable and omits post-1.16 options
+    const legacyDir = path.join(tmpRoot, 'legacy-189');
+    fs.mkdirSync(legacyDir, { recursive: true });
+    const legacyRes = engine.applyDeepGameSmoothEngine({
+      gameDir: legacyDir,
+      loaderType: 'vanilla',
+      mcVersion: '1.8.9',
+      smoothProfile: 'esports'
+    });
+    assert.equal(legacyRes.ok, true, '1.8.9 applyDeepGameSmoothEngine must succeed');
+    const legacyOpts = fs.readFileSync(path.join(legacyDir, 'options.txt'), 'utf8');
+    assert.ok(legacyOpts.includes('useVbo:true'), '1.8.9 options.txt must set useVbo:true');
+    assert.ok(legacyOpts.includes('fboEnable:true'), '1.8.9 options.txt must set fboEnable:true');
+    assert.ok(!legacyOpts.includes('simulationDistance:'), '1.8.9 options.txt must omit simulationDistance');
+    assert.ok(!legacyOpts.includes('syncChunkWrites:'), '1.8.9 options.txt must omit syncChunkWrites');
+
+    // 11b. Modern 26.3 ultra_low + BadOptimizations tuning & clean 1-Click Revert
+    const modernDir = path.join(tmpRoot, 'modern-263');
+    const modernMods = path.join(modernDir, 'mods');
+    fs.mkdirSync(modernMods, { recursive: true });
+    fs.writeFileSync(path.join(modernMods, 'badoptimizations-2.2.jar'), 'mock-jar', 'utf8');
+
+    const modernRes = engine.applyDeepGameSmoothEngine({
+      gameDir: modernDir,
+      loaderType: 'fabric',
+      mcVersion: '26.3',
+      smoothProfile: 'ultra_low'
+    });
+    assert.equal(modernRes.ok, true, '26.3 applyDeepGameSmoothEngine must succeed');
+
+    const modernOpts = fs.readFileSync(path.join(modernDir, 'options.txt'), 'utf8');
+    assert.ok(modernOpts.includes('menuBackgroundBlurriness:0'), '26.3 options.txt must set menuBackgroundBlurriness:0');
+
+    const hzGfx = fs.readFileSync(path.join(modernDir, 'horizon-graphics.txt'), 'utf8');
+    assert.ok(hzGfx.includes('lodDistance:16'), 'ultra_low horizon-graphics.txt must set lodDistance:16');
+    assert.ok(hzGfx.includes('opaqueIce:true'), 'ultra_low horizon-graphics.txt must set opaqueIce:true');
+
+    const badOptCfg = fs.readFileSync(path.join(modernDir, 'config', 'badoptimizations.txt'), 'utf8');
+    assert.ok(
+      badOptCfg.includes('enable_toast_optimizations=true'),
+      'config/badoptimizations.txt must set enable_toast_optimizations=true'
+    );
+
+    const revertModern = engine.revertDeepGameSmoothEngine({ gameDir: modernDir });
+    assert.equal(revertModern.ok, true, 'revertDeepGameSmoothEngine on 26.3 must succeed');
+    for (const rel of ['options.txt', 'horizon-graphics.txt', 'config/badoptimizations.txt']) {
+      assert.equal(
+        fs.existsSync(path.join(modernDir, ...rel.split('/'))),
+        false,
+        `revertDeepGameSmoothEngine must cleanly remove newly created ${rel}`
+      );
+    }
+  } finally {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  }
+
+  // 11c. Smart Hybrid G1GC thread capping & -XX:+AlwaysPreTouch
+  const g1Args = engine.buildMultiCoreSmoothExitArgs(16, 17, { totalMemGB: 16, allocatedRamGB: 4 });
+  assert.ok(g1Args.includes('-XX:+AlwaysPreTouch'), '16GB system with 4GB heap must include -XX:+AlwaysPreTouch');
+  const pgcFlag = g1Args.find((a) => a.startsWith('-XX:ParallelGCThreads='));
+  assert.ok(pgcFlag, 'Java 17 G1GC args must specify -XX:ParallelGCThreads=');
+  const pgcVal = Number(pgcFlag.split('=')[1]);
+  assert.ok(Number.isFinite(pgcVal) && pgcVal >= 2 && pgcVal <= 11, `Expected ParallelGCThreads <= 11, got ${pgcFlag}`);
+
+  // 11d. 120Hz Launcher Chromium GPU Zero-Copy & 1 FPS Gameplay Hibernation + CSS content-visibility
+  const mainSrc = fs.readFileSync(path.join(REPO_ROOT, 'src', 'main.js'), 'utf8');
+  assert.ok(mainSrc.includes('enable-gpu-rasterization'), 'src/main.js must append enable-gpu-rasterization');
+  assert.ok(mainSrc.includes('setFrameRate(1)'), 'src/main.js must drop minimized gameplay compositor to setFrameRate(1)');
+
+  const glassCss = fs.readFileSync(path.join(REPO_ROOT, 'src', 'ui', 'horizon-glass.css'), 'utf8');
+  assert.ok(glassCss.includes('content-visibility: auto'), 'src/ui/horizon-glass.css must enable content-visibility: auto');
+
+  // 11e. Ultra-Light Rust Core: Win32 HeapCompact, mimalloc PURGE_DECOMMITS, 1 MiB worker stack & debuginfo strip
+  const threadsLib = fs.readFileSync(
+    path.join(REPO_ROOT, 'rust-engine', 'crates', 'horizon-threads', 'src', 'lib.rs'),
+    'utf8'
+  );
+  assert.ok(threadsLib.includes('HeapCompact'), 'horizon-threads/src/lib.rs must include Win32 HeapCompact');
+  assert.ok(threadsLib.includes('PURGE_DECOMMITS'), 'horizon-threads/src/lib.rs must configure mimalloc PURGE_DECOMMITS');
+
+  const threadsJobs = fs.readFileSync(
+    path.join(REPO_ROOT, 'rust-engine', 'crates', 'horizon-threads', 'src', 'jobs.rs'),
+    'utf8'
+  );
+  assert.ok(
+    threadsJobs.includes('.stack_size(1024 * 1024)'),
+    'horizon-threads/src/jobs.rs must set 1 MiB worker stack_size(1024 * 1024)'
+  );
+
+  const cargoToml = fs.readFileSync(path.join(REPO_ROOT, 'rust-engine', 'Cargo.toml'), 'utf8');
+  assert.ok(cargoToml.includes('strip = "debuginfo"'), 'rust-engine/Cargo.toml must strip debuginfo in release profile');
+});

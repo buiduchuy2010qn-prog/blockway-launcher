@@ -596,21 +596,35 @@ function forceKillMinecraft() {
   return true;
 }
 
-function buildMultiCoreSmoothExitArgs(ramGB, cpuCores = os.cpus().length) {
-  const parallelThreads = Math.max(2, Math.min(8, cpuCores));
-  const concThreads = Math.max(1, Math.floor(parallelThreads / 2));
+function buildMultiCoreSmoothExitArgs(cpuCores = os.cpus().length, javaMajor = 17, opts = {}) {
+  const cores = Math.max(1, Number(cpuCores) || os.cpus().length || 4);
+  const major = Number(javaMajor) || 17;
+  const safeOpts = (opts && typeof opts === 'object') ? opts : {};
+  // Cap ParallelGCThreads smartly on hybrid/high-thread CPUs so E-cores are not flooded during G1 stop-the-world pauses
+  const parallelGc = major < 21
+    ? Math.max(2, Math.min(10, cores <= 4 ? cores : Math.ceil(cores * 0.65)))
+    : Math.max(2, Math.min(8, cores <= 4 ? cores : Math.ceil(cores * 0.65)));
+  const concGc = Math.max(1, Math.min(4, Math.floor(parallelGc / 2)));
+  const enablePreTouch = !safeOpts.gentleMode
+    && Number(safeOpts.totalMemGB) >= 10
+    && Number(safeOpts.allocatedRamGB) >= 3.5;
 
   // Do NOT artificially cap MaxDirectMemorySize or MaxMetaspaceSize so LWJGL/OpenGL chunk UBOs and ResourcePack reloads never crash!
-  // Verified 100% compatible with Java 8, Java 17, and Java 21 (Temurin 21.0.12+).
-  return [
+  // Verified 100% compatible with Java 8, Java 17, and Java 21+ (Temurin 21.0.12+).
+  const args = [
     '-XX:+UnlockExperimentalVMOptions',
     '-XX:+UseG1GC',
-    `-XX:ParallelGCThreads=${parallelThreads}`,
-    `-XX:ConcGCThreads=${concThreads}`,
+    `-XX:ParallelGCThreads=${parallelGc}`,
+    `-XX:ConcGCThreads=${concGc}`,
     '-XX:+ParallelRefProcEnabled',
     '-XX:MaxGCPauseMillis=20',
     '-XX:+DisableExplicitGC',
-    '-XX:+UseStringDeduplication',
+    '-XX:+UseStringDeduplication'
+  ];
+  if (enablePreTouch) {
+    args.push('-XX:+AlwaysPreTouch');
+  }
+  args.push(
     '-XX:G1NewSizePercent=20',
     '-XX:G1MaxNewSizePercent=40',
     '-XX:G1HeapRegionSize=16M',
@@ -626,8 +640,9 @@ function buildMultiCoreSmoothExitArgs(ramGB, cpuCores = os.cpus().length) {
     '-XX:-OmitStackTraceInFastThrow',
     '-Dfml.ignoreInvalidMinecraftCertificates=true',
     '-Dfml.ignorePatchDiscrepancies=true',
-    '-Dminecraft.launcher.brand=BlockWay-v42.3'
-  ];
+    '-Dminecraft.launcher.brand=BlockWay-v42.4'
+  );
+  return args;
 }
 function getInstalledVersions(gameDir) {
   const root = gameDir || getDefaultGameDir();
@@ -3181,7 +3196,7 @@ function applyGentleJvmTuning(args, { javaMajor = 0, cpuCores = os.cpus().length
  */
 const DEEP_SMOOTH_BACKUP_FILE = '.blockway-deep-smooth-backup.json';
 const DEEP_SMOOTH_STATE_FILE = '.blockway-deep-smooth-state.json';
-const DEEP_SMOOTH_VERSION = 4;
+const DEEP_SMOOTH_VERSION = 5;
 const DEEP_SMOOTH_ALL_LAYERS = [
   'vanilla_io',
   'optifine',
@@ -3215,6 +3230,7 @@ function detectTargetModEnvironment(targetDir, loaderType = '') {
     hasLithium: false,
     hasC2me: false,
     hasMoreCulling: false,
+    hasBadOptimizations: false,
     modsCount: 0,
     activeShader: ''
   };
@@ -3222,7 +3238,9 @@ function detectTargetModEnvironment(targetDir, loaderType = '') {
     const modsDir = path.join(targetDir, 'mods');
     if (fs.existsSync(modsDir)) {
       const jars = fs.readdirSync(modsDir).filter((f) => /\.jar$/i.test(f));
+      const jarNames = jars.map((f) => f.toLowerCase());
       env.modsCount = jars.length;
+      if (jarNames.some((n) => n.includes('badoptimizations'))) env.hasBadOptimizations = true;
       for (const f of jars) {
         if (/^sodium[-_+.]/i.test(f)) env.hasSodium = true;
         if (/^(?:embeddium|rubidium|xenon)[-_+.]/i.test(f)) env.hasEmbeddium = true;
@@ -3239,16 +3257,18 @@ function detectTargetModEnvironment(targetDir, loaderType = '') {
   } catch (_) {}
 
   try {
+    const configDir = path.join(targetDir, 'config');
     if (fs.existsSync(path.join(targetDir, 'optionsof.txt'))) env.hasOptifine = true;
-    if (fs.existsSync(path.join(targetDir, 'config', 'sodium-options.json'))) env.hasSodium = true;
-    if (fs.existsSync(path.join(targetDir, 'config', 'embeddium-options.json'))) env.hasEmbeddium = true;
-    if (fs.existsSync(path.join(targetDir, 'config', 'modernfix-mixins.properties'))) env.hasModernFix = true;
-    if (fs.existsSync(path.join(targetDir, 'config', 'immediatelyfast.json'))) env.hasImmediatelyFast = true;
-    if (fs.existsSync(path.join(targetDir, 'config', 'entityculling.json'))) env.hasEntityCulling = true;
-    if (fs.existsSync(path.join(targetDir, 'config', 'ferritecore.mixin.properties'))) env.hasFerriteCore = true;
-    if (fs.existsSync(path.join(targetDir, 'config', 'lithium.properties'))) env.hasLithium = true;
-    if (fs.existsSync(path.join(targetDir, 'config', 'c2me.toml'))) env.hasC2me = true;
-    if (fs.existsSync(path.join(targetDir, 'config', 'moreculling.toml'))) env.hasMoreCulling = true;
+    if (fs.existsSync(path.join(configDir, 'sodium-options.json'))) env.hasSodium = true;
+    if (fs.existsSync(path.join(configDir, 'embeddium-options.json'))) env.hasEmbeddium = true;
+    if (fs.existsSync(path.join(configDir, 'modernfix-mixins.properties'))) env.hasModernFix = true;
+    if (fs.existsSync(path.join(configDir, 'immediatelyfast.json'))) env.hasImmediatelyFast = true;
+    if (fs.existsSync(path.join(configDir, 'entityculling.json'))) env.hasEntityCulling = true;
+    if (fs.existsSync(path.join(configDir, 'ferritecore.mixin.properties'))) env.hasFerriteCore = true;
+    if (fs.existsSync(path.join(configDir, 'lithium.properties'))) env.hasLithium = true;
+    if (fs.existsSync(path.join(configDir, 'c2me.toml'))) env.hasC2me = true;
+    if (fs.existsSync(path.join(configDir, 'moreculling.toml'))) env.hasMoreCulling = true;
+    if (fs.existsSync(path.join(configDir, 'badoptimizations.txt'))) env.hasBadOptimizations = true;
   } catch (_) {}
 
   try {
@@ -3314,6 +3334,7 @@ function inspectDeepGameSmoothState({ gameDir, instanceDir = '', loaderType = ''
     'config/lithium.properties',
     'config/c2me.toml',
     'config/moreculling.toml',
+    'config/badoptimizations.txt',
     'config/immediatelyfast.json',
     'config/entityculling.json',
     'config/exordium.json',
@@ -3353,16 +3374,28 @@ function inspectDeepGameSmoothState({ gameDir, instanceDir = '', loaderType = ''
 function applyDeepGameSmoothEngine({
   gameDir,
   instanceDir = '',
-  profile = 'balanced',
+  profile = '',
+  smoothProfile = '',
   layers = null,
   displayHz = 0,
-  loaderType = '',
+  loaderType = 'vanilla',
+  mcVersion = '',
+  gentleMode = false,
+  totalMemGB,
+  cpuCores,
   autoLaunch = false
 } = {}) {
   const targetDir = resolveTweakerDir(gameDir, instanceDir);
-  const normProfile = normalizeDeepSmoothProfile(profile);
+  const normProfile = normalizeDeepSmoothProfile(smoothProfile || profile || 'balanced');
   const normLayers = normalizeDeepSmoothLayers(layers);
   const layersKey = normLayers.slice().sort().join(',');
+  const effectiveCores = Math.max(1, Number(cpuCores) || os.cpus()?.length || 4);
+
+  const cleanMcVer = String(mcVersion || '').trim();
+  const isLegacyPre114 = Boolean(cleanMcVer && compareMcVersions(cleanMcVer, '1.14') < 0);
+  const hasModern116Opts = !cleanMcVer || compareMcVersions(cleanMcVer, '1.16') >= 0;
+  const hasSimDistance118 = !cleanMcVer || compareMcVersions(cleanMcVer, '1.18') >= 0;
+  const hasMenuBlur121 = !cleanMcVer || compareMcVersions(cleanMcVer, '1.21') >= 0;
 
   try {
     if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
@@ -3371,6 +3404,7 @@ function applyDeepGameSmoothEngine({
   }
 
   const env = detectTargetModEnvironment(targetDir, loaderType);
+  const modEnv = env;
   const shaderActive = Boolean(env.activeShader);
   const isLowSpec = normProfile === 'ultra_low';
   const lowerLoader = String(loaderType || '').toLowerCase();
@@ -3378,7 +3412,7 @@ function applyDeepGameSmoothEngine({
   const backupPath = path.join(targetDir, DEEP_SMOOTH_BACKUP_FILE);
   const prevState = readDeepSmoothJsonSafe(statePath);
 
-  // If called automatically during game launch and this folder was already tuned with the exact same profile & layers,
+  // If called automatically during game launch and this folder was already tuned with the exact same profile, era & layers,
   // respect any in-game slider tweaks the player made afterwards while still enforcing critical anti-stutter & Shader Guard!
   if (
     autoLaunch
@@ -3386,6 +3420,8 @@ function applyDeepGameSmoothEngine({
     && prevState.version === DEEP_SMOOTH_VERSION
     && prevState.profile === normProfile
     && prevState.layersKey === layersKey
+    && String(prevState.mcVersion || '') === cleanMcVer
+    && Boolean(prevState.gentleMode) === Boolean(gentleMode)
   ) {
     try {
       if (normLayers.includes('optifine')) {
@@ -3398,7 +3434,7 @@ function applyDeepGameSmoothEngine({
           }
         }
       }
-      if (normLayers.includes('vanilla_io')) {
+      if (normLayers.includes('vanilla_io') && hasModern116Opts) {
         const optsPath = path.join(targetDir, 'options.txt');
         if (fs.existsSync(optsPath)) {
           let oTxt = fs.readFileSync(optsPath, 'utf8');
@@ -3409,13 +3445,17 @@ function applyDeepGameSmoothEngine({
         }
       }
     } catch (_) {}
+    const prevTouched = Array.isArray(prevState.touchedFiles) ? prevState.touchedFiles : [];
     return {
       ok: true,
       alreadyTuned: true,
       targetDir,
       profile: normProfile,
+      mcVersion: cleanMcVer,
       layers: normLayers,
-      touchedFiles: prevState.touchedFiles || [],
+      touchedFiles: prevTouched,
+      patchedFiles: prevTouched.length,
+      tunedKeys: Number(prevState.tunedKeys) || 0,
       shaderGuardActive: shaderActive,
       activeShader: env.activeShader || '',
       env
@@ -3433,8 +3473,27 @@ function applyDeepGameSmoothEngine({
 
   const touchedFiles = [];
   const highlights = [];
+  let patchedFiles = 0;
+  let tunedKeys = 0;
 
-  // Helper 1: Colon-separated key:value files (options.txt, optionsof.txt) with per-key non-destructive backup
+  const backupRawFileOnce = (relPath, absPath) => {
+    const existed = fs.existsSync(absPath);
+    const rawBefore = existed ? fs.readFileSync(absPath, 'utf8') : '';
+    if (!(relPath in backup.rawFileBackups)) {
+      backup.rawFileBackups[relPath] = { existed, content: rawBefore };
+    }
+    return { existed, rawBefore };
+  };
+
+  const recordPatchedFile = (relPath, addedKeysCount = 0) => {
+    if (!touchedFiles.includes(relPath)) {
+      touchedFiles.push(relPath);
+      patchedFiles++;
+    }
+    tunedKeys += Math.max(0, Number(addedKeysCount) || 0);
+  };
+
+  // Helper 1: Colon-separated key:value files (options.txt, optionsof.txt, horizon-graphics.txt) with per-key non-destructive backup
   const applyColonKvFile = (relPath, mutations) => {
     const absPath = path.join(targetDir, ...relPath.split('/'));
     const existed = fs.existsSync(absPath);
@@ -3446,9 +3505,10 @@ function applyDeepGameSmoothEngine({
     let changedCount = 0;
 
     for (const mut of mutations) {
-      const { key, value, onlyIfHigherNum = null, onlyIfGteNum = null } = mut;
+      const { key, value, onlyIfHigherNum = null, onlyIfGteNum = null, onlyIfMissing = false } = mut;
       const curRaw = readOptValue(content, key);
       if (curRaw !== null) {
+        if (onlyIfMissing) continue;
         const curNum = parseFloat(String(curRaw).replace(/"/g, ''));
         if (onlyIfHigherNum !== null && !Number.isNaN(curNum) && curNum <= onlyIfHigherNum) continue;
         if (onlyIfGteNum !== null && !Number.isNaN(curNum) && curNum < onlyIfGteNum) continue;
@@ -3465,22 +3525,19 @@ function applyDeepGameSmoothEngine({
     if (changedCount > 0 || !existed) {
       fs.mkdirSync(path.dirname(absPath), { recursive: true });
       fs.writeFileSync(absPath, content, 'utf8');
-      touchedFiles.push(relPath);
+      recordPatchedFile(relPath, changedCount);
     }
   };
 
   // Helper 2: Deep JSON merge with raw pre-BlockWay file snapshot backup
   const applyJsonConfigFile = (relPath, patchObj) => {
     const absPath = path.join(targetDir, ...relPath.split('/'));
-    const existed = fs.existsSync(absPath);
-    const rawBefore = existed ? fs.readFileSync(absPath, 'utf8') : '';
-    if (!(relPath in backup.rawFileBackups)) {
-      backup.rawFileBackups[relPath] = { existed, content: rawBefore };
-    }
+    const { existed, rawBefore } = backupRawFileOnce(relPath, absPath);
     let parsed = {};
     if (existed && rawBefore.trim()) {
       try { parsed = JSON.parse(rawBefore) || {}; } catch (_) { parsed = {}; }
     }
+    let leafCount = 0;
     const deepMerge = (base, patch) => {
       const out = (base && typeof base === 'object' && !Array.isArray(base)) ? { ...base } : {};
       for (const [k, v] of Object.entries(patch || {})) {
@@ -3488,6 +3545,7 @@ function applyDeepGameSmoothEngine({
           out[k] = deepMerge(out[k], v);
         } else {
           out[k] = v;
+          leafCount++;
         }
       }
       return out;
@@ -3495,20 +3553,17 @@ function applyDeepGameSmoothEngine({
     const merged = deepMerge(parsed, patchObj);
     fs.mkdirSync(path.dirname(absPath), { recursive: true });
     fs.writeFileSync(absPath, JSON.stringify(merged, null, 2) + '\n', 'utf8');
-    touchedFiles.push(relPath);
+    recordPatchedFile(relPath, leafCount);
   };
 
-  // Helper 3: Java .properties file merge preserving comments & unrelated lines
+  // Helper 3: Java .properties / key=value file merge preserving comments & unrelated lines
   const applyPropertiesFile = (relPath, entriesMap, headerComment) => {
     const absPath = path.join(targetDir, ...relPath.split('/'));
-    const existed = fs.existsSync(absPath);
-    const rawBefore = existed ? fs.readFileSync(absPath, 'utf8') : '';
-    if (!(relPath in backup.rawFileBackups)) {
-      backup.rawFileBackups[relPath] = { existed, content: rawBefore };
-    }
+    const { rawBefore } = backupRawFileOnce(relPath, absPath);
     const nl = rawBefore.includes('\r\n') ? '\r\n' : '\n';
     let content = rawBefore || (headerComment ? `# ${headerComment}${nl}` : '');
-    for (const [k, v] of Object.entries(entriesMap)) {
+    const entries = Object.entries(entriesMap);
+    for (const [k, v] of entries) {
       const esc = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const rx = new RegExp(`^\\s*${esc}\\s*=.*(\\r?)$`, 'm');
       if (rx.test(content)) {
@@ -3519,23 +3574,20 @@ function applyDeepGameSmoothEngine({
     }
     fs.mkdirSync(path.dirname(absPath), { recursive: true });
     fs.writeFileSync(absPath, content, 'utf8');
-    touchedFiles.push(relPath);
+    recordPatchedFile(relPath, entries.length);
   };
 
   // Helper 4: Simple TOML file merge preserving existing sections & pure LF
   const applyTomlSimpleFile = (relPath, entriesMap, headerComment, sectionHeader = '') => {
     const absPath = path.join(targetDir, ...relPath.split('/'));
-    const existed = fs.existsSync(absPath);
-    const rawBefore = existed ? fs.readFileSync(absPath, 'utf8') : '';
-    if (!(relPath in backup.rawFileBackups)) {
-      backup.rawFileBackups[relPath] = { existed, content: rawBefore };
-    }
+    const { existed, rawBefore } = backupRawFileOnce(relPath, absPath);
     let content = existed ? rawBefore.replace(/\r\n/g, '\n') : '';
     if (!content) {
       if (headerComment) content += `# ${headerComment}\n`;
       if (sectionHeader) content += `${sectionHeader}\n`;
     }
-    for (const [k, v] of Object.entries(entriesMap)) {
+    const entries = Object.entries(entriesMap);
+    for (const [k, v] of entries) {
       const esc = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const rx = new RegExp(`^([ \\t]*)${esc}\\s*=.*$`, 'm');
       if (rx.test(content)) {
@@ -3546,11 +3598,11 @@ function applyDeepGameSmoothEngine({
     }
     fs.mkdirSync(path.dirname(absPath), { recursive: true });
     fs.writeFileSync(absPath, content, 'utf8');
-    touchedFiles.push(relPath);
+    recordPatchedFile(relPath, entries.length);
   };
 
   try {
-    // LAYER 1: options.txt (Windows Async Disk Chunk I/O + Mouse Polling + Harmonic Frame Pacing)
+    // LAYER 1: options.txt (Era-Aware 1.8.9 -> 26.3 Async Chunk I/O + VBO/FBO + Menu Blur Guard + Harmonic Frame Pacing)
     if (normLayers.includes('vanilla_io')) {
       const optsAbs = path.join(targetDir, 'options.txt');
       const existingOptsTxt = fs.existsSync(optsAbs) ? fs.readFileSync(optsAbs, 'utf8') : '';
@@ -3558,70 +3610,122 @@ function applyDeepGameSmoothEngine({
       // 120 FPS (exact 2x harmonic of 60Hz DWM) avoids Mojang's 260 ("T: inf" = Unlimited) iGPU TDP thermal/bandwidth choke!
       const smoothFpsCap = Math.max(120, computeGentleFpsCap(displayHz));
 
-      const muts = [
-        { key: 'syncChunkWrites', value: 'false' },
+      const vanillaTargets = [];
+      if (isLegacyPre114) {
+        // Critical on 1.8.9 / 1.12.2: prevents 40-60% FPS loss from legacy OpenGL Display Lists!
+        vanillaTargets.push(
+          { key: 'useVbo', value: 'true' },
+          { key: 'fboEnable', value: 'true' }
+        );
+      }
+      if (hasModern116Opts) {
+        vanillaTargets.push(
+          { key: 'syncChunkWrites', value: 'false' },
+          { key: 'onboardAccessibility', value: 'false' },
+          { key: 'prioritizeChunkUpdates', value: '1' },
+          { key: 'inactivityFpsLimit', value: '"afk"' }
+        );
+      }
+      vanillaTargets.push(
         { key: 'narrator', value: '0' },
-        { key: 'onboardAccessibility', value: 'false' },
         { key: 'tutorialStep', value: 'none' },
-        { key: 'rawMouseInput', value: 'true' },
-        { key: 'prioritizeChunkUpdates', value: '1' },
-        { key: 'inactivityFpsLimit', value: '"afk"' }
-      ];
+        { key: 'rawMouseInput', value: 'true' }
+      );
+      if (hasMenuBlur121) {
+        vanillaTargets.push({
+          key: 'menuBackgroundBlurriness',
+          value: normProfile === 'balanced' ? '2' : '0',
+          ...(normProfile === 'balanced' ? { onlyIfHigherNum: 2 } : {})
+        });
+      }
 
       if (normProfile === 'balanced') {
-        muts.push(
-          { key: 'maxFps', value: String(smoothFpsCap), onlyIfHigherNum: smoothFpsCap },
-          { key: 'simulationDistance', value: '8', onlyIfHigherNum: 8 },
-          { key: 'renderDistance', value: '12', onlyIfHigherNum: 12 },
-          { key: 'graphicsMode', value: '1', onlyIfGteNum: 2 },
-          { key: 'mipmapLevels', value: '2', onlyIfHigherNum: 2 },
-          { key: 'entityDistanceScaling', value: '0.80', onlyIfHigherNum: 0.8 },
-          { key: 'biomeBlendRadius', value: '2', onlyIfHigherNum: 2 }
-        );
-        highlights.push(`options.txt: Tắt ghi đồng bộ ổ cứng (syncChunkWrites:false), ưu tiên nạp chunk gần & giữ nhịp mượt ${smoothFpsCap} FPS (chống sụt áp iGPU do T:inf)`);
+        vanillaTargets.push({ key: 'maxFps', value: String(smoothFpsCap), onlyIfHigherNum: smoothFpsCap });
+        if (hasSimDistance118) {
+          vanillaTargets.push({ key: 'simulationDistance', value: '8', onlyIfHigherNum: 8 });
+        }
+        vanillaTargets.push({ key: 'renderDistance', value: '12', onlyIfHigherNum: 12 });
+        if (hasModern116Opts) {
+          vanillaTargets.push({ key: 'graphicsMode', value: '1', onlyIfGteNum: 2 });
+        }
+        vanillaTargets.push({ key: 'mipmapLevels', value: '2', onlyIfHigherNum: 2 });
+        if (hasModern116Opts) {
+          vanillaTargets.push({ key: 'entityDistanceScaling', value: '0.80', onlyIfHigherNum: 0.8 });
+        }
+        vanillaTargets.push({ key: 'biomeBlendRadius', value: '2', onlyIfHigherNum: 2 });
+        highlights.push(`options.txt: Tối ưu chuẩn phiên bản ${cleanMcVer || 'mới'}, nhịp mượt ${smoothFpsCap} FPS & giảm mờ nền túi đồ`);
       } else if (normProfile === 'esports') {
-        muts.push(
+        vanillaTargets.push(
           { key: 'enableVsync', value: 'false' },
           { key: 'maxFps', value: '240' },
           { key: 'entityShadows', value: 'false' },
-          { key: 'particles', value: '1' },
-          { key: cloudKey, value: cloudKey === 'renderClouds' ? '"fast"' : 'false' },
-          { key: 'simulationDistance', value: '6', onlyIfHigherNum: 6 },
-          { key: 'renderDistance', value: '10', onlyIfHigherNum: 10 },
-          { key: 'graphicsMode', value: '1', onlyIfGteNum: 2 },
-          { key: 'mipmapLevels', value: '2', onlyIfHigherNum: 2 },
-          { key: 'entityDistanceScaling', value: '0.70' },
-          { key: 'biomeBlendRadius', value: '1' }
+          { key: 'particles', value: '1' }
         );
+        if (hasModern116Opts) {
+          vanillaTargets.push({ key: cloudKey, value: cloudKey === 'renderClouds' ? '"fast"' : 'false' });
+        } else {
+          vanillaTargets.push(
+            { key: 'fancyGraphics', value: 'false' },
+            { key: 'renderClouds', value: 'false' }
+          );
+        }
+        if (hasSimDistance118) {
+          vanillaTargets.push({ key: 'simulationDistance', value: '6', onlyIfHigherNum: 6 });
+        }
+        vanillaTargets.push({ key: 'renderDistance', value: '10', onlyIfHigherNum: 10 });
+        if (hasModern116Opts) {
+          vanillaTargets.push({ key: 'graphicsMode', value: '1', onlyIfGteNum: 2 });
+        }
+        vanillaTargets.push({ key: 'mipmapLevels', value: '2', onlyIfHigherNum: 2 });
+        if (hasModern116Opts) {
+          vanillaTargets.push({ key: 'entityDistanceScaling', value: '0.70' });
+        }
+        vanillaTargets.push({ key: 'biomeBlendRadius', value: '1' });
         highlights.push('options.txt: Khóa chuẩn 240 FPS (tránh bẫy 260=Unlimited gây nghẽn nhiệt GPU), tắt VSync, chuột thô 1:1 & giảm tải PvP');
       } else {
-        muts.push(
+        vanillaTargets.push(
           { key: 'enableVsync', value: 'false' },
-          { key: 'maxFps', value: '120' },
-          { key: 'graphicsMode', value: '0' },
+          { key: 'maxFps', value: '120' }
+        );
+        if (hasModern116Opts) {
+          vanillaTargets.push({ key: 'graphicsMode', value: '0' });
+        } else {
+          vanillaTargets.push({ key: 'fancyGraphics', value: 'false' });
+        }
+        vanillaTargets.push(
           { key: 'entityShadows', value: 'false' },
-          { key: 'particles', value: '2' },
-          { key: cloudKey, value: cloudKey === 'renderClouds' ? '"false"' : 'false' },
-          { key: 'simulationDistance', value: '5' },
+          { key: 'particles', value: '2' }
+        );
+        if (hasModern116Opts) {
+          vanillaTargets.push({ key: cloudKey, value: cloudKey === 'renderClouds' ? '"false"' : 'false' });
+        } else {
+          vanillaTargets.push({ key: 'renderClouds', value: 'false' });
+        }
+        if (hasSimDistance118) {
+          vanillaTargets.push({ key: 'simulationDistance', value: '5' });
+        }
+        vanillaTargets.push(
           { key: 'renderDistance', value: '7' },
           { key: 'biomeBlendRadius', value: '0' },
-          { key: 'mipmapLevels', value: '1' },
-          { key: 'entityDistanceScaling', value: '0.55' }
+          { key: 'mipmapLevels', value: '1' }
         );
-        highlights.push('options.txt: Chế độ Cứu Máy Yếu (7 chunk, mô phỏng 5, tắt mây & bóng thực thể)');
+        if (hasModern116Opts) {
+          vanillaTargets.push({ key: 'entityDistanceScaling', value: '0.55' });
+        }
+        highlights.push('options.txt: Chế độ Cứu Máy Yếu (7 chunk, tắt mây, tắt làm mờ nền & bóng thực thể)');
       }
 
-      applyColonKvFile('options.txt', muts);
+      applyColonKvFile('options.txt', vanillaTargets);
 
       if (env.hasC2me) {
-        const c2meParallelism = Math.max(2, Math.min(6, Math.floor((os.cpus()?.length || 4) / 2)));
+        const c2meParallelism = Math.max(2, Math.min(6, Math.floor(effectiveCores / 2)));
         applyTomlSimpleFile(
           'config/c2me.toml',
           {
             async: 'true',
             globalExecutorParallelism: String(c2meParallelism)
           },
-          'BlockWay Turbo Smooth Core v4 - C2ME',
+          'BlockWay Turbo Smooth Core v5 - C2ME',
           '[ioSystem]'
         );
         highlights.push(`c2me.toml: Bật C2ME Async I/O & tối ưu ${c2meParallelism} luồng chunk song song`);
@@ -3665,7 +3769,7 @@ function applyDeepGameSmoothEngine({
     // LAYER 3: config/sodium-options.json & config/embeddium-options.json (supports both Sodium 0.5/Embeddium & Sodium 0.6-0.9+ schemas)
     if (normLayers.includes('sodium')) {
       // Reserve P-cores for Render + Integrated Server threads on hybrid Intel/AMD CPUs while keeping async meshing fast
-      const optimalChunkThreads = Math.max(2, Math.min(4, Math.floor((os.cpus().length || 4) / 3)));
+      const optimalChunkThreads = Math.max(2, Math.min(4, Math.floor(effectiveCores / 3)));
       const sodiumPatch = {
         performance: {
           chunk_builder_threads: optimalChunkThreads,
@@ -3724,7 +3828,7 @@ function applyDeepGameSmoothEngine({
             modelSides: 'true',
             threaddetec: 'false'
           },
-          'BlockWay Turbo Smooth Core v4 - FerriteCore Deep Memory Deduplication'
+          'BlockWay Turbo Smooth Core v5 - FerriteCore Deep Memory Deduplication'
         );
       }
       if (env.hasLithium || ['fabric', 'quilt', 'neoforge'].includes(lowerLoader)) {
@@ -3737,13 +3841,13 @@ function applyDeepGameSmoothEngine({
             'mixin.world.tick_scheduler': 'true',
             'mixin.entity.collisions.movement': 'true'
           },
-          'BlockWay Turbo Smooth Core v4 - Lithium Tick & Chunk Pipeline'
+          'BlockWay Turbo Smooth Core v5 - Lithium Tick & Chunk Pipeline'
         );
       }
       highlights.push('modernfix, ferritecore & lithium: Kích hoạt dynamic_resources, nén bảng mô hình RAM & tối ưu luồng tick');
     }
 
-    // LAYER 5: HUD, Culling & Dynamic Light Anti-Stutter (ImmediatelyFast + EntityCulling + Exordium 30Hz Uncap + LambDynLights + DynamicFPS)
+    // LAYER 5: HUD, Culling & Dynamic Light Anti-Stutter (ImmediatelyFast + EntityCulling + BadOptimizations + Exordium + LambDynLights + DynamicFPS)
     if (normLayers.includes('culling_hud')) {
       applyJsonConfigFile('config/immediatelyfast.json', {
         hud_batching: true,
@@ -3761,6 +3865,22 @@ function applyDeepGameSmoothEngine({
         blockEntityFrustumCulling: true,
         sleepDelay: normProfile === 'esports' ? 5 : 10
       });
+      if (modEnv.hasBadOptimizations) {
+        const badOptRel = 'config/badoptimizations.txt';
+        const badOptPath = path.join(targetDir, 'config', 'badoptimizations.txt');
+        backupRawFileOnce(badOptRel, badOptPath);
+        applyPropertiesFile(
+          badOptRel,
+          {
+            enable_toast_optimizations: 'true',
+            enable_entity_renderer_caching: 'true',
+            enable_sky_color_caching: 'true',
+            enable_debug_renderer_disable_if_not_needed: 'true',
+            enable_lightmap_caching: 'true'
+          },
+          'BlockWay Turbo Smooth Core v5 - BadOptimizations'
+        );
+      }
       // Neutralize Exordium's notorious 30 FPS HUD/Inventory throttle if config/exordium.json exists
       const exordiumAbs = path.join(targetDir, 'config', 'exordium.json');
       if (fs.existsSync(exordiumAbs)) {
@@ -3787,12 +3907,10 @@ function applyDeepGameSmoothEngine({
       if (fs.existsSync(ldlAbs)) {
         const rawLdl = fs.readFileSync(ldlAbs, 'utf8');
         if (/^\s*mode\s*=\s*"fancy"/m.test(rawLdl)) {
-          if (!(ldlRel in backup.rawFileBackups)) {
-            backup.rawFileBackups[ldlRel] = { existed: true, content: rawLdl };
-          }
+          backupRawFileOnce(ldlRel, ldlAbs);
           const nextLdl = rawLdl.replace(/^(\s*mode\s*=\s*)"fancy"/m, '$1"fast"');
           fs.writeFileSync(ldlAbs, nextLdl, 'utf8');
-          touchedFiles.push(ldlRel);
+          recordPatchedFile(ldlRel, 1);
         }
       }
       if (env.hasMoreCulling || lowerLoader === 'fabric' || lowerLoader === 'quilt') {
@@ -3804,11 +3922,11 @@ function applyDeepGameSmoothEngine({
             itemFrameMapCulling: 'true',
             leavesCullingMode: '"FAST"'
           },
-          'BlockWay Turbo Smooth Core v4 - MoreCulling'
+          'BlockWay Turbo Smooth Core v5 - MoreCulling'
         );
       }
-      // 5d. Rust Horizon Engine native culling & block-entity cache (horizon-graphics.txt & horizon-extras.txt)
-      applyColonKvFile('horizon-graphics.txt', [
+      // 5d. Rust Horizon Engine native culling, VRAM budget & block-entity cache (horizon-graphics.txt & horizon-extras.txt)
+      const horizonGraphicsTargets = [
         { key: 'preset', value: 'custom' },
         { key: 'farDetail', value: 'reduced' },
         { key: 'caveCulling', value: 'true' },
@@ -3816,6 +3934,11 @@ function applyDeepGameSmoothEngine({
         { key: 'entityCullingPrecheck', value: '32' },
         { key: 'particleCulling', value: 'async' },
         { key: 'leafCulling', value: isLowSpec ? 'solid_aggressive' : 'solid' },
+        {
+          key: 'opaqueIce',
+          value: normProfile === 'ultra_low' || normProfile === 'esports' ? 'true' : 'false',
+          ...(normProfile === 'balanced' ? { onlyIfMissing: true } : {})
+        },
         { key: 'blockEntityCacheShulkerBoxes', value: 'true' },
         { key: 'blockEntityCacheSigns', value: 'true' },
         { key: 'blockEntityCacheDecoratedPots', value: 'true' },
@@ -3829,7 +3952,18 @@ function applyDeepGameSmoothEngine({
         { key: 'shadowCache', value: 'true' },
         { key: 'batchTranslucent', value: 'true' },
         { key: 'gpuCulling', value: 'auto' }
-      ]);
+      ];
+      if (normProfile === 'ultra_low') {
+        horizonGraphicsTargets.push(
+          { key: 'lodDistance', value: '16', onlyIfHigherNum: 16 },
+          { key: 'uploadBudgetKiB', value: '4096', onlyIfHigherNum: 4096 },
+          { key: 'textureBudgetMiB', value: '512', onlyIfHigherNum: 512 }
+        );
+      }
+      if (gentleMode) {
+        horizonGraphicsTargets.push({ key: 'batteryMode', value: 'true' });
+      }
+      applyColonKvFile('horizon-graphics.txt', horizonGraphicsTargets);
       applyColonKvFile('horizon-extras.txt', [
         { key: 'pregen', value: 'true' },
         { key: 'zoom', value: 'true' },
@@ -3854,10 +3988,14 @@ function applyDeepGameSmoothEngine({
     const statePayload = {
       version: DEEP_SMOOTH_VERSION,
       profile: normProfile,
+      mcVersion: cleanMcVer,
+      gentleMode: Boolean(gentleMode),
       layers: normLayers,
       layersKey,
       tunedAt: new Date().toISOString(),
       touchedFiles,
+      patchedFiles,
+      tunedKeys,
       shaderGuardActive: shaderActive,
       activeShader: env.activeShader || ''
     };
@@ -3867,8 +4005,11 @@ function applyDeepGameSmoothEngine({
       ok: true,
       targetDir,
       profile: normProfile,
+      mcVersion: cleanMcVer,
       layers: normLayers,
       touchedFiles,
+      patchedFiles,
+      tunedKeys,
       highlights,
       shaderGuardActive: shaderActive,
       activeShader: env.activeShader || '',
@@ -6343,7 +6484,7 @@ async function launchMinecraft(config, callbacks = {}) {
     } catch (_) {}
   }
 
-  // v41.0.0 PRO: Turbo Smooth Core™ — auto-apply 6-layer deep game & mod config optimization (respects post-tune user tweaks & guards Shaders)
+  // v42.4.0 PRO: Turbo Smooth Core™ v5 — auto-apply era-aware 6-layer deep game & mod config optimization (1.8.9 -> 26.3)
   if (deepSmoothEngine !== false) {
     try {
       const effectiveDsProfile = deepSmoothProfile || (potatoGraphicsPreset ? 'ultra_low' : 'balanced');
@@ -6351,9 +6492,13 @@ async function launchMinecraft(config, callbacks = {}) {
         gameDir: rootDir,
         instanceDir: gameDirectory !== rootDir ? gameDirectory : '',
         profile: effectiveDsProfile,
+        smoothProfile: effectiveDsProfile,
         layers: deepSmoothLayers,
         displayHz,
         loaderType: effectiveLoaderType,
+        mcVersion,
+        gentleMode: Boolean(config.gentleSmoothMode),
+        cpuCores,
         autoLaunch: true
       });
       if (dsRes?.ok && !dsRes.alreadyTuned && dsRes.touchedFiles?.length) {
@@ -6386,6 +6531,7 @@ async function launchMinecraft(config, callbacks = {}) {
   }
 
   const resolvedJava = await ensureJavaRuntime(rootDir, mcVersion, javaPath, callbacks.onStatus);
+  const totalMemGB = Math.round((os.totalmem() / 1073741824) * 10) / 10;
   const ramCoach = computeSmartRamAndJvmAdvice({
     gameDir: rootDir,
     instanceDir: gameDirectory !== rootDir ? gameDirectory : '',
@@ -6394,14 +6540,24 @@ async function launchMinecraft(config, callbacks = {}) {
     requestedRamGB: ramGB,
     smartRamAuto: Boolean(smartRamCoach),
     javaPath: resolvedJava,
-    cpuCores
+    cpuCores,
+    gentleMode: Boolean(config.gentleSmoothMode)
   });
   const effectiveRamGB = smartRamCoach ? ramCoach.effectiveRamGB : (Number(ramGB) || 4);
   if (smartRamCoach && Math.abs(effectiveRamGB - (Number(ramGB) || 4)) >= 0.5) {
     callbacks.onStatus?.(`🧠 Cố vấn RAM thông minh: Tự cân chỉnh ${effectiveRamGB} GB (${ramCoach.gcModeLabel}) phù hợp ${ramCoach.modsCount} Mod & RAM trống hệ thống.`);
   }
+  const launchJavaMajor = getJavaMajorVersion(resolvedJava) || ramCoach.javaMajor || 17;
   const baseCustomArgs = useAikarFlags
-    ? (Array.isArray(ramCoach.jvmArgs) && ramCoach.jvmArgs.length ? ramCoach.jvmArgs : buildMultiCoreSmoothExitArgs(effectiveRamGB, cpuCores))
+    ? (
+      Array.isArray(ramCoach.jvmArgs) && ramCoach.jvmArgs.length
+        ? ramCoach.jvmArgs
+        : buildMultiCoreSmoothExitArgs(cpuCores, launchJavaMajor, {
+          totalMemGB,
+          allocatedRamGB: effectiveRamGB,
+          gentleMode: Boolean(config.gentleSmoothMode)
+        })
+    )
     : [];
   const gentleCustomArgs = gentleOn && baseCustomArgs.length
     ? applyGentleJvmTuning(baseCustomArgs, { javaMajor: getJavaMajorVersion(resolvedJava), cpuCores })
@@ -12385,7 +12541,7 @@ function buildGenerationalZgcArgs(javaMajor, cpuCores = os.cpus().length) {
     '-XX:-OmitStackTraceInFastThrow',
     '-Dfml.ignoreInvalidMinecraftCertificates=true',
     '-Dfml.ignorePatchDiscrepancies=true',
-    '-Dminecraft.launcher.brand=BlockWay-v42.3'
+    '-Dminecraft.launcher.brand=BlockWay-v42.4'
   );
   return args;
 }
@@ -12426,7 +12582,8 @@ function computeSmartRamAndJvmAdvice({
   smartRamAuto = false,
   forceRecommend = false,
   javaPath = '',
-  cpuCores = os.cpus().length
+  cpuCores = os.cpus().length,
+  gentleMode = false
 } = {}) {
   const targetDir = resolveTweakerDir(gameDir, instanceDir);
   const totalMemGB = Math.round((os.totalmem() / 1073741824) * 10) / 10;
@@ -12509,7 +12666,11 @@ function computeSmartRamAndJvmAdvice({
   if (useGenZgc) {
     jvmArgs = buildGenerationalZgcArgs(javaMajor, cpuCores);
   } else {
-    jvmArgs = buildMultiCoreSmoothExitArgs(effectiveRamGB, cpuCores);
+    jvmArgs = buildMultiCoreSmoothExitArgs(cpuCores, javaMajor, {
+      totalMemGB,
+      allocatedRamGB: effectiveRamGB,
+      gentleMode: Boolean(gentleMode)
+    });
     if (javaMajor >= 17 && !jvmArgs.some((a) => a.startsWith('-XX:G1PeriodicGCInterval='))) {
       jvmArgs.push('-XX:G1PeriodicGCInterval=60000');
     }
@@ -16234,6 +16395,8 @@ async function launchHorizonRustClient({
   env.HORIZON_OLDER_SERVERS = '1';
   env.HORIZON_TELEMETRY_URL = 'off';
   env.BLOCKWAY_MC_VERSION = displayMcVer;
+  if (!process.env.MIMALLOC_PURGE_DELAY) env.MIMALLOC_PURGE_DELAY = '0';
+  if (!process.env.MIMALLOC_PURGE_DECOMMITS) env.MIMALLOC_PURGE_DECOMMITS = '1';
 
   const cleanSkinKey = (authorization?.name || username || 'StevePlayer').replace(/[^a-zA-Z0-9_]/g, '') || 'StevePlayer';
   const localSkinFile = path.join(skinRoot, 'CustomSkinLoader', 'LocalSkin', 'skins', `${cleanSkinKey}.png`);
@@ -16573,6 +16736,7 @@ module.exports = {
   tryInstallNative263DatapackArchive,
   sanitizeCorruptedWorldgenDatapacks,
   sortModStoreEntriesInstalledFirst,
+  buildMultiCoreSmoothExitArgs,
   buildGenerationalZgcArgs,
   buildJavaAppCdsArgs,
   ensureWindowsHighPerfGpuPreference

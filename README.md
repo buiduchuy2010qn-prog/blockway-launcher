@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v42.3.0 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
+# ⚡ BlockWay Launcher v42.4.0 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.3.0_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.4.0_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-8_Core_Loaders_+_Horizon_Rust-f97316?style=for-the-badge" alt="8 Core Loaders" /></a>
 </p>
 
@@ -16,12 +16,12 @@
 
 ---
 
-## ✨ Điểm mới trong `v42.3.0 PRO` (Tối Ưu Sâu 3 Tầng: Java 25 Compact Headers, AppCDS, Turbo Smooth v4, dGPU & Rust P-Core / Anti-EcoQoS)
+## ✨ Điểm mới trong `v42.4.0 PRO` (Ultra-Light Rust HeapCompact, Full-Version Smooth v5 `1.8.9` → `26.3` & 120Hz Launcher Hibernation)
 
-0. **🚀 Kiến Trúc Tối Ưu Sâu 3 Tầng (`v42.3.0 PRO Deep Performance`):**
-   - **Tầng 1 — Nhân Rust (`horizon-threads` + `Cargo.toml`):** Tự động nhận diện lõi hiệu năng cao **Windows Hybrid CPU P-Core vs E-Core** qua `GetLogicalProcessorInformationEx` (`parse_windows_performance_cores`) để giữ luồng render/chunk trên P-Core; tắt **Windows 11 EcoQoS Power Throttling** (`disable_thread_power_throttling` / `disable_process_power_throttling`); bật `opt-level = 3` cho các crate nóng khi build release.
-   - **Tầng 2 — Java 25 & Turbo Smooth Core™ v4:** Tự động bật **`-XX:+UseCompactObjectHeaders`** và **`-XX:ReservedCodeCacheSize=512m`** trên Java 25+, kết hợp **Auto AppCDS (`.jsa`)** (`-Xshare:auto -XX:+AutoCreateSharedArchive`) rút ngắn thời gian nạp lớp modpack, cùng **Turbo Smooth v4** tinh chỉnh trực tiếp **`ferritecore.mixin.properties`**, **`lithium.properties`**, **`c2me.toml`**, **`moreculling.toml`** và **`gpuCulling:auto`** trong `horizon-graphics.txt` (sao lưu & hoàn tác nguyên bản 1-Click).
-   - **Tầng 3 — Windows DirectX Discrete GPU Auto-Binding:** Tự động đăng ký **`GpuPreference=2;`** trong `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` cho cả **`javaw.exe`** và **`horizon-client.exe`** (tự động bỏ qua khi bật *Chế độ Mượt Êm* `gentleMode`).
+0. **🚀 Ba Trụ Cột Siêu Nhẹ & Đa Phiên Bản (`v42.4.0 PRO Ultra-Light & Full-Version`):**
+   - **🦀 Ultra-Light Rust Core (`horizon-threads` + `Cargo.toml`):** Bổ sung nén bộ nhớ đệm gốc Windows **`HeapCompact`** (`GetProcessHeaps`) thu hồi RAM của driver Vulkan/DX12/Win32, tinh chỉnh **`mimalloc` v3** trả trang vật lý tức thì về hệ điều hành (`PURGE_DECOMMITS=1`, `PAGE_FULL_RETAIN=0`, `PURGE_DELAY=0`, `ARENA_PURGE_MULT=1`), rút gọn stack luồng worker còn **`1 MiB`**, giải phóng bộ đệm nhàn rỗi sau **`3s`**, lược bỏ ký hiệu gỡ lỗi **`strip = "debuginfo"`** khi đóng gói release, đi kèm nhận diện **Windows Hybrid P-Core** & tắt **EcoQoS Power Throttling**.
+   - **⚡ Full-Version Smooth v5 (`1.8.9` → `26.3`):** Tự động tối ưu chuẩn xác theo từng thế hệ Minecraft: bật **`useVbo:true` + `fboEnable:true`** cho bản cổ điển `1.8.9` / `1.12.2` (loại bỏ nghẽn OpenGL Display Lists), đặt **`menuBackgroundBlurriness:0`** trên `1.21`–`26.3` chống tụt FPS khi mở túi đồ/rương, tự cấu hình **`badoptimizations.txt`** cùng FerriteCore / Lithium / C2ME / MoreCulling & Rust `opaqueIce` / `lodDistance:16` (**hoàn tác nguyên bản 1-Click**), kết hợp giới hạn luồng **G1GC thông minh** cho CPU nhiều nhân + **`-XX:+AlwaysPreTouch`**, **Java 25 Compact Object Headers + Auto AppCDS (`.jsa`)** và **Windows DirectX dGPU Auto-Binding** (`GpuPreference=2;`).
+   - **🖥️ 120Hz Ultra-Light Launcher (`src/main.js` + `horizon-glass.css`):** Loại bỏ hoàn toàn giật khung hình khi cuộn danh sách dài nhờ gỡ `backdrop-filter` lồng trên từng dòng thẻ và bật **`content-visibility: auto`**, kích hoạt **Chromium GPU Zero-Copy Rasterization** (`enable-gpu-rasterization`, `enable-zero-copy`) và tự động chuyển sang **Ngủ Đông 1 FPS (`setFrameRate(1)`)** khi thu nhỏ lúc đang chơi game.
 
 1. **🌌 Hợp nhất Monorepo (`rust-engine/`), Theme Studio Kính Mờ & Ưu tiên Mod đã cài (`Pure Horizon Glass`):**
    - **Kho Mod tự động đưa gói đã cài lên đầu (`Installed-First Mod Store`):** Mọi Mod, Shader, Resource Pack và Modpack đã cài (`✓ Đã Cài`) luôn được xếp cố định ở đầu danh sách ở cả 8 Core Loaders (kể cả các gói ngoài Top 48 tìm kiếm và ngay khi vừa bấm tải cài đặt trực tiếp).

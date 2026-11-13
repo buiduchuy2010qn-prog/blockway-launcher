@@ -1,7 +1,7 @@
 {
   "name": "blockway-launcher",
-  "version": "42.3.0",
-  "description": "BlockWay Launcher v42.3.0 PRO — Pure Horizon Glass Unified Monorepo (Launcher + Native Rust Engine in one repo) • Every World, One Place. Java 25 Compact Object Headers, Auto AppCDS, Turbo Smooth v4 (FerriteCore/Lithium/C2ME/MoreCulling/gpuCulling:auto), Windows Hybrid P-Core & Anti-EcoQoS Rust Engine, Discrete GPU Auto-Binding, Installed-First Mod Store, 8 Core Loaders & Native 26.3 Worldgen Guard.",
+  "version": "42.4.0",
+  "description": "BlockWay Launcher v42.4.0 PRO — Pure Horizon Glass Unified Monorepo (Launcher + Ultra-Light Native Rust Engine in one repo) • Every World, One Place. Full-Version Smooth v5 (1.8.9–26.3 VBO/FBO, Inventory Anti-Blur, BadOptimizations, Smart Hybrid G1GC & AlwaysPreTouch), Ultra-Light Rust HeapCompact & mimalloc v3 Decommit, 120Hz Launcher Hibernation, Java 25 Compact Headers, Auto AppCDS, Installed-First Mod Store, 8 Core Loaders & Native 26.3 Worldgen Guard.",
   "homepage": "https://buiduchuy2010qn-prog.github.io/blockway-launcher/",
   "repository": {
     "type": "git",

@@ -70,6 +70,9 @@ const {
 } = require('./microsoft-auth');
 
 app.commandLine.appendSwitch('js-flags', '--expose-gc');
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('enable-features', 'CanvasOopRasterization');
 try { app.setName('BlockWay Launcher'); } catch (_) {}
 if (process.platform === 'win32') {
   try { app.setAppUserModelId('BlockWay.Launcher'); } catch (_) {}
@@ -96,6 +99,28 @@ let mainWindow;
 let hideOnLaunchSetting = true;
 const configPath = path.join(app.getPath('userData'), 'aether-config-v5.json');
 const playtimePath = path.join(app.getPath('userData'), 'playtime-stats-v1.json');
+
+function setLauncherGameplayHibernation(win, hibernate, displayHz = 60) {
+  if (!win || win.isDestroyed() || !win.webContents || win.webContents.isDestroyed()) return;
+  try {
+    if (hibernate === true) {
+      win.webContents.setFrameRate(1);
+      win.webContents.setAudioMuted(true);
+    } else {
+      let resolvedHz = Number(displayHz) || 0;
+      if (arguments.length < 3 || resolvedHz <= 0) {
+        try {
+          resolvedHz = Math.round(Number(screen.getDisplayMatching(win.getBounds())?.displayFrequency) || 60);
+        } catch (_) {
+          resolvedHz = 60;
+        }
+      }
+      const targetFps = Math.min(120, Math.max(60, Number(resolvedHz) || 60));
+      win.webContents.setFrameRate(targetFps);
+      win.webContents.setAudioMuted(false);
+    }
+  } catch (_) {}
+}
 
 /* ============================================================================
    v40.3 PRO — PLAYTIME TRACKER & PURE-NODE DISCORD RICH PRESENCE (ZERO DEPS)
@@ -576,6 +601,11 @@ function createWindow() {
     if (navUrl !== currentUrl && !String(navUrl || '').startsWith('file://')) {
       event.preventDefault();
     }
+  });
+
+  mainWindow.on('restore', () => setLauncherGameplayHibernation(mainWindow, false));
+  mainWindow.on('focus', () => {
+    if (!mainWindow.isMinimized()) setLauncherGameplayHibernation(mainWindow, false);
   });
 
   // v40.9.1 PRO: True-DPI UI Scale — KHÔNG thu nhỏ chữ theo chiều cao cửa sổ (vì mọi tab đều cuộn dọc mượt),
@@ -1136,6 +1166,7 @@ ipcMain.handle('mc:open-subfolder', async (_e, gameDir, subFolder) => {
 
 ipcMain.handle('mc:force-kill', async () => {
   forceKillMinecraft();
+  setLauncherGameplayHibernation(mainWindow, false);
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.show();
@@ -1191,6 +1222,7 @@ ipcMain.handle('mc:launch', async (_e, config) => {
         mainWindow?.webContents.send('mc:game-ready', { hibernated: hideOnLaunchSetting });
         if (hideOnLaunchSetting && mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.minimize();
+          setLauncherGameplayHibernation(mainWindow, true, config.displayHz);
         }
         if (global.gc) {
           try { global.gc(); } catch (_) {}
@@ -1203,6 +1235,7 @@ ipcMain.handle('mc:launch', async (_e, config) => {
         const remSec = Math.max(0, Math.round((Date.now() - lastPlaytimeCheckpointMs) / 1000));
         const finalStats = recordPlaytimeDelta(remSec, { instanceSlug, mcVersion: config.mcVersion, isFinal: true });
         if (discordRpcEnabled) setDiscordLobbyPresence();
+        setLauncherGameplayHibernation(mainWindow, false, config.displayHz);
 
         if (mainWindow && !mainWindow.isDestroyed()) {
           if (mainWindow.isMinimized()) mainWindow.restore();
@@ -1227,6 +1260,7 @@ ipcMain.handle('mc:launch', async (_e, config) => {
     return { ok: true };
   } catch (err) {
     mcGameRunning = false;
+    setLauncherGameplayHibernation(mainWindow, false, config?.displayHz);
     if (discordRpcEnabled) setDiscordLobbyPresence();
     return { ok: false, error: err.message };
   }

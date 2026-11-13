@@ -65,6 +65,7 @@ html[data-theme="cherry"] {
 
   --hzl-sky-fallback: #0b0a18;
   --hzl-plate: rgba(48, 43, 76, 0.36);
+  --hzl-row-plate: rgba(42, 37, 68, 0.58);
   --hzl-plate-strong: rgba(64, 58, 98, 0.50);
   --hzl-plate-inner: rgba(255, 255, 255, 0.055);
   --hzl-plate-pop: rgba(22, 19, 40, 0.72);
@@ -191,6 +192,7 @@ html[data-theme="sakura"] {
 
   --hzl-sky-fallback: #f5e2f2;
   --hzl-plate: rgba(255, 250, 253, 0.66);
+  --hzl-row-plate: rgba(255, 255, 255, 0.78);
   --hzl-plate-strong: rgba(255, 246, 251, 0.82);
   --hzl-plate-inner: rgba(255, 255, 255, 0.60);
   --hzl-plate-pop: rgba(255, 250, 253, 0.84);
@@ -242,6 +244,7 @@ html[data-theme="prism"] {
 
   --hzl-sky-fallback: #e4eefb;
   --hzl-plate: rgba(248, 252, 255, 0.68);
+  --hzl-row-plate: rgba(255, 255, 255, 0.78);
   --hzl-plate-strong: rgba(255, 255, 255, 0.84);
   --hzl-plate-inner: rgba(255, 255, 255, 0.60);
   --hzl-plate-pop: rgba(248, 252, 255, 0.84);
@@ -1804,9 +1807,11 @@ html:root:root body .app-shell .skin-studio-card .webgl-stage-wrap.stage-bg-dayl
   min-height: 0 !important;
   height: auto !important;
   padding: 10px 13px !important;
-  background: var(--hzl-plate) !important;
-  backdrop-filter: var(--hzl-blur) !important;
-  -webkit-backdrop-filter: var(--hzl-blur) !important;
+  background: var(--hzl-row-plate, var(--hzl-plate)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 66px;
   border: 1px solid var(--hzl-hairline) !important;
   border-radius: 14px !important;
   box-shadow: none !important;
@@ -2343,4 +2348,30 @@ html:root:root[data-theme="prism"] body .hmi-install-btn {
 
 :root:root body .app-shell header.titlebar #themePickerPopover #btnOpenUiStudioSettings:hover {
   background: var(--hzl-fill-2) !important;
+}
+
+/* ---------- 10. v42.4.0 PRO: ZERO-BLUR SCROLL ROWS & CONTENT-VISIBILITY ---------- */
+:root:root body .app-shell #modrinthResultsGrid .mod-card {
+  background: var(--hzl-row-plate, var(--hzl-plate)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 66px;
+}
+
+.modpack-card,
+.world-card,
+.server-card,
+:root:root body .app-shell .pack-card,
+:root:root body .app-shell .world-card-row,
+:root:root body .app-shell .world-store-card,
+:root:root body .app-shell #tab-servers .srv-card-row {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 72px;
+}
+
+:root:root body .app-shell #tab-servers .srv-card-row:not(.active) {
+  background: var(--hzl-row-plate, var(--hzl-plate)) !important;
 }
