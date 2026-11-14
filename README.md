@@ -101,6 +101,10 @@ npm run dist:linux
 
 ---
 
-## 📄 Giấy phép
+## 📄 Giấy phép & Bản quyền Mã nguồn mở (License & Attribution)
 
-Phát hành theo giấy phép **[MIT License](LICENSE)** — © **buiduchuy2010qn-prog**.
+- **BlockWay Launcher (`src/`):** Phát hành theo giấy phép **[MIT License](LICENSE)** — `Copyright (c) 2026 Bùi Đức Huy (@buiduchuy2010qn-prog)`.
+- **Nhân Rust tích hợp (`rust-engine/`):** Phát triển mở rộng dựa trên dự án mã nguồn mở **[horizon-rust/horizon](https://github.com/horizon-rust/horizon)** (`Copyright (c) 2026 Ludovic Marie and the Horizon contributors`, **[MIT License](rust-engine/LICENSE)**). Đầy đủ thông báo bản quyền upstream và thư viện bên thứ ba được ghi nhận minh bạch tại **[NOTICE.md](NOTICE.md)** và **[rust-engine/THIRD_PARTY_NOTICES.md](rust-engine/THIRD_PARTY_NOTICES.md)**.
+- **Tuyên bố Nhãn hiệu Mojang / Microsoft:**
+  > **NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.**
+  > Minecraft là nhãn hiệu đã đăng ký của Mojang Synergies AB / Microsoft Corporation. Kho mã nguồn này không chứa bất kỳ tệp tài nguyên hay mã nguồn độc quyền nào của Mojang.
