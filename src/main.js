@@ -1224,10 +1224,14 @@ ipcMain.handle('mc:launch', async (_e, config) => {
           mainWindow.minimize();
           setLauncherGameplayHibernation(mainWindow, true, config.displayHz);
         }
-        if (global.gc) {
-          try { global.gc(); } catch (_) {}
-        }
-        cleanupJavaTempAndTrimRam();
+        const trimTimer = setTimeout(() => {
+          if (!mcGameRunning) return;
+          if (global.gc) {
+            try { global.gc(); } catch (_) {}
+          }
+          cleanupJavaTempAndTrimRam();
+        }, 6000);
+        trimTimer.unref?.();
       },
       onClose: (code) => {
         mcGameRunning = false;

@@ -624,3 +624,80 @@ test('11. v42.4.0 PRO Full-Version Smooth v5 (1.8.9 -> 26.3), Ultra-Light Rust H
   const cargoToml = fs.readFileSync(path.join(REPO_ROOT, 'rust-engine', 'Cargo.toml'), 'utf8');
   assert.ok(cargoToml.includes('strip = "debuginfo"'), 'rust-engine/Cargo.toml must strip debuginfo in release profile');
 });
+
+test('12. v42.4.1 PRO Instant <1s Rust Launch: zero-network warm ensureHorizonEnginePrepared, 0ms metadata probeHorizonLaunchApi & filtered extractZipSafely', async () => {
+  const Module = require('node:module');
+  const localNm = path.join(REPO_ROOT, 'node_modules');
+  const installedAppNm = path.join(
+    process.env.LOCALAPPDATA || '',
+    'Programs',
+    'aether-craft-launcher',
+    'AetherCraft',
+    'resources',
+    'app',
+    'node_modules'
+  );
+  if (!fs.existsSync(localNm) && installedAppNm && fs.existsSync(installedAppNm)) {
+    process.env.NODE_PATH = process.env.NODE_PATH ? `${process.env.NODE_PATH}${path.delimiter}${installedAppNm}` : installedAppNm;
+    Module._initPaths();
+  }
+  const engine = require('../src/launcher-engine');
+  const AdmZip = require('adm-zip');
+
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-v4241-test-'));
+  try {
+    const platSpec = engine.getHorizonPlatformSpec();
+    const engineRoot = path.join(tmpRoot, 'horizon-engine', platSpec.dirName);
+    const resDir = path.join(engineRoot, '.local', 'horizon-client', '26.3');
+    fs.mkdirSync(resDir, { recursive: true });
+
+    const clientPath = path.join(engineRoot, platSpec.clientBin);
+    // Deliberately write non-executable dummy bytes so any spawn attempt would fail
+    fs.writeFileSync(clientPath, 'NOT_AN_EXECUTABLE_DUMMY_BINARY', 'utf8');
+    fs.writeFileSync(path.join(engineRoot, platSpec.prepareBin), 'dummy-prepare', 'utf8');
+    fs.writeFileSync(path.join(engineRoot, 'research-lock.json'), JSON.stringify({ minecraft: { version: '26.3', java_major: 25 } }), 'utf8');
+    fs.writeFileSync(path.join(engineRoot, 'blockway-rust-build.json'), JSON.stringify({
+      engine: 'blockway-rust',
+      commit: 'testcommit1234',
+      nativeMultiVersion: true,
+      cliFlag: '--mc-version'
+    }), 'utf8');
+    fs.writeFileSync(path.join(resDir, 'horizon-resources.json'), JSON.stringify({ ok: true }), 'utf8');
+
+    // 12a. Warm ensureHorizonEnginePrepared returns in < 50ms with zero network requests
+    const t0 = performance.now();
+    const st = await engine.ensureHorizonEnginePrepared({ rootDir: tmpRoot });
+    const prepMs = performance.now() - t0;
+    assert.equal(st.engineInstalled, true);
+    assert.equal(st.isPrepared, true);
+    assert.ok(prepMs < 50, `Expected warm ensureHorizonEnginePrepared < 50ms, got ${prepMs.toFixed(2)}ms`);
+
+    // 12b. Metadata probeHorizonLaunchApi returns in < 15ms without spawning horizon-client
+    const t1 = performance.now();
+    const apiInfo = engine.probeHorizonLaunchApi(clientPath);
+    const probeMs = performance.now() - t1;
+    assert.equal(apiInfo.ok, true);
+    assert.equal(apiInfo.isBlockWayRust, true);
+    assert.equal(apiInfo.supportsMcVersion, true);
+    assert.ok(probeMs < 15, `Expected metadata probeHorizonLaunchApi < 15ms, got ${probeMs.toFixed(2)}ms`);
+
+    // 12c. Filtered extractZipSafely skips crates/ while keeping runtime binaries & still enforces Zip-Slip
+    const zip = new AdmZip();
+    zip.addFile('horizon-windows-x64/horizon-client.exe', Buffer.from('runtime-bin'));
+    zip.addFile('horizon-windows-x64/crates/foo.rs', Buffer.from('fn dev_only() {}'));
+    const zipDest = path.join(tmpRoot, 'unzip-out');
+    engine.extractZipSafely(zip, zipDest, {
+      filterEntry: (cleanRel) => !/(^|\/)(crates|tools|exporters)\//i.test(cleanRel)
+    });
+    assert.equal(fs.existsSync(path.join(zipDest, 'horizon-windows-x64', 'horizon-client.exe')), true);
+    assert.equal(fs.existsSync(path.join(zipDest, 'horizon-windows-x64', 'crates', 'foo.rs')), false);
+
+    const evilZip = new AdmZip();
+    evilZip.addFile('../evil.txt', Buffer.from('pwn'));
+    assert.throws(() => {
+      engine.extractZipSafely(evilZip, zipDest, { filterEntry: () => true });
+    }, /Zip-Slip/i);
+  } finally {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});

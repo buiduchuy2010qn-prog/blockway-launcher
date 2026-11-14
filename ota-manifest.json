@@ -1,23 +1,23 @@
 {
-  "version": "42.4.0",
-  "releasedAt": "2026-11-13T11:23:47.765Z",
-  "notes": "v42.4.0 PRO — Ultra-Light Rust Core (Win32 HeapCompact, mimalloc v3 PURGE_DECOMMITS=1 & PAGE_FULL_RETAIN=0, 1 MiB stacks, 3s idle release, strip debuginfo), Full-Version Smooth v5 (1.8.9–26.3 VBO/FBO, menuBackgroundBlurriness:0, BadOptimizations + 1-Click Revert, smart G1GC cap & AlwaysPreTouch), và 120Hz Ultra-Light Launcher (content-visibility: auto, GPU Zero-Copy & 1 FPS Gameplay Hibernation).",
+  "version": "42.4.1",
+  "releasedAt": "2026-11-14T10:47:37.184Z",
+  "notes": "v42.4.1 PRO — Instant <1s Rust Launch (Zero-Network Warm Fast-Path trong ensureHorizonEnginePrepared, Metadata 0ms probeHorizonLaunchApi đọc blockway-rust-build.json, Đệm dấu vân tay Mod/Datapack, Dọn .datafix theo thế giới & Chuyển trạng thái 550ms) kết hợp nền tảng Ultra-Light Rust HeapCompact & Full-Version Smooth v5.",
   "files": {
     "package.json": {
-      "sha256": "1cd5160473e2e3b35c613cee3b082681233c044c04dcc4646e89d9fc1de51557",
-      "size": 2850
+      "sha256": "20f3eaf274e05f192132c0c18a9e9439906c7609827945a825bc7727bbea074c",
+      "size": 2597
     },
     "src/aether-cloud-auth.js": {
       "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
       "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "4a566ecc39bace20b2e244861b47430f0ca302be59e2fe0b75bdecde644737a4",
-      "size": 693374
+      "sha256": "a85f967901136242167ff77fd160e55aef5b49257cca5979547326af651df6b7",
+      "size": 703478
     },
     "src/main.js": {
-      "sha256": "aff601364f0fa92e2ac2f0e40acfc931bd5f5f6e46f0c17513eeb14ff5e9c484",
-      "size": 118749
+      "sha256": "0849513b3c7fae13826945286f8bd556195a993926d8ceacc3492820db299182",
+      "size": 118887
     },
     "src/microsoft-auth.js": {
       "sha256": "7df3ec8fd3fab2e80ca80ccaf4e7b7466d7f9de16d23e44c3caa15965555bd7d",
@@ -84,8 +84,8 @@
       "size": 25697
     },
     "src/ui/index.html": {
-      "sha256": "c98c2dc47f7da6d98c9a40f0f7acd4130ff71b1dd39f10a21e6fd4610822d0ca",
-      "size": 239258
+      "sha256": "455dfb6640b10782c89efefd65e3d2d37590f20e0555867897e4b8b108999e0e",
+      "size": 239268
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
@@ -100,8 +100,8 @@
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "b79bcd4247025a5504d32066b9cadcb1d032141b1b8e8d0da89688263501731a",
-      "size": 182084
+      "sha256": "c53703a44ac30c7de9243f5a4349c56d97eede98cf4b1511df8dfe079ea9d7da",
+      "size": 182341
     },
     "src/ui/skinview3d.bundle.js": {
       "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",

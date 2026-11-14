@@ -3682,9 +3682,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     );
 
     const rawActiveSkin = currentSkinDataUrl || state.cachedSkinDataUrl || createFallbackSteveSkinDataUrl();
-    const finalSkinDataUrl = typeof convertSkinTo64x64DataUrl === 'function'
-      ? await convertSkinTo64x64DataUrl(rawActiveSkin)
-      : rawActiveSkin;
+    let finalSkinDataUrl = rawActiveSkin;
+    if (typeof convertSkinTo64x64DataUrl === 'function') {
+      if (state._memoSkinRaw === rawActiveSkin && state._memoSkin64) {
+        finalSkinDataUrl = state._memoSkin64;
+      } else {
+        finalSkinDataUrl = await convertSkinTo64x64DataUrl(rawActiveSkin);
+        state._memoSkinRaw = rawActiveSkin;
+        state._memoSkin64 = finalSkinDataUrl;
+      }
+    }
 
     try {
       const res = await window.aetherAPI.launchGame({

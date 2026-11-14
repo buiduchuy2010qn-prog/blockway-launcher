@@ -402,7 +402,8 @@ function getAdoptiumTargetPlatformAndArch() {
   return { osName, archName, archiveExt };
 }
 
-function extractZipSafely(archivePathOrZip, destDir) {
+function extractZipSafely(archivePathOrZip, destDir, options = {}) {
+  const { filterEntry = null } = options || {};
   const root = path.resolve(String(destDir || ''));
   if (!root) throw new Error('Thiếu thư mục đích để giải nén.');
   fs.mkdirSync(root, { recursive: true });
@@ -417,6 +418,9 @@ function extractZipSafely(archivePathOrZip, destDir) {
     const relCheck = path.relative(root, resolvedTarget);
     if (relCheck.startsWith('..') || path.isAbsolute(relCheck)) {
       throw new Error(`Chặn tệp nén chứa đường dẫn vượt quyền (Zip-Slip): ${rawEntryName}`);
+    }
+    if (typeof filterEntry === 'function' && !filterEntry(cleanRel, entry)) {
+      continue;
     }
     if (entry.isDirectory || rawEntryName.endsWith('/')) {
       fs.mkdirSync(resolvedTarget, { recursive: true });
@@ -2090,11 +2094,88 @@ function tryInstallNative263DatapackArchive(archivePathOrZip, { gameDir = '', pr
   };
 }
 
+const _cleanWorldgenDpCache = new Map();
+
+function computeWorldgenDpStamp(dpDir) {
+  try {
+    if (!dpDir || !fs.existsSync(dpDir)) return '';
+    const rootStat = fs.statSync(dpDir);
+    if (!rootStat.isDirectory()) return '';
+    const parts = [`d:${Math.floor(rootStat.mtimeMs)}`];
+    const mcmeta = path.join(dpDir, 'pack.mcmeta');
+    if (fs.existsSync(mcmeta)) {
+      const ms = fs.statSync(mcmeta);
+      parts.push(`m:${ms.size}:${Math.floor(ms.mtimeMs)}`);
+    }
+    const dataRoot = path.join(dpDir, 'data');
+    if (fs.existsSync(dataRoot)) {
+      const drStat = fs.statSync(dataRoot);
+      parts.push(`dr:${Math.floor(drStat.mtimeMs)}`);
+      const walkStat = (dir, relBase) => {
+        const dirMtime = Math.floor(fs.statSync(dir).mtimeMs);
+        let jsonCount = 0;
+        for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+          if (ent.isDirectory()) {
+            walkStat(path.join(dir, ent.name), `${relBase}/${ent.name}`);
+          } else if (ent.isFile() && ent.name.endsWith('.json')) {
+            jsonCount++;
+          }
+        }
+        parts.push(`${relBase}:${dirMtime}:${jsonCount}`);
+      };
+      for (const nsEnt of fs.readdirSync(dataRoot, { withFileTypes: true })) {
+        if (!nsEnt.isDirectory()) continue;
+        const dfDir = path.join(dataRoot, nsEnt.name, 'worldgen', 'density_function');
+        if (fs.existsSync(dfDir)) walkStat(dfDir, `${nsEnt.name}/df`);
+        const nsDir = path.join(dataRoot, nsEnt.name, 'worldgen', 'noise_settings');
+        if (fs.existsSync(nsDir)) walkStat(nsDir, `${nsEnt.name}/ns`);
+      }
+    }
+    return parts.join('|');
+  } catch (_) {
+    return '';
+  }
+}
+
 function sanitizeCorruptedWorldgenDatapacks(gameDir, callbacks = {}) {
   const effectiveGameDir = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
   const report = { repairedInSaves: [], quarantined: [] };
   try {
     const quarantineBase = path.join(effectiveGameDir, 'horizon-mods', '.quarantine-datapacks');
+    const guardCachePath = path.join(effectiveGameDir, 'horizon-mods', '.worldgen-guard-cache.json');
+    let diskCache = {};
+    try {
+      if (fs.existsSync(guardCachePath)) {
+        const parsed = JSON.parse(fs.readFileSync(guardCachePath, 'utf8'));
+        if (parsed && typeof parsed === 'object') diskCache = parsed;
+      }
+    } catch (_) {
+      diskCache = {};
+    }
+    let cacheDirty = false;
+    const isDpValidCached = (dpFull) => {
+      const stamp = computeWorldgenDpStamp(dpFull);
+      if (stamp && (_cleanWorldgenDpCache.get(dpFull) === stamp || diskCache[dpFull] === stamp)) {
+        _cleanWorldgenDpCache.set(dpFull, stamp);
+        return true;
+      }
+      const check = inspectWorldgenDatapackDir(dpFull);
+      if (check.valid && stamp) {
+        _cleanWorldgenDpCache.set(dpFull, stamp);
+        if (diskCache[dpFull] !== stamp) {
+          diskCache[dpFull] = stamp;
+          cacheDirty = true;
+        }
+      } else if (!check.valid) {
+        _cleanWorldgenDpCache.delete(dpFull);
+        if (Object.prototype.hasOwnProperty.call(diskCache, dpFull)) {
+          delete diskCache[dpFull];
+          cacheDirty = true;
+        }
+      }
+      return check.valid;
+    };
+
     const nwdRoot = path.join(effectiveGameDir, 'new-world-datapacks');
     const cleanNwd = new Map();
 
@@ -2102,8 +2183,7 @@ function sanitizeCorruptedWorldgenDatapacks(gameDir, callbacks = {}) {
       for (const ent of fs.readdirSync(nwdRoot, { withFileTypes: true })) {
         if (!ent.isDirectory() || ent.name.startsWith('.')) continue;
         const full = path.join(nwdRoot, ent.name);
-        const check = inspectWorldgenDatapackDir(full);
-        if (check.valid) {
+        if (isDpValidCached(full)) {
           cleanNwd.set(ent.name, full);
         } else {
           fs.mkdirSync(quarantineBase, { recursive: true });
@@ -2123,13 +2203,13 @@ function sanitizeCorruptedWorldgenDatapacks(gameDir, callbacks = {}) {
         for (const dpEnt of fs.readdirSync(wDpRoot, { withFileTypes: true })) {
           if (!dpEnt.isDirectory() || dpEnt.name.startsWith('.')) continue;
           const dpFull = path.join(wDpRoot, dpEnt.name);
-          const check = inspectWorldgenDatapackDir(dpFull);
-          if (check.valid) continue;
+          if (isDpValidCached(dpFull)) continue;
 
           const cleanSource = cleanNwd.get(dpEnt.name);
           if (cleanSource && fs.existsSync(cleanSource)) {
             fs.rmSync(dpFull, { recursive: true, force: true });
             fs.cpSync(cleanSource, dpFull, { recursive: true });
+            isDpValidCached(dpFull);
             report.repairedInSaves.push(`${wEnt.name}/${dpEnt.name}`);
           } else {
             fs.mkdirSync(quarantineBase, { recursive: true });
@@ -2139,6 +2219,13 @@ function sanitizeCorruptedWorldgenDatapacks(gameDir, callbacks = {}) {
           }
         }
       }
+    }
+
+    if (cacheDirty) {
+      try {
+        fs.mkdirSync(path.dirname(guardCachePath), { recursive: true });
+        fs.writeFileSync(guardCachePath, JSON.stringify(diskCache), 'utf8');
+      } catch (_) {}
     }
 
     if (report.repairedInSaves.length > 0) {
@@ -6085,7 +6172,14 @@ function syncActive3DSkinIntoGame(rootDir, username, skinDataUrl, mcVersion = '1
     const cleanName = (username || 'StevePlayer').replace(/[^a-zA-Z0-9_]/g, '') || 'StevePlayer';
     const skinsDir = path.join(rootDir, 'CustomSkinLoader', 'LocalSkin', 'skins');
     if (!fs.existsSync(skinsDir)) fs.mkdirSync(skinsDir, { recursive: true });
-    fs.writeFileSync(path.join(skinsDir, `${cleanName}.png`), skinBuf);
+    const targetSkinFile = path.join(skinsDir, `${cleanName}.png`);
+    let writeSkinFile = true;
+    try {
+      if (fs.existsSync(targetSkinFile) && fs.readFileSync(targetSkinFile).equals(skinBuf)) {
+        writeSkinFile = false;
+      }
+    } catch (_) {}
+    if (writeSkinFile) fs.writeFileSync(targetSkinFile, skinBuf);
     configureCrackSkinSupport(rootDir);
 
     const optsPath = path.join(rootDir, 'options.txt');
@@ -6809,6 +6903,11 @@ function applyCrossPlatformDriverEnv({ gentleMode = false, targetEnv = process.e
 }
 
 const _gpuPrefAppliedSet = new Set();
+let _gpuPrefDiskLoaded = false;
+
+function getGpuPrefCacheFile() {
+  return path.join(os.tmpdir(), 'blockway-gpu-prefs-v1.json');
+}
 
 function ensureWindowsHighPerfGpuPreference(exePaths = [], { gentleMode = false, platform = process.platform, dryRun = false } = {}) {
   if (platform !== 'win32' || gentleMode) {
@@ -6855,14 +6954,37 @@ function ensureWindowsHighPerfGpuPreference(exePaths = [], { gentleMode = false,
     return { ok: true, skipped: false, dryRun: true, entries };
   }
 
+  const cacheFile = getGpuPrefCacheFile();
+  if (!_gpuPrefDiskLoaded) {
+    _gpuPrefDiskLoaded = true;
+    try {
+      if (fs.existsSync(cacheFile)) {
+        const saved = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+        if (Array.isArray(saved)) {
+          for (const s of saved) {
+            if (typeof s === 'string' && s) _gpuPrefAppliedSet.add(s.toLowerCase());
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  let cacheChanged = false;
   for (const entry of entries) {
     const lower = entry.exePath.toLowerCase();
     if (!fs.existsSync(entry.exePath) || _gpuPrefAppliedSet.has(lower)) continue;
     _gpuPrefAppliedSet.add(lower);
+    cacheChanged = true;
     try {
       const child = spawn('reg.exe', entry.regArgs, { windowsHide: true, stdio: 'ignore' });
       child.on('error', () => {});
       child.unref?.();
+    } catch (_) {}
+  }
+
+  if (cacheChanged) {
+    try {
+      fs.writeFileSync(cacheFile, JSON.stringify([..._gpuPrefAppliedSet]), 'utf8');
     } catch (_) {}
   }
 
@@ -14766,9 +14888,37 @@ function isHorizonResourcesDirReady(resourcesDir) {
 const BLOCKWAY_RUST_REPO = 'buiduchuy2010qn-prog/blockway-launcher';
 const BLOCKWAY_RUST_RELEASE_TAG = 'rust-core';
 const _horizonLaunchApiCache = new Map();
+const _portedModsDirFastStamp = new Map();
 let _lastAutoRustUpgradeCheckMs = 0;
 
-function probeHorizonLaunchApi(clientPath) {
+function computeHorizonModsFastKey(effectiveGameDir) {
+  const safeDirStamp = (p) => {
+    try {
+      if (!fs.existsSync(p)) return '0:0';
+      const dirStat = fs.statSync(p);
+      return `${Math.floor(dirStat.mtimeMs)}:${fs.readdirSync(p).length}`;
+    } catch (_) {
+      return '-1';
+    }
+  };
+  return [
+    safeDirStamp(path.join(effectiveGameDir, 'mods')),
+    safeDirStamp(path.join(effectiveGameDir, 'horizon-mods')),
+    safeDirStamp(path.join(effectiveGameDir, 'new-world-datapacks')),
+    safeDirStamp(path.join(effectiveGameDir, 'resourcepacks'))
+  ].join('|');
+}
+
+function invalidateHorizonModsFastStamp(effectiveGameDir) {
+  if (!effectiveGameDir) return;
+  _portedModsDirFastStamp.delete(effectiveGameDir);
+  try {
+    const p = path.join(effectiveGameDir, 'horizon-mods', '.ported-jars-fast.json');
+    if (fs.existsSync(p)) fs.unlinkSync(p);
+  } catch (_) {}
+}
+
+function probeHorizonLaunchApi(clientPath, buildMetaHint = null) {
   const fallback = { ok: false, isBlockWayRust: false, supportsMcVersion: false, supportedMcVersions: [] };
   try {
     if (!clientPath || !fs.existsSync(clientPath)) return fallback;
@@ -14777,6 +14927,40 @@ function probeHorizonLaunchApi(clientPath) {
     if (_horizonLaunchApiCache.has(cacheKey)) {
       return _horizonLaunchApiCache.get(cacheKey);
     }
+
+    let meta = (buildMetaHint && typeof buildMetaHint === 'object') ? buildMetaHint : null;
+    if (!meta) {
+      try {
+        const metaPath = path.join(path.dirname(clientPath), 'blockway-rust-build.json');
+        if (fs.existsSync(metaPath)) {
+          meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        }
+      } catch (_) {
+        meta = null;
+      }
+    }
+    if (meta && (meta.engine === 'blockway-rust' || meta.nativeMultiVersion === true || meta.cliFlag === '--mc-version')) {
+      const info = {
+        ok: true,
+        isBlockWayRust: true,
+        supportsMcVersion: true,
+        supportedMcVersions: Array.isArray(meta.supportedMcVersions) ? meta.supportedMcVersions : []
+      };
+      _horizonLaunchApiCache.set(cacheKey, info);
+      return info;
+    }
+
+    const diskCachePath = path.join(path.dirname(clientPath), '.launch-api-cache.json');
+    try {
+      if (fs.existsSync(diskCachePath)) {
+        const diskCache = JSON.parse(fs.readFileSync(diskCachePath, 'utf8'));
+        if (diskCache?.cacheKey === cacheKey && diskCache?.info?.ok) {
+          _horizonLaunchApiCache.set(cacheKey, diskCache.info);
+          return diskCache.info;
+        }
+      }
+    } catch (_) {}
+
     const raw = execFileSync(clientPath, ['--launch-api'], {
       encoding: 'utf8',
       timeout: 4500,
@@ -14792,6 +14976,9 @@ function probeHorizonLaunchApi(clientPath) {
       supportedMcVersions: Array.isArray(parsed?.supported_mc_versions) ? parsed.supported_mc_versions : []
     };
     _horizonLaunchApiCache.set(cacheKey, info);
+    try {
+      fs.writeFileSync(diskCachePath, JSON.stringify({ cacheKey, info }), 'utf8');
+    } catch (_) {}
     return info;
   } catch (_) {
     return fallback;
@@ -15085,10 +15272,16 @@ async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } =
   }
 
   callbacks.onStatus?.('🦀 Đang cập nhật mã máy BlockWay Rust (giữ nguyên tài nguyên game đã chuẩn bị)...');
-  extractZipSafely(archivePath, st.baseHorizonDir);
+  extractZipSafely(archivePath, st.baseHorizonDir, st.isPrepared ? {
+    filterEntry: (cleanRel) => !/(^|\/)(crates|tools|exporters)\//i.test(cleanRel)
+  } : {});
   try { fs.unlinkSync(archivePath); } catch (_) {}
 
   _horizonLaunchApiCache.clear();
+  try {
+    const launchApiDiskCache = path.join(st.engineRoot || st.baseHorizonDir, '.launch-api-cache.json');
+    if (fs.existsSync(launchApiDiskCache)) fs.unlinkSync(launchApiDiskCache);
+  } catch (_) {}
   const updatedStatus = getHorizonEngineStatus(effectiveRoot);
   if (updatedStatus.engineRoot && fs.existsSync(updatedStatus.engineRoot)) {
     try {
@@ -15231,6 +15424,46 @@ async function portJavaJarsToHorizonRust({
   const hmodsDir = path.join(effectiveGameDir, 'horizon-mods');
   const modsTxtPath = ensureHorizonModsDefaults(effectiveGameDir);
   const javaModsDir = path.join(effectiveGameDir, 'mods');
+  const isDefaultDirScan = onlyUncached && (!Array.isArray(jarPaths) || jarPaths.length === 0) && Boolean(scanModsDir || true);
+  const fastStampFile = path.join(hmodsDir, '.ported-jars-fast.json');
+  let fastStampKey = '';
+  if (isDefaultDirScan) {
+    fastStampKey = computeHorizonModsFastKey(effectiveGameDir);
+    if (_portedModsDirFastStamp.get(effectiveGameDir) === fastStampKey) {
+      return {
+        ok: true,
+        engine: 'blockway-rust',
+        total: 0,
+        ported: 0,
+        works: 0,
+        partly: 0,
+        skipped_code_only: 0,
+        cachedAll: true,
+        results: [],
+        hmodsDir
+      };
+    }
+    try {
+      if (fs.existsSync(fastStampFile)) {
+        const diskFast = JSON.parse(fs.readFileSync(fastStampFile, 'utf8'));
+        if (diskFast?.schema === 1 && diskFast?.key === fastStampKey) {
+          _portedModsDirFastStamp.set(effectiveGameDir, fastStampKey);
+          return {
+            ok: true,
+            engine: 'blockway-rust',
+            total: 0,
+            ported: 0,
+            works: 0,
+            partly: 0,
+            skipped_code_only: 0,
+            cachedAll: true,
+            results: [],
+            hmodsDir
+          };
+        }
+      }
+    } catch (_) {}
+  }
 
   let candidateJars = [];
   if (Array.isArray(jarPaths) && jarPaths.length > 0) {
@@ -15286,6 +15519,14 @@ async function portJavaJarsToHorizonRust({
       }
     });
     if (candidateJars.length === 0) {
+      if (isDefaultDirScan) {
+        const latestFastKey = computeHorizonModsFastKey(effectiveGameDir);
+        _portedModsDirFastStamp.set(effectiveGameDir, latestFastKey);
+        try {
+          fs.mkdirSync(hmodsDir, { recursive: true });
+          fs.writeFileSync(fastStampFile, JSON.stringify({ schema: 1, key: latestFastKey }), 'utf8');
+        } catch (_) {}
+      }
       return {
         ok: true,
         engine: 'blockway-rust',
@@ -15398,6 +15639,13 @@ async function portJavaJarsToHorizonRust({
   }
   const results = [...directDpResults, ...cliResults];
   writePortedJarsCache(hmodsDir, cache);
+  if (isDefaultDirScan) {
+    const doneFastKey = computeHorizonModsFastKey(effectiveGameDir);
+    _portedModsDirFastStamp.set(effectiveGameDir, doneFastKey);
+    try {
+      fs.writeFileSync(fastStampFile, JSON.stringify({ schema: 1, key: doneFastKey }), 'utf8');
+    } catch (_) {}
+  }
 
   const hmodsCreated = Number(parsed?.hmods_created ?? parsed?.hmod ?? 0);
   const datapacksCreated = directDpResults.length + cliResults.filter((r) => r?.kind === 'datapack' && r?.verdict !== 'no').length;
@@ -15871,10 +16119,11 @@ async function deleteHorizonRustMod({ gameDir = '', rootDir = '', modId = '', fi
       }
     } catch (_) {}
   }
+  invalidateHorizonModsFastStamp(effectiveGameDir);
   return { ok: true, id: cleanId, kind, deletedPath: targetPath };
 }
 
-async function ensureHorizonEnginePrepared({ rootDir, callbacks = {}, autoUpgrade = true } = {}) {
+async function ensureHorizonEnginePrepared({ rootDir, callbacks = {}, autoUpgrade = false } = {}) {
   const effectiveRoot = rootDir && String(rootDir).trim() ? String(rootDir).trim() : getDefaultGameDir();
   const spec = getHorizonPlatformSpec();
   if (!spec.supported) {
@@ -15882,6 +16131,9 @@ async function ensureHorizonEnginePrepared({ rootDir, callbacks = {}, autoUpgrad
   }
 
   let st = getHorizonEngineStatus(effectiveRoot);
+  if (st.engineInstalled && st.isPrepared && (!autoUpgrade || st.isBlockWayRust)) {
+    return st;
+  }
 
   // 1. Download & Extract BlockWay Rust Engine binary bundle from unified blockway-launcher GitHub repo (with upstream fallback)
   if (!st.engineInstalled) {
@@ -16201,7 +16453,7 @@ async function launchHorizonRustClient({
     skinModel = 'default'
   } = config;
 
-  const hz = await ensureHorizonEnginePrepared({ rootDir, callbacks });
+  const hz = await ensureHorizonEnginePrepared({ rootDir, callbacks, autoUpgrade: false });
   ensureHorizonModsDefaults(gameDirectory);
 
   // Auto-compile any newly added Java .jar mods in <gameDirectory>/mods/ into real Rust packages before launch!
@@ -16231,7 +16483,11 @@ async function launchHorizonRustClient({
 
   // 1. Write horizon-player.txt in gameDirectory so Horizon offline UUID & name persist cleanly
   try {
-    fs.writeFileSync(path.join(gameDirectory, 'horizon-player.txt'), `name:${safeName}\n`, 'utf8');
+    const playerTxtPath = path.join(gameDirectory, 'horizon-player.txt');
+    const desiredPlayerTxt = `name:${safeName}\n`;
+    if (!fs.existsSync(playerTxtPath) || fs.readFileSync(playerTxtPath, 'utf8') !== desiredPlayerTxt) {
+      fs.writeFileSync(playerTxtPath, desiredPlayerTxt, 'utf8');
+    }
   } catch (_) {}
 
   // 2. Configure horizon-graphics.txt (auto / vulkan / dx12)
@@ -16257,7 +16513,10 @@ async function launchHorizonRustClient({
       for (const [k, v] of Object.entries(desiredPairs)) {
         if (!seen.has(k)) updated.push(`${k}:${v}`);
       }
-      fs.writeFileSync(filePath, updated.filter((l, i, arr) => l !== '' || i < arr.length - 1).join('\n') + '\n', 'utf8');
+      const nextText = updated.filter((l, i, arr) => l !== '' || i < arr.length - 1).join('\n') + '\n';
+      if (nextText !== raw) {
+        fs.writeFileSync(filePath, nextText, 'utf8');
+      }
     } catch (_) {}
   };
 
@@ -16353,7 +16612,7 @@ async function launchHorizonRustClient({
 
   const displayMcVer = String(config.requestedMcVersion || hz.targetMcVersion || '26.3');
   const targetDataVerId = worldCreator.getMcDataVersionId(displayMcVer, 5023);
-  const apiInfo = probeHorizonLaunchApi(hz.clientPath);
+  const apiInfo = probeHorizonLaunchApi(hz.clientPath, hz.buildMeta);
   if (apiInfo.supportsMcVersion) {
     args.push('--mc-version', displayMcVer, '--pregen');
   }
@@ -16416,38 +16675,56 @@ async function launchHorizonRustClient({
   try {
     const savesDir = path.join(gameDirectory, 'saves');
     if (fs.existsSync(savesDir)) {
-      const cleanDatafixDirs = (dir, depth = 0) => {
-        if (depth > 5 || !fs.existsSync(dir)) return;
-        for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
-          if (!ent.isDirectory()) continue;
-          const full = path.join(dir, ent.name);
-          if (ent.name === '.datafix') {
-            try { fs.rmSync(full, { recursive: true, force: true }); } catch (_) {}
-          } else {
-            cleanDatafixDirs(full, depth + 1);
-          }
-        }
+      const rmIfDatafix = (candidate) => {
+        try {
+          if (fs.existsSync(candidate)) fs.rmSync(candidate, { recursive: true, force: true });
+        } catch (_) {}
       };
-      cleanDatafixDirs(savesDir, 0);
+      rmIfDatafix(path.join(savesDir, '.datafix'));
       for (const ent of fs.readdirSync(savesDir, { withFileTypes: true })) {
         if (!ent.isDirectory()) continue;
         const wDir = path.join(savesDir, ent.name);
+        rmIfDatafix(path.join(wDir, '.datafix'));
+        const regionDir = path.join(wDir, 'region');
+        rmIfDatafix(path.join(regionDir, '.datafix'));
+        const dimsRoot = path.join(wDir, 'dimensions');
+        if (fs.existsSync(dimsRoot)) {
+          try {
+            for (const nsEnt of fs.readdirSync(dimsRoot, { withFileTypes: true })) {
+              if (!nsEnt.isDirectory()) continue;
+              const nsPath = path.join(dimsRoot, nsEnt.name);
+              for (const dimEnt of fs.readdirSync(nsPath, { withFileTypes: true })) {
+                if (!dimEnt.isDirectory()) continue;
+                rmIfDatafix(path.join(nsPath, dimEnt.name, '.datafix'));
+              }
+            }
+          } catch (_) {}
+        }
+
         const levelDatFile = path.join(wDir, 'level.dat');
         const hasLevelDat = fs.existsSync(levelDatFile) || fs.existsSync(path.join(wDir, 'level.dat_old'));
-        const hasRegions = fs.existsSync(path.join(wDir, 'region')) || fs.existsSync(path.join(wDir, 'dimensions'));
+        const hasRegions = fs.existsSync(regionDir) || fs.existsSync(dimsRoot);
         if (!hasLevelDat && !hasRegions) {
           try { fs.rmSync(wDir, { recursive: true, force: true }); } catch (_) {}
           continue;
         }
         // Auto-backup untouched pre-26.3 Java world once before Horizon's Rust DataFixer upgrades its chunks
-        if (fs.existsSync(levelDatFile) && fs.existsSync(path.join(wDir, 'region')) && !fs.existsSync(path.join(wDir, 'dimensions'))) {
+        // Skip synchronous zip on large worlds (> 48 MB) so Play launches instantaneously (< 1s)
+        if (fs.existsSync(levelDatFile) && fs.existsSync(regionDir) && !fs.existsSync(dimsRoot)) {
           try {
-            const backupsDir = path.join(gameDirectory, 'backups');
-            fs.mkdirSync(backupsDir, { recursive: true });
-            const safePrefix = ent.name.replace(/[^a-zA-Z0-9_-]/g, '_');
-            const alreadyBackedUp = fs.readdirSync(backupsDir).some((fn) => fn.startsWith(`${safePrefix}__JAVA_ORIG`));
-            if (!alreadyBackedUp) {
-              backupLocalWorld(gameDirectory, ent.name, 'JAVA_ORIG');
+            let regionBytes = 0;
+            for (const rf of fs.readdirSync(regionDir)) {
+              try { regionBytes += fs.statSync(path.join(regionDir, rf)).size; } catch (_) {}
+              if (regionBytes > 48 * 1024 * 1024) break;
+            }
+            if (regionBytes <= 48 * 1024 * 1024) {
+              const backupsDir = path.join(gameDirectory, 'backups');
+              fs.mkdirSync(backupsDir, { recursive: true });
+              const safePrefix = ent.name.replace(/[^a-zA-Z0-9_-]/g, '_');
+              const alreadyBackedUp = fs.readdirSync(backupsDir).some((fn) => fn.startsWith(`${safePrefix}__JAVA_ORIG`));
+              if (!alreadyBackedUp) {
+                backupLocalWorld(gameDirectory, ent.name, 'JAVA_ORIG');
+              }
             }
           } catch (_) {}
         }
@@ -16511,7 +16788,7 @@ async function launchHorizonRustClient({
       }
     }
   };
-  const readyFallbackTimer = setTimeout(notifyReadyOnce, 1800);
+  const readyFallbackTimer = setTimeout(notifyReadyOnce, 550);
 
   const emitGameLog = createLogThrottle((l) => callbacks.onLog?.(l), 120);
   let sawRustPanic = false;
@@ -16522,7 +16799,13 @@ async function launchHorizonRustClient({
       const line = rawLine.trim();
       if (!line) continue;
       emitGameLog(`[Horizon Rust] ${line}`);
-      if (line.includes('Horizon ') || line.includes('Render thread') || line.includes('Graphics')) {
+      if (
+        line.includes('loading screen shown')
+        || line.includes('presenting the first frame')
+        || line.includes('Horizon ')
+        || line.includes('Render thread')
+        || line.includes('Graphics')
+      ) {
         notifyReadyOnce();
       }
     }

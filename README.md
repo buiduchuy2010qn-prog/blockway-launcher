@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v42.4.0 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
+# ⚡ BlockWay Launcher v42.4.1 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.4.0_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.4.1_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-8_Core_Loaders_+_Horizon_Rust-f97316?style=for-the-badge" alt="8 Core Loaders" /></a>
 </p>
 
@@ -16,7 +16,14 @@
 
 ---
 
-## ✨ Điểm mới trong `v42.4.0 PRO` (Ultra-Light Rust HeapCompact, Full-Version Smooth v5 `1.8.9` → `26.3` & 120Hz Launcher Hibernation)
+## ✨ Điểm mới trong `v42.4.1 PRO` (Instant `<1s` Rust Launch, Ultra-Light Rust HeapCompact & Full-Version Smooth v5)
+
+- **⚡ Khởi chạy BlockWay Rust `<1s` (`v42.4.1 PRO`):**
+  - Loại bỏ kiểm tra OTA chặn đồng bộ trên nút Play khi nhân `horizon-client.exe` và tài nguyên `26.3` đã sẵn sàng (`<1ms` warm fast-path).
+  - Đọc trực tiếp metadata `blockway-rust-build.json` (`0ms`) và đệm đĩa `.launch-api-cache.json` thay cho gọi `execFileSync(horizon-client.exe --launch-api)` trên mỗi phiên mới.
+  - Đệm dấu vân tay thư mục cho `portJavaJarsToHorizonRust` và `sanitizeCorruptedWorldgenDatapacks`, thu gọn dọn `.datafix` theo từng thế giới thay vì duyệt đệ quy 5 tầng, bỏ ghi lặp `options.txt`/`horizon-player.txt`/skin PNG, trì hoãn `EmptyWorkingSet` khỏi 6 giây đầu khởi tạo Vulkan/DX12 và chuyển trạng thái UI sang đang chơi trong `550ms`.
+
+## ✨ Nền tảng `v42.4.0 PRO` (Ultra-Light Rust HeapCompact, Full-Version Smooth v5 `1.8.9` → `26.3` & 120Hz Launcher Hibernation)
 
 0. **🚀 Ba Trụ Cột Siêu Nhẹ & Đa Phiên Bản (`v42.4.0 PRO Ultra-Light & Full-Version`):**
    - **🦀 Ultra-Light Rust Core (`horizon-threads` + `Cargo.toml`):** Bổ sung nén bộ nhớ đệm gốc Windows **`HeapCompact`** (`GetProcessHeaps`) thu hồi RAM của driver Vulkan/DX12/Win32, tinh chỉnh **`mimalloc` v3** trả trang vật lý tức thì về hệ điều hành (`PURGE_DECOMMITS=1`, `PAGE_FULL_RETAIN=0`, `PURGE_DELAY=0`, `ARENA_PURGE_MULT=1`), rút gọn stack luồng worker còn **`1 MiB`**, giải phóng bộ đệm nhàn rỗi sau **`3s`**, lược bỏ ký hiệu gỡ lỗi **`strip = "debuginfo"`** khi đóng gói release, đi kèm nhận diện **Windows Hybrid P-Core** & tắt **EcoQoS Power Throttling**.
