@@ -97,7 +97,7 @@ async function authenticateXboxLiveWithFallback(msAccessToken) {
   throw new Error(`Lỗi xác thực Xbox Live (HTTP ${lastStatus}).`);
 }
 
-async function authenticateMinecraftChain({ code, refreshToken, redirectUri }) {
+async function authenticateMinecraftChain({ code, refreshToken, redirectUri, knownProfile = null }) {
   const tokenParams = new URLSearchParams({
     client_id: AZURE_CLIENT_ID,
     scope: AZURE_SCOPE
@@ -189,6 +189,23 @@ async function authenticateMinecraftChain({ code, refreshToken, redirectUri }) {
 
   const mcLoginData = await mcLoginRes.json();
   const mcAccessToken = mcLoginData.access_token;
+  const expiresAt = Date.now() + ((mcLoginData.expires_in || 86400) * 1000) - 60000;
+
+  if (!code && refreshToken && knownProfile && knownProfile.isOfficialLicense && knownProfile.uuid && knownProfile.name) {
+    const resolvedEmail = knownProfile.email || msEmail;
+    return {
+      name: knownProfile.name,
+      displayName: knownProfile.displayName || (resolvedEmail ? `${knownProfile.name} (${resolvedEmail})` : knownProfile.name),
+      email: resolvedEmail,
+      uuid: formatUUID(knownProfile.uuid),
+      accessToken: mcAccessToken,
+      refreshToken: msData.refresh_token || refreshToken,
+      xuid,
+      isOfficialLicense: true,
+      expiresAt,
+      skinUrl: knownProfile.skinUrl || null
+    };
+  }
 
   // STRICT MOJANG JAVA EDITION OWNERSHIP CHECK
   const profileRes = await fetch('https://api.minecraftservices.com/minecraft/profile', {
@@ -217,10 +234,10 @@ async function authenticateMinecraftChain({ code, refreshToken, redirectUri }) {
     email: msEmail,
     uuid: formattedUuid,
     accessToken: mcAccessToken,
-    refreshToken: msData.refresh_token,
+    refreshToken: msData.refresh_token || refreshToken,
     xuid: xuid,
     isOfficialLicense: true,
-    expiresAt: Date.now() + ((mcLoginData.expires_in || 86400) * 1000) - 60000,
+    expiresAt,
     skinUrl: profileData.skins?.[0]?.url || null
   };
 }
@@ -441,8 +458,21 @@ async function loginWithMicrosoftModal(parentWindow) {
   return openMicrosoftLoginPopup(parentWindow);
 }
 
-async function authenticateMicrosoftFromRefreshToken(refreshToken) {
-  return authenticateMinecraftChain({ refreshToken });
+const _inflightMsRefreshByToken = new Map();
+
+async function authenticateMicrosoftFromRefreshToken(refreshToken, knownProfile = null) {
+  const tokenKey = String(refreshToken || '').trim();
+  if (!tokenKey) {
+    throw new Error('Thiếu mã làm mới tài khoản Microsoft (refresh_token).');
+  }
+  if (_inflightMsRefreshByToken.has(tokenKey)) {
+    return _inflightMsRefreshByToken.get(tokenKey);
+  }
+  const job = authenticateMinecraftChain({ refreshToken: tokenKey, knownProfile }).finally(() => {
+    _inflightMsRefreshByToken.delete(tokenKey);
+  });
+  _inflightMsRefreshByToken.set(tokenKey, job);
+  return job;
 }
 
 let activeBrowserServer = null;

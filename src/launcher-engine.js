@@ -2158,10 +2158,57 @@ function computeWorldgenDpStamp(dpDir) {
   }
 }
 
+const _worldgenFastDirStamp = new Map();
+
+function computeWorldgenFastDirSig(effectiveGameDir) {
+  try {
+    const parts = [];
+    const nwdRoot = path.join(effectiveGameDir, 'new-world-datapacks');
+    if (fs.existsSync(nwdRoot)) {
+      const nwdStat = fs.statSync(nwdRoot);
+      const nwdKids = fs.readdirSync(nwdRoot, { withFileTypes: true })
+        .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
+        .map((e) => `${e.name}:${Math.floor(fs.statSync(path.join(nwdRoot, e.name)).mtimeMs)}`)
+        .sort();
+      parts.push(`nwd:${Math.floor(nwdStat.mtimeMs)}:${nwdKids.join(',')}`);
+    }
+    const scanSavesSig = (savesDir, tag) => {
+      if (!fs.existsSync(savesDir)) return;
+      const sStat = fs.statSync(savesDir);
+      const wParts = [];
+      for (const wEnt of fs.readdirSync(savesDir, { withFileTypes: true })) {
+        if (!wEnt.isDirectory() || wEnt.name.startsWith('.')) continue;
+        const wDpRoot = path.join(savesDir, wEnt.name, 'datapacks');
+        if (!fs.existsSync(wDpRoot)) continue;
+        const dpStat = fs.statSync(wDpRoot);
+        const dpKids = fs.readdirSync(wDpRoot, { withFileTypes: true })
+          .filter((d) => d.isDirectory() && !d.name.startsWith('.'))
+          .map((d) => d.name)
+          .sort()
+          .join(',');
+        wParts.push(`${wEnt.name}:${Math.floor(dpStat.mtimeMs)}:${dpKids}`);
+      }
+      wParts.sort();
+      parts.push(`${tag}:${Math.floor(sStat.mtimeMs)}:${wParts.join(';')}`);
+    };
+    scanSavesSig(path.join(effectiveGameDir, 'saves'), 'main');
+    if (path.basename(effectiveGameDir) !== 'horizon-rust') {
+      scanSavesSig(path.join(effectiveGameDir, 'horizon-rust', 'saves'), 'rust');
+    }
+    return parts.join('|') || 'empty';
+  } catch (_) {
+    return '';
+  }
+}
+
 function sanitizeCorruptedWorldgenDatapacks(gameDir, callbacks = {}) {
   const effectiveGameDir = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
   const report = { repairedInSaves: [], quarantined: [] };
   try {
+    const fastSig = computeWorldgenFastDirSig(effectiveGameDir);
+    if (fastSig && _worldgenFastDirStamp.get(effectiveGameDir) === fastSig) {
+      return report;
+    }
     const quarantineBase = path.join(effectiveGameDir, 'horizon-mods', '.quarantine-datapacks');
     const guardCachePath = path.join(effectiveGameDir, 'horizon-mods', '.worldgen-guard-cache.json');
     let diskCache = {};
@@ -2242,9 +2289,11 @@ function sanitizeCorruptedWorldgenDatapacks(gameDir, callbacks = {}) {
       }
     };
     healWorldSavesRoot(path.join(effectiveGameDir, 'saves'), '');
-    const rustSavesDir = path.join(effectiveGameDir, 'horizon-rust', 'saves');
-    if (fs.existsSync(rustSavesDir)) {
-      healWorldSavesRoot(rustSavesDir, 'horizon-rust/');
+    if (path.basename(effectiveGameDir) !== 'horizon-rust') {
+      const rustSavesDir = path.join(effectiveGameDir, 'horizon-rust', 'saves');
+      if (fs.existsSync(rustSavesDir)) {
+        healWorldSavesRoot(rustSavesDir, 'horizon-rust/');
+      }
     }
 
     if (cacheDirty) {
@@ -2253,6 +2302,9 @@ function sanitizeCorruptedWorldgenDatapacks(gameDir, callbacks = {}) {
         fs.writeFileSync(guardCachePath, JSON.stringify(diskCache), 'utf8');
       } catch (_) {}
     }
+
+    const doneSig = computeWorldgenFastDirSig(effectiveGameDir);
+    if (doneSig) _worldgenFastDirStamp.set(effectiveGameDir, doneSig);
 
     if (report.repairedInSaves.length > 0) {
       callbacks.onStatus?.(`🛡️ Đã tự động khôi phục ${report.repairedInSaves.length} gói Datapack 26.3 bị lỗi trong Thế giới!`);
@@ -5775,10 +5827,33 @@ function deleteLocalAddon(gameDir, folderType, fileName) {
   return { ok: true };
 }
 
+const _verifiedRustWorkspaces = new Map();
+
 function ensureHorizonRustWorkspace(rootDir) {
   const baseRoot = rootDir && String(rootDir).trim() ? path.resolve(String(rootDir).trim()) : getDefaultGameDir();
   const rustWsDir = path.join(baseRoot, 'horizon-rust');
   const rustSavesDir = path.join(rustWsDir, 'saves');
+  const migStampPath = path.join(rustWsDir, '.saves-migrated-v1.json');
+  const srcModsTxt = path.join(baseRoot, 'horizon-mods.txt');
+  const dstModsTxt = path.join(rustWsDir, 'horizon-mods.txt');
+
+  if (_verifiedRustWorkspaces.has(baseRoot) && fs.existsSync(rustSavesDir) && fs.existsSync(migStampPath)) {
+    try {
+      const srcMtime = fs.existsSync(srcModsTxt) ? fs.statSync(srcModsTxt).mtimeMs : -1;
+      if (srcMtime !== _verifiedRustWorkspaces.get(baseRoot)) {
+        if (srcMtime >= 0) {
+          const wantTxt = fs.readFileSync(srcModsTxt, 'utf8');
+          const haveTxt = fs.existsSync(dstModsTxt) ? fs.readFileSync(dstModsTxt, 'utf8') : null;
+          if (haveTxt !== wantTxt) {
+            fs.writeFileSync(dstModsTxt, wantTxt, 'utf8');
+          }
+        }
+        _verifiedRustWorkspaces.set(baseRoot, srcMtime);
+      }
+    } catch (_) {}
+    return rustWsDir;
+  }
+
   fs.mkdirSync(rustSavesDir, { recursive: true });
 
   const sharedFolders = ['resourcepacks', 'shaderpacks', 'horizon-mods', 'new-world-datapacks', 'screenshots', 'backups', 'CustomSkinLoader'];
@@ -5797,10 +5872,27 @@ function ensureHorizonRustWorkspace(rootDir) {
     }
   }
 
+  // Seed .horizon-cache from baseRoot/.horizon-cache via junction (or copy fallback) so Rust client reuses warm caches
   try {
-    const srcModsTxt = path.join(baseRoot, 'horizon-mods.txt');
-    const dstModsTxt = path.join(rustWsDir, 'horizon-mods.txt');
+    const srcCache = path.join(baseRoot, '.horizon-cache');
+    const dstCache = path.join(rustWsDir, '.horizon-cache');
+    if (fs.existsSync(srcCache)) {
+      let dstCacheExists = false;
+      try { fs.lstatSync(dstCache); dstCacheExists = true; } catch (_) { dstCacheExists = false; }
+      if (!dstCacheExists) {
+        try {
+          fs.symlinkSync(srcCache, dstCache, process.platform === 'win32' ? 'junction' : 'dir');
+        } catch (_) {
+          try { fs.cpSync(srcCache, dstCache, { recursive: true }); } catch (__) {}
+        }
+      }
+    }
+  } catch (_) {}
+
+  let syncedMtime = -1;
+  try {
     if (fs.existsSync(srcModsTxt)) {
+      syncedMtime = fs.statSync(srcModsTxt).mtimeMs;
       const wantTxt = fs.readFileSync(srcModsTxt, 'utf8');
       const haveTxt = fs.existsSync(dstModsTxt) ? fs.readFileSync(dstModsTxt, 'utf8') : null;
       if (haveTxt !== wantTxt) {
@@ -5819,7 +5911,6 @@ function ensureHorizonRustWorkspace(rootDir) {
     } catch (_) {}
   }
 
-  const migStampPath = path.join(rustWsDir, '.saves-migrated-v1.json');
   if (!fs.existsSync(migStampPath)) {
     const migrated = [];
     const copied = [];
@@ -5862,6 +5953,7 @@ function ensureHorizonRustWorkspace(rootDir) {
     } catch (_) {}
   }
 
+  _verifiedRustWorkspaces.set(baseRoot, syncedMtime);
   return rustWsDir;
 }
 
@@ -6409,6 +6501,43 @@ function supportsQuickPlaySingleplayer(mcVer) {
   return false;
 }
 
+function isMicrosoftTokenFresh(msProfile, bufferMs = 5 * 60 * 1000) {
+  if (!msProfile || typeof msProfile !== 'object') return false;
+  if (!msProfile.isOfficialLicense || !msProfile.accessToken || !msProfile.uuid || !msProfile.name) return false;
+  const exp = Number(msProfile.expiresAt) || 0;
+  return exp > Date.now() + Math.max(0, Number(bufferMs) || 0);
+}
+
+async function resolveMicrosoftLaunchProfile(msProfile, {
+  requireOnlineSession = true,
+  refreshFn = msAuth.authenticateMicrosoftFromRefreshToken,
+  onRefreshed = null
+} = {}) {
+  if (!msProfile || typeof msProfile !== 'object') return msProfile;
+  if (isMicrosoftTokenFresh(msProfile)) {
+    return msProfile;
+  }
+  if (!msProfile.isOfficialLicense || !msProfile.refreshToken || typeof refreshFn !== 'function') {
+    return msProfile;
+  }
+  const runRefresh = async () => {
+    const fresh = await refreshFn(msProfile.refreshToken, msProfile);
+    if (fresh && fresh.accessToken && typeof onRefreshed === 'function') {
+      try { onRefreshed(fresh); } catch (_) {}
+    }
+    return fresh;
+  };
+  if (!requireOnlineSession) {
+    runRefresh().catch(() => {});
+    return msProfile;
+  }
+  try {
+    return await runRefresh();
+  } catch (_) {
+    return msProfile;
+  }
+}
+
 async function launchMinecraft(config, callbacks = {}) {
   const {
     authMode = 'crack',
@@ -6463,17 +6592,28 @@ async function launchMinecraft(config, callbacks = {}) {
   }
   const skinRoot = gameDirectory;
 
+  const normalizedCore = String(loaderType || '').toLowerCase().trim();
+  const isBlockWayRustSelected = normalizedCore === 'blockway-rust';
+  const isHorizonSelected = isRustCoreType(normalizedCore);
+  const resolvedRustMcVersion = loaderVersion === 'horizon-switch-26.3'
+    ? '26.3'
+    : (loaderVersion === 'horizon-switch-1.21.11' ? '1.21.11' : String(mcVersion || '26.3'));
+  const isRustHorizonLaunch = isHorizonSelected && (
+    (isMcVersionRustHorizonSupported(resolvedRustMcVersion, normalizedCore) && !['horizon-hybrid-java', 'horizon-hybrid-turbo', 'horizon-hybrid-esports'].includes(String(loaderVersion || '')))
+    || loaderVersion === 'horizon-switch-26.3'
+    || loaderVersion === 'horizon-switch-1.21.11'
+  );
+  const hasOnlineServerTarget = Boolean(serverIp && String(serverIp).trim());
+
   let authorization;
   if (authMode === 'microsoft' && msProfile && msProfile.name) {
-    callbacks.onStatus?.(`Đang xác thực tài khoản Microsoft (${msProfile.displayName || msProfile.name})...`);
-    let activeProfile = msProfile;
-    if (msProfile.isOfficialLicense && msProfile.refreshToken && typeof msAuth.authenticateMicrosoftFromRefreshToken === 'function') {
-      try {
-        activeProfile = await msAuth.authenticateMicrosoftFromRefreshToken(msProfile.refreshToken);
-      } catch (_) {
-        activeProfile = msProfile;
-      }
+    if (!isMicrosoftTokenFresh(msProfile) && (!isRustHorizonLaunch || hasOnlineServerTarget)) {
+      callbacks.onStatus?.(`Đang xác thực tài khoản Microsoft (${msProfile.displayName || msProfile.name})...`);
     }
+    const activeProfile = await resolveMicrosoftLaunchProfile(msProfile, {
+      requireOnlineSession: !isRustHorizonLaunch || hasOnlineServerTarget,
+      onRefreshed: callbacks.onMsProfileRefreshed
+    });
     if (activeProfile.isOfficialLicense && activeProfile.accessToken) {
       authorization = {
         access_token: activeProfile.accessToken,
@@ -6522,37 +6662,35 @@ async function launchMinecraft(config, callbacks = {}) {
 
   // v40.4 PRO: Apply smart in-game options.txt presets (Vietnamese language & Low-PC smooth FPS preset)
   const gentleOn = gentleSmoothMode !== false;
-  applySmartGameOptions(gameDirectory, {
-    autoViLang: Boolean(autoViLang),
-    potatoGraphicsPreset: Boolean(potatoGraphicsPreset),
-    fpsCap: gentleOn ? computeGentleFpsCap(displayHz) : 0
-  });
+  if (!(isRustHorizonLaunch && gameDirectory === rootDir)) {
+    applySmartGameOptions(gameDirectory, {
+      autoViLang: Boolean(autoViLang),
+      potatoGraphicsPreset: Boolean(potatoGraphicsPreset),
+      fpsCap: gentleOn ? computeGentleFpsCap(displayHz) : 0
+    });
 
-  // v40.8 PRO: "Mượt Êm" — trim wasted work once per folder (reversible), never stress the hardware
-  try {
-    const gentleRes = applyGentleSmoothOptions(gameDirectory, { enabled: gentleOn, displayHz });
-    if (gentleOn && gentleRes?.changed?.length) {
-      callbacks.onStatus?.(`🍃 Mượt Êm: Đã tinh chỉnh nhẹ ${gentleRes.changed.length} thiết lập (khóa ${gentleRes.fpsCap} FPS theo màn hình, giảm tải CPU mô phỏng) — không ép CPU/GPU.`);
-    } else if (!gentleOn && gentleRes?.reverted) {
-      callbacks.onStatus?.(`↩️ Đã tắt Mượt Êm: khôi phục ${gentleRes.reverted} thiết lập đồ họa gốc của bạn.`);
-    }
-  } catch (_) {}
+    // v40.8 PRO: "Mượt Êm" — trim wasted work once per folder (reversible), never stress the hardware
+    try {
+      const gentleRes = applyGentleSmoothOptions(gameDirectory, { enabled: gentleOn, displayHz });
+      if (gentleOn && gentleRes?.changed?.length) {
+        callbacks.onStatus?.(`🍃 Mượt Êm: Đã tinh chỉnh nhẹ ${gentleRes.changed.length} thiết lập (khóa ${gentleRes.fpsCap} FPS theo màn hình, giảm tải CPU mô phỏng) — không ép CPU/GPU.`);
+      } else if (!gentleOn && gentleRes?.reverted) {
+        callbacks.onStatus?.(`↩️ Đã tắt Mượt Êm: khôi phục ${gentleRes.reverted} thiết lập đồ họa gốc của bạn.`);
+      }
+    } catch (_) {}
+  }
 
-  const normalizedCore = String(loaderType || '').toLowerCase().trim();
-  const isBlockWayRustSelected = normalizedCore === 'blockway-rust';
-  const isHorizonSelected = isRustCoreType(normalizedCore);
-  const resolvedRustMcVersion = loaderVersion === 'horizon-switch-26.3'
-    ? '26.3'
-    : (loaderVersion === 'horizon-switch-1.21.11' ? '1.21.11' : String(mcVersion || '26.3'));
-  const isRustHorizonLaunch = isHorizonSelected && (
-    (isMcVersionRustHorizonSupported(resolvedRustMcVersion, normalizedCore) && !['horizon-hybrid-java', 'horizon-hybrid-turbo', 'horizon-hybrid-esports'].includes(String(loaderVersion || '')))
-    || loaderVersion === 'horizon-switch-26.3'
-    || loaderVersion === 'horizon-switch-1.21.11'
-  );
   if (isRustHorizonLaunch) {
     let rustGameDirectory = gameDirectory;
     if (gameDirectory === rootDir) {
       rustGameDirectory = ensureHorizonRustWorkspace(rootDir);
+      if (autoViLang || potatoGraphicsPreset) {
+        applySmartGameOptions(rustGameDirectory, {
+          autoViLang: Boolean(autoViLang),
+          potatoGraphicsPreset: Boolean(potatoGraphicsPreset),
+          fpsCap: 0
+        });
+      }
     } else {
       // If launching an isolated Modpack instance on Horizon Rust, auto-port its mods/datapacks/overrides first so new worlds inherit its datapacks & shaders!
       try {
@@ -15390,30 +15528,44 @@ async function upgradeHorizonEngine({ rootDir, force = false, callbacks = {} } =
     throw new Error(`Chặn URL tải Nhân BlockWay Rust ngoài GitHub: ${parsedDownloadUrl.hostname}`);
   }
 
-  callbacks.onStatus?.(`🦀 Đang nâng cấp Nhân BlockWay Rust chính chủ từ GitHub (#${remoteCommit.slice(0, 7) || 'latest'})...`);
-  await downloadFileWithProgress(downloadUrl, archivePath, (p) => {
-    callbacks.onProgress?.({ type: 'horizon-upgrade', task: p.task, total: p.total, percent: p.percent });
-    callbacks.onStatus?.(
-      `🦀 Đang tải Nhân BlockWay Rust từ GitHub: ${p.percent}% (${(p.task / 1048576).toFixed(1)} / ${(p.total / 1048576).toFixed(1)} MB)...`
-    );
-  });
-
-  if (!fs.existsSync(archivePath) || fs.statSync(archivePath).size < 5 * 1024 * 1024) {
-    try { fs.unlinkSync(archivePath); } catch (_) {}
-    throw new Error('Gói nâng cấp Nhân BlockWay Rust tải về không hợp lệ.');
+  const expectedSha = String(remoteManifest.sha256 || '').trim().toLowerCase();
+  let haveValidArchive = false;
+  if (expectedSha && fs.existsSync(archivePath) && fs.statSync(archivePath).size > 5 * 1024 * 1024) {
+    try {
+      const cachedSha = crypto.createHash('sha256').update(fs.readFileSync(archivePath)).digest('hex').toLowerCase();
+      if (cachedSha === expectedSha) haveValidArchive = true;
+    } catch (_) {}
   }
 
-  const expectedSha = String(remoteManifest.sha256 || '').trim().toLowerCase();
-  if (expectedSha) {
-    if (!/^[a-f0-9]{64}$/.test(expectedSha)) {
+  if (!haveValidArchive) {
+    callbacks.onStatus?.(`🦀 Đang nâng cấp Nhân BlockWay Rust chính chủ từ GitHub (#${remoteCommit.slice(0, 7) || 'latest'})...`);
+    await downloadFileWithProgress(downloadUrl, archivePath, (p) => {
+      callbacks.onProgress?.({ type: 'horizon-upgrade', task: p.task, total: p.total, percent: p.percent });
+      callbacks.onStatus?.(
+        `🦀 Đang tải Nhân BlockWay Rust từ GitHub: ${p.percent}% (${(p.task / 1048576).toFixed(1)} / ${(p.total / 1048576).toFixed(1)} MB)...`
+      );
+    });
+
+    if (!fs.existsSync(archivePath) || fs.statSync(archivePath).size < 5 * 1024 * 1024) {
       try { fs.unlinkSync(archivePath); } catch (_) {}
-      throw new Error('Mã băm SHA-256 trong manifest Nhân BlockWay Rust không hợp lệ.');
+      throw new Error('Gói nâng cấp Nhân BlockWay Rust tải về không hợp lệ.');
     }
-    const actualSha = crypto.createHash('sha256').update(fs.readFileSync(archivePath)).digest('hex').toLowerCase();
-    if (actualSha !== expectedSha) {
-      try { fs.unlinkSync(archivePath); } catch (_) {}
-      throw new Error(`Mã băm SHA-256 gói Nhân BlockWay Rust không khớp (kỳ vọng ${expectedSha.slice(0, 12)}, thực tế ${actualSha.slice(0, 12)}).`);
+
+    if (expectedSha) {
+      if (!/^[a-f0-9]{64}$/.test(expectedSha)) {
+        try { fs.unlinkSync(archivePath); } catch (_) {}
+        throw new Error('Mã băm SHA-256 trong manifest Nhân BlockWay Rust không hợp lệ.');
+      }
+      const actualSha = crypto.createHash('sha256').update(fs.readFileSync(archivePath)).digest('hex').toLowerCase();
+      if (actualSha !== expectedSha) {
+        try { fs.unlinkSync(archivePath); } catch (_) {}
+        throw new Error(`Mã băm SHA-256 gói Nhân BlockWay Rust không khớp (kỳ vọng ${expectedSha.slice(0, 12)}, thực tế ${actualSha.slice(0, 12)}).`);
+      }
     }
+  }
+
+  if (activeMcProcess) {
+    return { ok: false, skipped: true, reason: 'game_running', deferredArchivePath: archivePath };
   }
 
   callbacks.onStatus?.('🦀 Đang cập nhật mã máy BlockWay Rust (giữ nguyên tài nguyên game đã chuẩn bị)...');
@@ -16840,7 +16992,7 @@ async function launchHorizonRustClient({
   const coreTitleLabel = String(config.loaderType || '').toLowerCase() === 'blockway-rust' ? 'Nhân BlockWay Rust' : 'Engine Rust Horizon';
   callbacks.onStatus?.(`🦀 Đang phóng ${coreTitleLabel} (MC ${effectiveCliMcVer} • ${desiredGfx.toUpperCase()} • ${optWorkers} luồng • Nhân vật: ${safeName})...`);
 
-  // Clean up any leftover .datafix staging folders (prevents os error 145 on world upgrade) & empty ghost world folders
+  // Clean up any leftover .datafix staging folders in saves/ or the target quick-play world only (0ms on unaffected worlds)
   try {
     const savesDir = path.join(gameDirectory, 'saves');
     if (fs.existsSync(savesDir)) {
@@ -16850,31 +17002,19 @@ async function launchHorizonRustClient({
         } catch (_) {}
       };
       rmIfDatafix(path.join(savesDir, '.datafix'));
-      for (const ent of fs.readdirSync(savesDir, { withFileTypes: true })) {
-        if (!ent.isDirectory()) continue;
-        const wDir = path.join(savesDir, ent.name);
-        rmIfDatafix(path.join(wDir, '.datafix'));
-        const regionDir = path.join(wDir, 'region');
-        rmIfDatafix(path.join(regionDir, '.datafix'));
-        const dimsRoot = path.join(wDir, 'dimensions');
-        if (fs.existsSync(dimsRoot)) {
-          try {
-            for (const nsEnt of fs.readdirSync(dimsRoot, { withFileTypes: true })) {
-              if (!nsEnt.isDirectory()) continue;
-              const nsPath = path.join(dimsRoot, nsEnt.name);
-              for (const dimEnt of fs.readdirSync(nsPath, { withFileTypes: true })) {
-                if (!dimEnt.isDirectory()) continue;
-                rmIfDatafix(path.join(nsPath, dimEnt.name, '.datafix'));
-              }
-            }
-          } catch (_) {}
-        }
-
-        const levelDatFile = path.join(wDir, 'level.dat');
-        const hasLevelDat = fs.existsSync(levelDatFile) || fs.existsSync(path.join(wDir, 'level.dat_old'));
-        const hasRegions = fs.existsSync(regionDir) || fs.existsSync(dimsRoot);
-        if (!hasLevelDat && !hasRegions) {
-          try { fs.rmSync(wDir, { recursive: true, force: true }); } catch (_) {}
+      if (effectiveWorldFolder && String(effectiveWorldFolder).trim()) {
+        const cleanWorld = path.basename(String(effectiveWorldFolder).trim());
+        const wDir = path.join(savesDir, cleanWorld);
+        if (cleanWorld && fs.existsSync(wDir)) {
+          rmIfDatafix(path.join(wDir, '.datafix'));
+          const regionDir = path.join(wDir, 'region');
+          rmIfDatafix(path.join(regionDir, '.datafix'));
+          const levelDatFile = path.join(wDir, 'level.dat');
+          const hasLevelDat = fs.existsSync(levelDatFile) || fs.existsSync(path.join(wDir, 'level.dat_old'));
+          const hasRegions = fs.existsSync(regionDir) || fs.existsSync(path.join(wDir, 'dimensions'));
+          if (!hasLevelDat && !hasRegions) {
+            try { fs.rmSync(wDir, { recursive: true, force: true }); } catch (_) {}
+          }
         }
       }
     }
@@ -17142,5 +17282,7 @@ module.exports = {
   buildJavaAppCdsArgs,
   ensureWindowsHighPerfGpuPreference,
   computeOptimalHorizonWorkers,
-  ensureHorizonRustWorkspace
+  ensureHorizonRustWorkspace,
+  isMicrosoftTokenFresh,
+  resolveMicrosoftLaunchProfile
 };

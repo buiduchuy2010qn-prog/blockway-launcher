@@ -829,3 +829,81 @@ test('13. v42.5.0 PRO Hybrid U-Series Worker Unlock, Battery Unthrottling & Isol
     fs.rmSync(tmpRoot, { recursive: true, force: true });
   }
 });
+
+test('14. v42.5.1 PRO Instant 0ms Cached Microsoft Token, Non-Blocking Rust Singleplayer Refresh & Fast Workspace Cache', async () => {
+  const engine = require('../src/launcher-engine');
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-v4251-'));
+  try {
+    // 14a. Token freshness checks
+    const validProfile = {
+      name: 'Deadnated1',
+      uuid: 'db646d57-90e6-47b5-8183-95e9127ff0fc',
+      isOfficialLicense: true,
+      accessToken: 'fresh_token_abc',
+      refreshToken: 'refresh_token_xyz',
+      expiresAt: Date.now() + 20 * 60 * 1000
+    };
+    const expiredProfile = {
+      ...validProfile,
+      accessToken: 'stale_token_old',
+      expiresAt: Date.now() - 10 * 1000
+    };
+    const legacyExpiredProfile = {
+      ...validProfile,
+      accessToken: 'stale_token_1793',
+      expiresAt: 1793706953217
+    };
+    assert.equal(engine.isMicrosoftTokenFresh(validProfile), true);
+    assert.equal(engine.isMicrosoftTokenFresh(expiredProfile), false);
+    assert.equal(engine.isMicrosoftTokenFresh(legacyExpiredProfile), false);
+
+    // 14b. Fresh token returns immediately (< 5ms) with zero network refresh
+    const t0 = performance.now();
+    const resFresh = await engine.resolveMicrosoftLaunchProfile(validProfile, {
+      requireOnlineSession: true,
+      refreshFn: () => {
+        throw new Error('must not call network for fresh token');
+      }
+    });
+    const freshMs = performance.now() - t0;
+    assert.equal(resFresh, validProfile);
+    assert.ok(freshMs < 5, `Expected fresh token check < 5ms, got ${freshMs.toFixed(2)}ms`);
+
+    // 14c. Stale token during Rust singleplayer does not block launch & completes background refresh asynchronously
+    const expectedRefreshed = {
+      ...expiredProfile,
+      accessToken: 'refreshed_token_new',
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000
+    };
+    let onRefreshedCalledWith = null;
+    const t1 = performance.now();
+    const resNonBlocking = await engine.resolveMicrosoftLaunchProfile(expiredProfile, {
+      requireOnlineSession: false,
+      refreshFn: () => new Promise((resolve) => setTimeout(() => resolve(expectedRefreshed), 80)),
+      onRefreshed: (fresh) => {
+        onRefreshedCalledWith = fresh;
+      }
+    });
+    const nonBlockMs = performance.now() - t1;
+    assert.equal(resNonBlocking, expiredProfile);
+    assert.ok(nonBlockMs < 15, `Expected non-blocking Rust singleplayer auth < 15ms, got ${nonBlockMs.toFixed(2)}ms`);
+    assert.equal(onRefreshedCalledWith, null, 'Background refresh should still be in-flight right after launch return');
+    await new Promise((resolve) => setTimeout(resolve, 130));
+    assert.deepEqual(onRefreshedCalledWith, expectedRefreshed);
+
+    // 14d. ensureHorizonRustWorkspace seeds .horizon-cache & caches repeated calls (< 5ms)
+    const cacheSrcDir = path.join(tmpRoot, '.horizon-cache');
+    fs.mkdirSync(cacheSrcDir, { recursive: true });
+    fs.writeFileSync(path.join(cacheSrcDir, 'registry-v1.bin'), Buffer.from('warm-cache-bytes'));
+    const rustWs1 = engine.ensureHorizonRustWorkspace(tmpRoot);
+    assert.equal(fs.existsSync(path.join(rustWs1, '.horizon-cache', 'registry-v1.bin')), true);
+
+    const t2 = performance.now();
+    const rustWs2 = engine.ensureHorizonRustWorkspace(tmpRoot);
+    const warmWsMs = performance.now() - t2;
+    assert.equal(rustWs2, rustWs1);
+    assert.ok(warmWsMs < 5, `Expected warm ensureHorizonRustWorkspace < 5ms, got ${warmWsMs.toFixed(2)}ms`);
+  } finally {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});

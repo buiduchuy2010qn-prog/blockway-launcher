@@ -1,31 +1,31 @@
 {
-  "version": "42.5.0",
-  "releasedAt": "2026-11-18T11:23:15.518Z",
-  "notes": "v42.5.0 PRO — Mở khóa CPU Hybrid U-Series (gỡ trần 3 luồng worker trên chip dòng U), tắt giới hạn EcoQoS/BatteryMode khi dùng pin, khởi động Launcher lười tải siêu nhẹ, và tách riêng thế giới horizon-rust/saves chuẩn 26.3 (5023) tránh báo sai phiên bản 1.21.11.",
+  "version": "42.5.1",
+  "releasedAt": "2026-11-18T12:04:59.650Z",
+  "notes": "v42.5.1 PRO — Mở game Rust <1s ngay cả khi đăng nhập Microsoft: đệm token 24h (0ms khi bấm Chơi), bỏ chờ Xác thực Microsoft/Mojang chặn nút Play khi vào map đơn, đệm dấu vân tay workspace horizon-rust (nối sẵn .horizon-cache) & tự động nâng cấp ngầm Nhân Rust mới nhất.",
   "files": {
     "package.json": {
-      "sha256": "9fc12739594d87f244fe37a7ad58e154a9c089017e7851e05e7c12cb9b9569f8",
-      "size": 2540
+      "sha256": "c18bb27b4e40e4d7f03cdeba7dff4acd071fd42467498f71585dcf0853c905b4",
+      "size": 2602
     },
     "src/aether-cloud-auth.js": {
       "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
       "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "9b04c3276b7f38987a4be94ca15e8bab99f6c91299d69627d41b7467e1d203cf",
-      "size": 707743
+      "sha256": "b5f43d6c0751d710148403cc23cc4efaa832a4fd7211ed8ba52793561cb55256",
+      "size": 713243
     },
     "src/main.js": {
-      "sha256": "58f885e865879a44c722db43965d7d695a751c9c90e4ddf593bf02200bb33627",
-      "size": 122692
+      "sha256": "cc61fe7bd7b89dfd9892d6e4af53f6be7131032d7dede2c6675905eb990cbf79",
+      "size": 125294
     },
     "src/microsoft-auth.js": {
-      "sha256": "7df3ec8fd3fab2e80ca80ccaf4e7b7466d7f9de16d23e44c3caa15965555bd7d",
-      "size": 73434
+      "sha256": "f2742264a4e6ed66f3bba7d6c419db338a79886ce5d621e610abc3cea10b62a4",
+      "size": 74618
     },
     "src/preload.js": {
-      "sha256": "33ef9d18dec91c4cd9efc878abb1204dcca12ce5ef7ef6000ff495bcabff03ef",
-      "size": 16077
+      "sha256": "a3f73a54820ad9d058c8f1acb00953f898a46020d8e1cf7c936336be076b2883",
+      "size": 16204
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -84,8 +84,8 @@
       "size": 25697
     },
     "src/ui/index.html": {
-      "sha256": "32b8d35523881edf199b06d470b833df4bfca055dc77aa8a6794b749e0d513cf",
-      "size": 239411
+      "sha256": "493ae17ec21fecfb5cf981fcafa6b91d6095fce38b300ae8c214c924d48db505",
+      "size": 239353
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
@@ -100,8 +100,8 @@
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "3ebe6b217fca1b940e9a27efaa40a0edc2eb8099e0a58cbe016743d9de681f34",
-      "size": 183212
+      "sha256": "6eb9a779f78825825b9698cf6feee527cdf0b7c60bd31c8dc4a0df5045165c0d",
+      "size": 183773
     },
     "src/ui/skinview3d.bundle.js": {
       "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",

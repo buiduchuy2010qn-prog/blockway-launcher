@@ -734,6 +734,29 @@ if (gotSingleInstanceLock) {
     if (discordRpcEnabled) {
       setTimeout(() => setDiscordLobbyPresence(), 1200);
     }
+    const bgRustTimer = setTimeout(async () => {
+      if (mcGameRunning) return;
+      try {
+        const freshEngine = ensureBackendModulesLoaded();
+        let targetGameDir = freshEngine.getDefaultGameDir();
+        try {
+          if (fs.existsSync(configPath)) {
+            const rawCfg = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+            if (rawCfg?.gameDir && String(rawCfg.gameDir).trim()) {
+              targetGameDir = String(rawCfg.gameDir).trim();
+            }
+          }
+        } catch (_) {}
+        const hzSt = freshEngine.getHorizonEngineStatus(targetGameDir);
+        if (hzSt?.engineInstalled && !mcGameRunning) {
+          const upRes = await freshEngine.upgradeHorizonEngine({ rootDir: targetGameDir, force: false });
+          if (upRes?.upgraded && upRes.commit) {
+            mainWindow?.webContents.send('mc:status', `🦀 Đã tự động cập nhật ngầm Nhân BlockWay Rust bản mới nhất (#${String(upRes.commit).slice(0, 7)})!`);
+          }
+        }
+      } catch (_) {}
+    }, 4500);
+    bgRustTimer.unref?.();
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
@@ -931,6 +954,26 @@ ipcMain.handle('sys:trim-ram', async () => {
   return { ok: true, freeMemGB };
 });
 
+function persistRefreshedMsProfile(freshProfile) {
+  if (!freshProfile || typeof freshProfile !== 'object' || !freshProfile.accessToken) return false;
+  try {
+    let parsed = {};
+    if (fs.existsSync(configPath)) {
+      const raw = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (raw && typeof raw === 'object') {
+        parsed = transformConfigSecrets(raw, decryptSecretFromDisk);
+      }
+    }
+    parsed.msProfile = freshProfile;
+    const diskReady = transformConfigSecrets(parsed, encryptSecretForDisk);
+    fs.writeFileSync(configPath, JSON.stringify(diskReady, null, 2), { encoding: 'utf8', mode: 0o600 });
+    mainWindow?.webContents.send('auth:ms-refreshed', freshProfile);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 ipcMain.handle('cfg:load', async () => {
   try {
     if (fs.existsSync(configPath)) {
@@ -1042,9 +1085,10 @@ ipcMain.handle('auth:ms-login', async () => {
   }
 });
 
-ipcMain.handle('auth:ms-refresh', async (_e, refreshToken) => {
+ipcMain.handle('auth:ms-refresh', async (_e, refreshToken, knownProfile = null) => {
   try {
-    const profile = await authenticateMicrosoftFromRefreshToken(refreshToken);
+    const profile = await authenticateMicrosoftFromRefreshToken(refreshToken, knownProfile || null);
+    persistRefreshedMsProfile(profile);
     return { ok: true, profile };
   } catch (err) {
     return { ok: false, error: err.message };
@@ -1302,6 +1346,7 @@ ipcMain.handle('mc:launch', async (_e, config) => {
       onProgress: (p) => mainWindow?.webContents.send('mc:progress', p),
       onLog: (line) => mainWindow?.webContents.send('mc:log', line),
       onStatus: (st) => mainWindow?.webContents.send('mc:status', st),
+      onMsProfileRefreshed: (freshProfile) => persistRefreshedMsProfile(freshProfile),
       onCoopEvent: (ev) => {
         const localIps = getLocalLanIpAddresses();
         mainWindow?.webContents.send('mc:coop-event', { ...ev, localIps });
@@ -1336,6 +1381,22 @@ ipcMain.handle('mc:launch', async (_e, config) => {
         }
         mainWindow?.webContents.send('playtime:updated', finalStats);
         mainWindow?.webContents.send('mc:close', code);
+
+        setImmediate(() => {
+          try {
+            const engRootDir = path.join(config.gameDir || freshEngine.getDefaultGameDir(), 'horizon-engine');
+            if (
+              !mcGameRunning
+              && fs.existsSync(engRootDir)
+              && fs.readdirSync(engRootDir).some((f) => /^blockway-horizon-.*\.(zip|tar\.gz)$/i.test(f))
+            ) {
+              freshEngine.upgradeHorizonEngine({
+                rootDir: config.gameDir || freshEngine.getDefaultGameDir(),
+                force: false
+              }).catch(() => {});
+            }
+          } catch (_) {}
+        });
 
         if (config.autoBackupWorlds !== false) {
           setImmediate(() => {

@@ -1700,6 +1700,24 @@ window.addEventListener('DOMContentLoaded', async () => {
   applyUiScaleToUI(state.uiScale || 1.0, false);
   syncBoosterCheckboxes();
   syncAutoBackupAndDiscordUI();
+  window.aetherAPI.onMsProfileRefreshed?.((fresh) => {
+    if (fresh && fresh.accessToken) {
+      state.msProfile = fresh;
+    }
+  });
+  setTimeout(() => {
+    if (
+      state.msProfile?.isOfficialLicense
+      && state.msProfile?.refreshToken
+      && !(Number(state.msProfile.expiresAt) > Date.now() + 15 * 60 * 1000)
+    ) {
+      window.aetherAPI.refreshMicrosoft?.(state.msProfile.refreshToken, state.msProfile)
+        ?.then((r) => {
+          if (r?.ok && r.profile) state.msProfile = r.profile;
+        })
+        ?.catch(() => {});
+    }
+  }, 900);
   updatePlaytimeUI();
   window.aetherAPI.getPlaytimeStats?.().then((r) => {
     if (r?.ok && r.stats) updatePlaytimeUI(r.stats);
