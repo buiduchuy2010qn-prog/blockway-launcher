@@ -2597,7 +2597,7 @@ async function renderLocalWorlds() {
     const safePath = escapeHtml(w.path);
     const safeIcon = (w.iconDataUrl && /^data:image\//i.test(String(w.iconDataUrl))) ? escapeHtml(w.iconDataUrl) : '';
     const verInfo = w.isRustWorld
-      ? `🦀 Nhân Rust (${escapeHtml(w.version || '26.3')})`
+      ? `🦀 Nhân Rust (${escapeHtml(w.version || state.selectedVersion || '1.21.11')})`
       : (w.version ? `Minecraft ${escapeHtml(w.version)}` : 'Chơi đơn');
     const modeInfo = w.gameMode ? ` (${escapeHtml(w.gameMode)})` : '';
     const packBadge = w.instanceName ? ` • <strong style="color:var(--accent);">📦 ${escapeHtml(w.instanceName)}</strong>` : '';

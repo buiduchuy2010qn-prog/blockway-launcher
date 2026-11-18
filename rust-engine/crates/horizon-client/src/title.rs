@@ -579,6 +579,22 @@ pub fn list_worlds(saves: &Path) -> Vec<WorldEntry> {
                 Some(horizon_world::nbt::Tag::Long(millis)) if *millis >= 0 => std::time::UNIX_EPOCH + std::time::Duration::from_millis(*millis as u64),
                 _ => modified,
             };
+            let active_profile = horizon_core::version_profile::active();
+            let is_native_263 = matches!(
+                data.get("DataVersion"),
+                Some(horizon_world::nbt::Tag::Int(dv)) if *dv == horizon_core::version::DATA_VERSION
+            );
+            let version = if is_native_263 && active_profile.id != horizon_core::VANILLA_VERSION {
+                active_profile.id.to_string()
+            } else {
+                data.get("Version")
+                    .and_then(|v| v.get("Name"))
+                    .and_then(|v| match v {
+                        horizon_world::nbt::Tag::String(s) => Some(s.to_string_lossy()),
+                        _ => None,
+                    })
+                    .unwrap_or_else(|| lang::get_or("selectWorld.versionUnknown", "Unknown"))
+            };
             Some(WorldEntry {
                 folder,
                 name: level.name,
@@ -586,9 +602,7 @@ pub fn list_worlds(saves: &Path) -> Vec<WorldEntry> {
                 hardcore: level.hardcore,
                 modified,
                 commands: matches!(data.get("allowCommands"), Some(horizon_world::nbt::Tag::Byte(v)) if *v != 0),
-                version: data.get("Version").and_then(|v| v.get("Name"))
-                    .and_then(|v| match v { horizon_world::nbt::Tag::String(s) => Some(s.to_string_lossy()), _ => None })
-                    .unwrap_or_else(|| lang::get_or("selectWorld.versionUnknown", "Unknown")),
+                version,
                 locked: crate::save::SessionLock::is_locked(&path),
                 corrupted: false,
                 incompatible: crate::save::incompatible_version(&path),
@@ -1505,9 +1519,11 @@ impl Title {
         // The generator settings of a world that still needs its file fixes are read as the
         // fixes will leave them (`world_gen_settings`), so its question comes with this open.
         if !stem_asked {
+            let warn_exp = std::env::var_os("HORIZON_WARN_EXPERIMENTAL_WORLDGEN")
+                .is_some_and(|v| v == "1" || v == "true");
             let issue = if crate::save::is_old_customized_world(&dir) {
                 Some(StemIssue::Customized)
-            } else if crate::save::world_gen_unstable(&dir) {
+            } else if warn_exp && crate::save::world_gen_unstable(&dir) {
                 Some(StemIssue::Experimental)
             } else {
                 None

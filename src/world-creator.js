@@ -670,8 +670,9 @@ async function createQuickWorld({
     const now = Date.now();
     const dataVersion = Number(info.world_version);
     const isModern26x = Number.isFinite(dataVersion) && dataVersion >= 5000;
+    const isRustLoader = loader === 'horizon' || loader === 'blockway-rust';
     const canonicalVerLabel = String(info.name || info.id || mcVersion);
-    const effectiveVersionLabel = isModern26x
+    const effectiveVersionLabel = (isModern26x && !isRustLoader)
       ? canonicalVerLabel
       : (String(displayMcVersion || '').trim() || canonicalVerLabel);
     const effectiveVersionId = isModern26x

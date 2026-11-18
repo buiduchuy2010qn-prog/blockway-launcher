@@ -1,11 +1,11 @@
 {
-  "version": "42.5.1",
-  "releasedAt": "2026-11-18T12:04:59.650Z",
-  "notes": "v42.5.1 PRO — Mở game Rust <1s ngay cả khi đăng nhập Microsoft: đệm token 24h (0ms khi bấm Chơi), bỏ chờ Xác thực Microsoft/Mojang chặn nút Play khi vào map đơn, đệm dấu vân tay workspace horizon-rust (nối sẵn .horizon-cache) & tự động nâng cấp ngầm Nhân Rust mới nhất.",
+  "version": "42.5.2",
+  "releasedAt": "2026-11-18T12:38:30.370Z",
+  "notes": "v42.5.2 PRO — Vào thẳng thế giới có Datapack (Terralith/SkyBlock/OneBlock) chỉ 1 chạm (tắt bảng hỏi Cài đặt thử nghiệm), đồng bộ nhãn 1.21.11 đúng profile đang chơi trên horizon-rust/saves, giữ nguyên DataVersion 5023 & đệm token Microsoft 0ms.",
   "files": {
     "package.json": {
-      "sha256": "c18bb27b4e40e4d7f03cdeba7dff4acd071fd42467498f71585dcf0853c905b4",
-      "size": 2602
+      "sha256": "f7450c0751b4c2f4567053079075a1f948c3209f39211390ec071f2be65975a6",
+      "size": 2572
     },
     "src/aether-cloud-auth.js": {
       "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
@@ -84,8 +84,8 @@
       "size": 25697
     },
     "src/ui/index.html": {
-      "sha256": "493ae17ec21fecfb5cf981fcafa6b91d6095fce38b300ae8c214c924d48db505",
-      "size": 239353
+      "sha256": "357e0a9c12c3c57518632e327bc9853075dc7013e3ba730ec3deb364648d0a5d",
+      "size": 239371
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
@@ -108,8 +108,8 @@
       "size": 477198
     },
     "src/ui/store-features.js": {
-      "sha256": "6d4f9d54c447ba04cb088a2f2d919515437f3d5f43c3a119a05cccc5c8a03237",
-      "size": 526063
+      "sha256": "417ee35fcbd406d2c306c53140b58edf294d9741c657d369a0bf8981aa2e7a97",
+      "size": 526091
     },
     "src/ui/styles.css": {
       "sha256": "7b942245d70a9cc56ab3107a4c67ed64da15e619a7d6b0402457148403961048",
@@ -148,8 +148,8 @@
       "size": 376934
     },
     "src/world-creator.js": {
-      "sha256": "b8a50f76f53ce1155e5101d8a299c452140629491d2476b518e121c2e1ddca46",
-      "size": 51332
+      "sha256": "8abce34ee1499bb8e960f6b463e0ba2739c9236309362c16220d37eb21dc0280",
+      "size": 51428
     }
   }
 }

@@ -4720,7 +4720,7 @@ impl Level {
             (
                 "Version",
                 Tag::compound([
-                    ("Name", string(horizon_core::version::VANILLA_VERSION)),
+                    ("Name", string(horizon_core::version_profile::active().id)),
                     ("Id", Tag::Int(DATA_VERSION)),
                     ("Snapshot", Tag::Byte(0)),
                     ("Series", string("main")),

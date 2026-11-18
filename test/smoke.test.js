@@ -784,7 +784,21 @@ test('13. v42.5.0 PRO Hybrid U-Series Worker Unlock, Battery Unthrottling & Isol
     const qwInspected = worldCreator.inspectWorldNbt(path.join(qwGameDir, 'saves', qw.folderName));
     assert.equal(qwInspected.dataVersion, 5023);
     assert.equal(qwInspected.versionId, 5023);
-    assert.equal(qwInspected.mcVersion, '26.3');
+    assert.equal(qwInspected.mcVersion, '1.21.11');
+
+    const qwVanilla = await worldCreator.createQuickWorld({
+      rootDir: tmpRoot,
+      gameDirectory: qwGameDir,
+      mcVersion: '26.3',
+      displayMcVersion: '1.21.11',
+      loaderType: 'vanilla',
+      levelName: 'Test Vanilla 26.3'
+    });
+    assert.equal(qwVanilla.ok, true, qwVanilla.error || 'createQuickWorld vanilla failed');
+    const qwVanillaInspected = worldCreator.inspectWorldNbt(path.join(qwGameDir, 'saves', qwVanilla.folderName));
+    assert.equal(qwVanillaInspected.dataVersion, 5023);
+    assert.equal(qwVanillaInspected.versionId, 5023);
+    assert.equal(qwVanillaInspected.mcVersion, '26.3');
 
     // 13e. ensureHorizonRustWorkspace migrates mismatched Rust saves (5023/4671) into horizon-rust/saves & leaves genuine 1.21.11 (4671/4671) untouched
     const wsRoot = path.join(tmpRoot, 'ws-root');

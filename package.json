@@ -1,7 +1,7 @@
 {
   "name": "blockway-launcher",
-  "version": "42.5.1",
-  "description": "BlockWay Launcher v42.5.1 PRO — Pure Horizon Glass Unified Monorepo, Instant <1s Rust Launch (0ms Cached MS Auth & Non-Blocking Core Upgrade), Battery/U-Series Unlock & Isolated 26.3 Saves • Every World, One Place.",
+  "version": "42.5.2",
+  "description": "BlockWay Launcher v42.5.2 PRO — Pure Horizon Glass Unified Monorepo, One-Click Datapack Worlds (No Experimental Nag), 0ms Cached MS Auth & Isolated Rust Saves • Every World, One Place.",
   "homepage": "https://buiduchuy2010qn-prog.github.io/blockway-launcher/",
   "repository": {
     "type": "git",
