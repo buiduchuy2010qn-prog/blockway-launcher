@@ -266,7 +266,7 @@ pub fn incompatible_version(world: &Path) -> Option<String> {
 pub fn downgraded_from(world: &Path) -> Option<String> {
     let root = read_dat(&world.join("level.dat"))?;
     let version = root.get("Data")?.get("Version");
-    let active_dv = i64::from(horizon_core::version_profile::active().data_version);
+    let active_dv = i64::from(DATA_VERSION);
     let id = version.map_or(0, |v| number(v.get("Id")).unwrap_or(active_dv));
     if id <= active_dv {
         return None;
@@ -4720,11 +4720,8 @@ impl Level {
             (
                 "Version",
                 Tag::compound([
-                    ("Name", string(horizon_core::version_profile::active().id)),
-                    (
-                        "Id",
-                        Tag::Int(horizon_core::version_profile::active().data_version),
-                    ),
+                    ("Name", string(horizon_core::version::VANILLA_VERSION)),
+                    ("Id", Tag::Int(DATA_VERSION)),
                     ("Snapshot", Tag::Byte(0)),
                     ("Series", string("main")),
                 ]),

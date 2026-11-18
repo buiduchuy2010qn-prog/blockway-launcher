@@ -1,23 +1,23 @@
 {
-  "version": "42.4.1",
-  "releasedAt": "2026-11-14T10:47:37.184Z",
-  "notes": "v42.4.1 PRO — Instant <1s Rust Launch (Zero-Network Warm Fast-Path trong ensureHorizonEnginePrepared, Metadata 0ms probeHorizonLaunchApi đọc blockway-rust-build.json, Đệm dấu vân tay Mod/Datapack, Dọn .datafix theo thế giới & Chuyển trạng thái 550ms) kết hợp nền tảng Ultra-Light Rust HeapCompact & Full-Version Smooth v5.",
+  "version": "42.5.0",
+  "releasedAt": "2026-11-18T11:23:15.518Z",
+  "notes": "v42.5.0 PRO — Mở khóa CPU Hybrid U-Series (gỡ trần 3 luồng worker trên chip dòng U), tắt giới hạn EcoQoS/BatteryMode khi dùng pin, khởi động Launcher lười tải siêu nhẹ, và tách riêng thế giới horizon-rust/saves chuẩn 26.3 (5023) tránh báo sai phiên bản 1.21.11.",
   "files": {
     "package.json": {
-      "sha256": "20f3eaf274e05f192132c0c18a9e9439906c7609827945a825bc7727bbea074c",
-      "size": 2597
+      "sha256": "9fc12739594d87f244fe37a7ad58e154a9c089017e7851e05e7c12cb9b9569f8",
+      "size": 2540
     },
     "src/aether-cloud-auth.js": {
       "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
       "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "a85f967901136242167ff77fd160e55aef5b49257cca5979547326af651df6b7",
-      "size": 703478
+      "sha256": "9b04c3276b7f38987a4be94ca15e8bab99f6c91299d69627d41b7467e1d203cf",
+      "size": 707743
     },
     "src/main.js": {
-      "sha256": "0849513b3c7fae13826945286f8bd556195a993926d8ceacc3492820db299182",
-      "size": 118887
+      "sha256": "58f885e865879a44c722db43965d7d695a751c9c90e4ddf593bf02200bb33627",
+      "size": 122692
     },
     "src/microsoft-auth.js": {
       "sha256": "7df3ec8fd3fab2e80ca80ccaf4e7b7466d7f9de16d23e44c3caa15965555bd7d",
@@ -84,8 +84,8 @@
       "size": 25697
     },
     "src/ui/index.html": {
-      "sha256": "455dfb6640b10782c89efefd65e3d2d37590f20e0555867897e4b8b108999e0e",
-      "size": 239268
+      "sha256": "32b8d35523881edf199b06d470b833df4bfca055dc77aa8a6794b749e0d513cf",
+      "size": 239411
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
@@ -100,16 +100,16 @@
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "c53703a44ac30c7de9243f5a4349c56d97eede98cf4b1511df8dfe079ea9d7da",
-      "size": 182341
+      "sha256": "3ebe6b217fca1b940e9a27efaa40a0edc2eb8099e0a58cbe016743d9de681f34",
+      "size": 183212
     },
     "src/ui/skinview3d.bundle.js": {
       "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",
       "size": 477198
     },
     "src/ui/store-features.js": {
-      "sha256": "14aba29a5e88671ba34e98ba12d3f9bcc761b1335391c7e4f50b03b3a7b46bc3",
-      "size": 525516
+      "sha256": "6d4f9d54c447ba04cb088a2f2d919515437f3d5f43c3a119a05cccc5c8a03237",
+      "size": 526063
     },
     "src/ui/styles.css": {
       "sha256": "7b942245d70a9cc56ab3107a4c67ed64da15e619a7d6b0402457148403961048",
@@ -148,8 +148,8 @@
       "size": 376934
     },
     "src/world-creator.js": {
-      "sha256": "c216831663a73387f7c3635ced07d173dcae43572669be92121b32918b958b98",
-      "size": 51112
+      "sha256": "b8a50f76f53ce1155e5101d8a299c452140629491d2476b518e121c2e1ddca46",
+      "size": 51332
     }
   }
 }

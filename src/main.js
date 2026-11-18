@@ -1,11 +1,14 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, nativeImage, clipboard, screen, safeStorage, session } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, nativeImage, clipboard, screen, safeStorage, session, powerSaveBlocker } = require('electron');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const net = require('net');
 const https = require('https');
 const crypto = require('crypto');
-const {
+
+let _backendLoaded = false;
+let _engineMod = null;
+let
   fetchVersionManifest,
   fetchLoaderVersions,
   getInstalledVersions,
@@ -50,9 +53,7 @@ const {
   getWorldgenBoostStatus, installWorldgenBoostPack,
   getHorizonEngineStatus, ensureHorizonEnginePrepared, upgradeHorizonEngine,
   checkModrinthForHorizonRust,
-  portJavaJarsToHorizonRust, portModpackToHorizonRust, listHorizonRustMods, toggleHorizonRustMod, deleteHorizonRustMod
-} = require('./launcher-engine');
-const {
+  portJavaJarsToHorizonRust, portModpackToHorizonRust, listHorizonRustMods, toggleHorizonRustMod, deleteHorizonRustMod,
   loginWithMicrosoftModal,
   authenticateMicrosoftFromRefreshToken,
   generateOfflineUUID,
@@ -66,13 +67,84 @@ const {
   loginCloudViaBrowser,
   upsertCoopRoom,
   getCoopRoom,
-  listCoopRooms
-} = require('./microsoft-auth');
+  listCoopRooms;
+
+function ensureBackendModulesLoaded() {
+  if (_backendLoaded && _engineMod) return _engineMod;
+  _engineMod = require('./launcher-engine');
+  ({
+    fetchVersionManifest,
+    fetchLoaderVersions,
+    getInstalledVersions,
+    searchModrinth,
+    installModrinthProject,
+    installFpsBoostPack,
+    installOptifineParityPack,
+    installOptifineJarSmart,
+    ensureVanillaBaseForOptifine,
+    inspectOptifineJar,
+    listLocalAddons,
+    toggleLocalAddon,
+    deleteLocalAddon,
+    equipShaderInGame,
+    equipResourcePackInGame,
+    getEquippedAddonsState,
+    listLocalWorlds,
+    saveCustomLocalSkin,
+    launchMinecraft,
+    forceKillMinecraft,
+    cleanupJavaTempAndTrimRam,
+    getDefaultGameDir,
+    detectJavaPath, downloadPortableJava, setCurseForgeApiKey, checkCurseForgeKey, searchPackHub, getPackHubDetails, installPackHub, importPackFromFile, importPackFromUrl, listPackInstances, deletePackInstance, touchPackInstance, resolveManualDownloads, getInstancesRoot, equipPackInstanceIsland, installQuickIslandPack,
+    translateTextToVi, getLocalLanIpAddresses, scanLanWorlds, prepareCoopHostMods,
+    syncAllLocalModsToVersion, buildCoopModBasket, syncCoopModBasket, analyzeMinecraftCrash,
+    backupLocalWorld, autoBackupModifiedWorlds, listWorldBackups, restoreWorldBackup, deleteWorldBackup, exportWorldZip, importWorldZip,
+    listLocalScreenshots, deleteLocalScreenshot,
+    previewExportTarget, exportTargetAsMrpack, scanMinecraftJunk, cleanMinecraftJunk,
+    readGameOptionsAndKeybinds, saveGameOptionsAndKeybinds, autoResolveKeybindConflicts, toggleFullbrightPack,
+    checkLocalAddonsUpdates, updateLocalAddons, rollbackLocalAddon,
+    searchWorldAndDatapackStore, installStoreWorldOrDatapack, listWorldDatapacks, deleteWorldDatapack,
+    installCoopComboPack, computeSmartRamAndJvmAdvice,
+    searchOnlineSkins, applyOnlineSkinToWardrobe, installFriendSkinSyncPack,
+    getPvpClientModeState, togglePvpClientMode,
+    inspectLocalWorldDetails, rescuePatchLocalWorld, getCuratedSeedsVault, createStandaloneQuickWorld,
+    getReplayStudioStatus, installReplayStudioPack,
+    saveCustomLocalCape, removeCustomLocalCape, getCustomLocalCape,
+    inspectDeepGameSmoothState, applyDeepGameSmoothEngine, revertDeepGameSmoothEngine,
+    inspectLocalServerStatus, startLocalHeadlessServer, sendLocalServerCommand, stopLocalHeadlessServer,
+    getVisualBoostStatus, toggleVisualBoostPack,
+    exportPlayerPrefsSnapshot, importPlayerPrefsSnapshot,
+    getWorldgenBoostStatus, installWorldgenBoostPack,
+    getHorizonEngineStatus, ensureHorizonEnginePrepared, upgradeHorizonEngine,
+    checkModrinthForHorizonRust,
+    portJavaJarsToHorizonRust, portModpackToHorizonRust, listHorizonRustMods, toggleHorizonRustMod, deleteHorizonRustMod
+  } = _engineMod);
+  ({
+    loginWithMicrosoftModal,
+    authenticateMicrosoftFromRefreshToken,
+    generateOfflineUUID,
+    registerCloudAccount,
+    loginCloudAccount,
+    changeCloudUsername,
+    syncCloudCosmetics,
+    changeCloudPassword,
+    requestPasswordResetOtp,
+    resetCloudPassword,
+    loginCloudViaBrowser,
+    upsertCoopRoom,
+    getCoopRoom,
+    listCoopRooms
+  } = require('./microsoft-auth'));
+  _backendLoaded = true;
+  return _engineMod;
+}
 
 app.commandLine.appendSwitch('js-flags', '--expose-gc');
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-zero-copy');
 app.commandLine.appendSwitch('enable-features', 'CanvasOopRasterization');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
 try { app.setName('BlockWay Launcher'); } catch (_) {}
 if (process.platform === 'win32') {
   try { app.setAppUserModelId('BlockWay.Launcher'); } catch (_) {}
@@ -103,6 +175,7 @@ const playtimePath = path.join(app.getPath('userData'), 'playtime-stats-v1.json'
 function setLauncherGameplayHibernation(win, hibernate, displayHz = 60) {
   if (!win || win.isDestroyed() || !win.webContents || win.webContents.isDestroyed()) return;
   try {
+    win.webContents.setBackgroundThrottling?.(Boolean(hibernate));
     if (hibernate === true) {
       win.webContents.setFrameRate(1);
       win.webContents.setAudioMuted(true);
@@ -580,7 +653,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      backgroundThrottling: true
+      backgroundThrottling: false
     }
   });
 
@@ -634,6 +707,9 @@ function createWindow() {
   mainWindow.webContents.on('dom-ready', applyUiAutoZoom);
 
   mainWindow.loadFile(path.join(__dirname, 'ui', 'index.html'));
+  setImmediate(() => {
+    try { ensureBackendModulesLoaded(); } catch (_) {}
+  });
   let shownOnce = false;
   const revealWindow = () => {
     if (shownOnce || !mainWindow || mainWindow.isDestroyed()) return;
@@ -658,10 +734,6 @@ if (gotSingleInstanceLock) {
     if (discordRpcEnabled) {
       setTimeout(() => setDiscordLobbyPresence(), 1200);
     }
-    // Deferred background housekeeping (prunes >15 old .log.gz & abandoned .tmp files with 0 startup lag)
-    setTimeout(() => {
-      try { cleanupJavaTempAndTrimRam(); } catch (_) {}
-    }, 3500);
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
@@ -670,7 +742,7 @@ if (gotSingleInstanceLock) {
 
 app.on('window-all-closed', () => {
   closeDiscordIpc();
-  cleanupJavaTempAndTrimRam();
+  if (_backendLoaded) cleanupJavaTempAndTrimRam();
   if (process.platform !== 'darwin') app.quit();
 });
 
@@ -699,6 +771,7 @@ function assertTrustedIpcSender(event, channel = '') {
 const _origIpcHandle = ipcMain.handle.bind(ipcMain);
 ipcMain.handle = (channel, listener) => _origIpcHandle(channel, async (event, ...args) => {
   assertTrustedIpcSender(event, channel);
+  if (channel !== 'cfg:load') ensureBackendModulesLoaded();
   return listener(event, ...args);
 });
 
@@ -709,6 +782,7 @@ ipcMain.on = (channel, listener) => _origIpcOn(channel, (event, ...args) => {
   } catch (_) {
     return;
   }
+  ensureBackendModulesLoaded();
   return listener(event, ...args);
 });
 
@@ -1176,9 +1250,23 @@ ipcMain.handle('mc:force-kill', async () => {
 });
 
 ipcMain.handle('mc:launch', async (_e, config) => {
+  let launchPowerSaveId = null;
+  const releasePowerSave = () => {
+    if (launchPowerSaveId !== null) {
+      try {
+        if (powerSaveBlocker.isStarted(launchPowerSaveId)) {
+          powerSaveBlocker.stop(launchPowerSaveId);
+        }
+      } catch (_) {}
+      launchPowerSaveId = null;
+    }
+  };
   try {
-    // v40.8: reuse the already-loaded engine (re-requiring it on every launch wasted ~MBs of RAM & startup time)
-    const freshEngine = require('./launcher-engine');
+    // v42.5: reuse lazy-loaded engine & prevent OS AppNap/battery suspension during launch/gameplay
+    const freshEngine = ensureBackendModulesLoaded();
+    try {
+      launchPowerSaveId = powerSaveBlocker.start('prevent-app-suspension');
+    } catch (_) {}
     mcGameRunning = true;
     hideOnLaunchSetting = config.hideLauncherOnPlay !== false;
     // v40.8 PRO "Mượt Êm": detect the monitor refresh rate so FPS is capped to what the screen can actually show
@@ -1229,11 +1317,11 @@ ipcMain.handle('mc:launch', async (_e, config) => {
           if (global.gc) {
             try { global.gc(); } catch (_) {}
           }
-          cleanupJavaTempAndTrimRam();
         }, 6000);
         trimTimer.unref?.();
       },
       onClose: (code) => {
+        releasePowerSave();
         mcGameRunning = false;
         clearInterval(playtimeTimer);
         const remSec = Math.max(0, Math.round((Date.now() - lastPlaytimeCheckpointMs) / 1000));
@@ -1263,6 +1351,7 @@ ipcMain.handle('mc:launch', async (_e, config) => {
     });
     return { ok: true };
   } catch (err) {
+    releasePowerSave();
     mcGameRunning = false;
     setLauncherGameplayHibernation(mainWindow, false, config?.displayHz);
     if (discordRpcEnabled) setDiscordLobbyPresence();

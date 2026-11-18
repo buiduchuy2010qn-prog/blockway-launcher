@@ -669,10 +669,16 @@ async function createQuickWorld({
     const dimensionsNbt = jsonToNbt(preset.dimensions);
     const now = Date.now();
     const dataVersion = Number(info.world_version);
-    const effectiveVersionLabel = String(displayMcVersion || '').trim() || String(info.name || info.id || mcVersion);
-    const effectiveVersionId = displayMcVersion && String(displayMcVersion).trim()
-      ? getMcDataVersionId(displayMcVersion, dataVersion)
-      : dataVersion;
+    const isModern26x = Number.isFinite(dataVersion) && dataVersion >= 5000;
+    const canonicalVerLabel = String(info.name || info.id || mcVersion);
+    const effectiveVersionLabel = isModern26x
+      ? canonicalVerLabel
+      : (String(displayMcVersion || '').trim() || canonicalVerLabel);
+    const effectiveVersionId = isModern26x
+      ? dataVersion
+      : (displayMcVersion && String(displayMcVersion).trim()
+        ? getMcDataVersionId(displayMcVersion, dataVersion)
+        : dataVersion);
     const difficultyName = Object.keys(DIFFICULTIES).find((k) => DIFFICULTIES[k] === difficultyId) || 'normal';
     const worldGenNbt = () => nbt.compound({
       seed: nbt.long(seedBig),

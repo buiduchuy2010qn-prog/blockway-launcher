@@ -291,7 +291,11 @@ fn parse_windows_performance_cores(buf: &[u8]) -> Option<usize> {
         .sum();
 
     if 0 < p_threads && p_threads < total_threads {
-        Some(p_threads)
+        if p_threads < 8 && total_threads > p_threads {
+            Some((total_threads.saturating_sub(2)).max(p_threads))
+        } else {
+            Some(p_threads)
+        }
     } else {
         None
     }
@@ -582,6 +586,7 @@ fn far() -> bool {
     use windows_sys::Win32::System::Threading::{
         GetCurrentThread, SetThreadPriority, THREAD_PRIORITY_BELOW_NORMAL,
     };
+    let _ = disable_thread_power_throttling();
     // SAFETY: GetCurrentThread's pseudo handle needs no closing.
     unsafe { SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL) != 0 }
 }
@@ -1172,6 +1177,18 @@ mod windows_hybrid_tests {
             buf.extend_from_slice(&processor_core_record(0, 0b1));
         }
         assert_eq!(super::parse_windows_performance_cores(&buf), Some(12));
+    }
+
+    #[test]
+    fn boosts_low_p_core_u_series_hybrid_buffer() {
+        let mut buf = Vec::new();
+        for _ in 0..2 {
+            buf.extend_from_slice(&processor_core_record(1, 0b11));
+        }
+        for _ in 0..8 {
+            buf.extend_from_slice(&processor_core_record(0, 0b1));
+        }
+        assert_eq!(super::parse_windows_performance_cores(&buf), Some(10));
     }
 
     #[test]

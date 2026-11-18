@@ -2446,14 +2446,24 @@ async function quickLaunchWorld(w) {
     return;
   }
   const cleanVer = String(w.version || '').trim();
-  const canSwitchVer = /^(?:1|2[6-9])\.\d+(?:\.\d+)?$/.test(cleanVer)
-    && cleanVer !== state.selectedVersion
-    && (
-      (typeof isVersionInstalledOnDisk === 'function' && isVersionInstalledOnDisk(cleanVer))
-      || (Array.isArray(state.versions) && state.versions.some((v) => v.id === cleanVer))
-    );
-  if (canSwitchVer && typeof window.selectMcVersionAndCore === 'function') {
-    await window.selectMcVersionAndCore(cleanVer, state.selectedCore);
+  if (w.isRustWorld) {
+    if (typeof window.selectMcVersionAndCore === 'function') {
+      await window.selectMcVersionAndCore('26.3', 'horizon');
+    }
+  } else if (state.selectedCore === 'horizon' && cleanVer && cleanVer !== '26.3') {
+    if (typeof window.selectMcVersionAndCore === 'function') {
+      await window.selectMcVersionAndCore(cleanVer, 'fabric');
+    }
+  } else {
+    const canSwitchVer = /^(?:1|2[6-9])\.\d+(?:\.\d+)?$/.test(cleanVer)
+      && cleanVer !== state.selectedVersion
+      && (
+        (typeof isVersionInstalledOnDisk === 'function' && isVersionInstalledOnDisk(cleanVer))
+        || (Array.isArray(state.versions) && state.versions.some((v) => v.id === cleanVer))
+      );
+    if (canSwitchVer && typeof window.selectMcVersionAndCore === 'function') {
+      await window.selectMcVersionAndCore(cleanVer, state.selectedCore);
+    }
   }
   state.pendingQuickWorldFolder = folderName;
   state.pendingQuickWorldTitle = worldTitle;
@@ -2472,7 +2482,9 @@ function renderHomeRecentWorlds(worlds = []) {
     const safePath = escapeHtml(w.path);
     const safeName = escapeHtml(w.name);
     const safePlayed = escapeHtml(w.lastPlayed || 'Mới tạo');
-    const verPart = w.version ? `MC ${escapeHtml(w.version)}` : 'Chơi đơn';
+    const verPart = w.isRustWorld
+      ? '🦀 Nhân Rust (26.3)'
+      : (w.version ? `MC ${escapeHtml(w.version)}` : 'Chơi đơn');
     const modePart = w.gameMode ? ` · ${escapeHtml(w.gameMode)}` : '';
     const verBadgeText = `${verPart}${modePart}`;
     const subLabel = w.instanceName
@@ -2584,7 +2596,9 @@ async function renderLocalWorlds() {
     const safePlayed = escapeHtml(w.lastPlayed);
     const safePath = escapeHtml(w.path);
     const safeIcon = (w.iconDataUrl && /^data:image\//i.test(String(w.iconDataUrl))) ? escapeHtml(w.iconDataUrl) : '';
-    const verInfo = w.version ? `Minecraft ${escapeHtml(w.version)}` : 'Chơi đơn';
+    const verInfo = w.isRustWorld
+      ? `🦀 Nhân Rust (${escapeHtml(w.version || '26.3')})`
+      : (w.version ? `Minecraft ${escapeHtml(w.version)}` : 'Chơi đơn');
     const modeInfo = w.gameMode ? ` (${escapeHtml(w.gameMode)})` : '';
     const packBadge = w.instanceName ? ` • <strong style="color:var(--accent);">📦 ${escapeHtml(w.instanceName)}</strong>` : '';
     const dpCount = Number(w.datapacksCount) || 0;

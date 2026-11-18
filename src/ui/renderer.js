@@ -339,6 +339,27 @@ function init3DSkinViewer() {
   skinViewer.autoRotateSpeed = 0.45;
   skinViewer.animation = new window.skinview3d.WalkingAnimation();
   skinViewer.animation.speed = 0.85;
+  const setupBatterySkinPause = (batt) => {
+    const applyState = () => {
+      if (!skinViewer?.animation) return;
+      const hovered = canvas.matches(':hover');
+      const onBattery = batt ? !batt.charging : false;
+      skinViewer.animation.paused = onBattery && !hovered;
+      skinViewer.render();
+    };
+    applyState();
+    batt?.addEventListener?.('chargingchange', applyState);
+    canvas.addEventListener('mouseenter', () => {
+      if (skinViewer?.animation) {
+        skinViewer.animation.paused = false;
+        skinViewer.render();
+      }
+    });
+    canvas.addEventListener('mouseleave', applyState);
+  };
+  if (typeof navigator !== 'undefined' && typeof navigator.getBattery === 'function') {
+    navigator.getBattery().then(setupBatterySkinPause).catch(() => {});
+  }
   update3DNameTag(state.username);
   applyCapeToViewer(state.capeType);
   if (typeof convertSkinTo64x64DataUrl === 'function') {
@@ -1705,8 +1726,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   updateCrackUuidPreview(state.username);
   if (typeof renderLocalWorlds === 'function') renderLocalWorlds();
 
-  init3DSkinViewer();
-  applyCapeToViewer(state.capeType || 'mojang');
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      init3DSkinViewer();
+      applyCapeToViewer(state.capeType || 'mojang');
+    }, 80);
+  });
 
   document.querySelectorAll('.wt-model-btn').forEach((b) => b.classList.toggle('active', b.dataset.model === state.skinModel));
   document.querySelectorAll('.core-tab-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.core === state.selectedCore));

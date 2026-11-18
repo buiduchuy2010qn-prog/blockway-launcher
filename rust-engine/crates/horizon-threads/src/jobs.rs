@@ -224,6 +224,10 @@ impl Pool {
                 .name(format!("{name}-{i}"))
                 .stack_size(1024 * 1024)
                 .spawn(move || {
+                    #[cfg(windows)]
+                    {
+                        let _ = crate::disable_thread_power_throttling();
+                    }
                     // Ticks and frames come first.
                     crate::behind_server();
                     work(&worker, i);

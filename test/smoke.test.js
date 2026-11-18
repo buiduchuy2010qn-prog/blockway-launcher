@@ -701,3 +701,131 @@ test('12. v42.4.1 PRO Instant <1s Rust Launch: zero-network warm ensureHorizonEn
     fs.rmSync(tmpRoot, { recursive: true, force: true });
   }
 });
+
+test('13. v42.5.0 PRO Hybrid U-Series Worker Unlock, Battery Unthrottling & Isolated Rust 26.3 Saves', async () => {
+  const zlib = require('node:zlib');
+  const AdmZip = require('adm-zip');
+  const engine = require('../src/launcher-engine');
+  const worldCreator = require('../src/world-creator');
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-v425-'));
+  try {
+    // 13a. Hybrid U-series worker budget (Core 7 150U 12T -> 9, 8T -> 6, 4T -> 3)
+    assert.equal(engine.computeOptimalHorizonWorkers(12), 9);
+    assert.equal(engine.computeOptimalHorizonWorkers(8), 6);
+    assert.equal(engine.computeOptimalHorizonWorkers(4), 3);
+
+    // 13b. No synchronous PowerShell EmptyWorkingSet trim stall left in launcher-engine.js
+    const engineSrc = fs.readFileSync(path.join(REPO_ROOT, 'src', 'launcher-engine.js'), 'utf8');
+    assert.equal(engineSrc.includes('EmptyWorkingSet'), false);
+
+    // 13c. applyDeepGameSmoothEngine clears batteryMode & unlocks workers even with gentleMode:true, and reverts cleanly
+    const gfxPath = path.join(tmpRoot, 'horizon-graphics.txt');
+    fs.writeFileSync(gfxPath, 'batteryMode:true\nworkers:3\n', 'utf8');
+    const smoothRes = engine.applyDeepGameSmoothEngine({
+      gameDir: tmpRoot,
+      loaderType: 'horizon',
+      mcVersion: '26.3',
+      cpuCores: 12,
+      gentleMode: true
+    });
+    assert.equal(smoothRes.ok, true);
+    const tunedGfx = fs.readFileSync(gfxPath, 'utf8');
+    assert.match(tunedGfx, /^batteryMode:false$/m);
+    assert.match(tunedGfx, /^workers:9$/m);
+
+    const revRes = engine.revertDeepGameSmoothEngine({ gameDir: tmpRoot });
+    assert.equal(revRes.ok, true);
+    const revertedGfx = fs.readFileSync(gfxPath, 'utf8');
+    assert.match(revertedGfx, /^batteryMode:true$/m);
+    assert.match(revertedGfx, /^workers:3$/m);
+
+    // 13d. createQuickWorld writes truthful 26.3/5023 metadata even if displayMcVersion is 1.21.11
+    const mockJarDir = path.join(tmpRoot, 'versions', '26.3');
+    fs.mkdirSync(mockJarDir, { recursive: true });
+    const mockJarZip = new AdmZip();
+    mockJarZip.addFile(
+      'version.json',
+      Buffer.from(JSON.stringify({
+        id: '26.3',
+        name: '26.3',
+        world_version: 5023,
+        series_id: 'main',
+        pack_version: { resource: 75, data: 101 },
+        stable: true
+      }), 'utf8')
+    );
+    mockJarZip.addFile(
+      'data/minecraft/worldgen/world_preset/normal.json',
+      Buffer.from(JSON.stringify({
+        dimensions: {
+          'minecraft:overworld': {
+            type: 'minecraft:overworld',
+            generator: {
+              type: 'minecraft:noise',
+              settings: 'minecraft:overworld',
+              biome_source: { type: 'minecraft:multi_noise', preset: 'minecraft:overworld' }
+            }
+          }
+        }
+      }), 'utf8')
+    );
+    mockJarZip.writeZip(path.join(mockJarDir, '26.3.jar'));
+
+    const qwGameDir = path.join(tmpRoot, 'qw-game');
+    const qw = await worldCreator.createQuickWorld({
+      rootDir: tmpRoot,
+      gameDirectory: qwGameDir,
+      mcVersion: '26.3',
+      displayMcVersion: '1.21.11',
+      loaderType: 'horizon',
+      levelName: 'Test Rust 26.3'
+    });
+    assert.equal(qw.ok, true, qw.error || 'createQuickWorld failed');
+    const qwInspected = worldCreator.inspectWorldNbt(path.join(qwGameDir, 'saves', qw.folderName));
+    assert.equal(qwInspected.dataVersion, 5023);
+    assert.equal(qwInspected.versionId, 5023);
+    assert.equal(qwInspected.mcVersion, '26.3');
+
+    // 13e. ensureHorizonRustWorkspace migrates mismatched Rust saves (5023/4671) into horizon-rust/saves & leaves genuine 1.21.11 (4671/4671) untouched
+    const wsRoot = path.join(tmpRoot, 'ws-root');
+    const { writeNbtRoot, nbt } = worldCreator._internal;
+    const writeDummyLevelDat = (dir, { dataVersion, versionId, versionName, levelName }) => {
+      fs.mkdirSync(dir, { recursive: true });
+      const raw = writeNbtRoot(nbt.compound({
+        Data: nbt.compound({
+          DataVersion: nbt.int(dataVersion),
+          Version: nbt.compound({
+            Id: nbt.int(versionId),
+            Name: nbt.string(versionName),
+            Series: nbt.string('main'),
+            Snapshot: nbt.byte(0)
+          }),
+          LevelName: nbt.string(levelName)
+        })
+      }));
+      fs.writeFileSync(path.join(dir, 'level.dat'), zlib.gzipSync(raw));
+    };
+
+    writeDummyLevelDat(path.join(wsRoot, 'saves', 'RustMismatched'), {
+      dataVersion: 5023,
+      versionId: 4671,
+      versionName: '1.21.11',
+      levelName: 'Mismatched Rust Map'
+    });
+    writeDummyLevelDat(path.join(wsRoot, 'saves', 'Java12111'), {
+      dataVersion: 4671,
+      versionId: 4671,
+      versionName: '1.21.11',
+      levelName: 'Real Java 1.21.11'
+    });
+
+    const rustWs = engine.ensureHorizonRustWorkspace(wsRoot);
+    assert.equal(rustWs, path.join(wsRoot, 'horizon-rust'));
+    assert.equal(fs.existsSync(path.join(rustWs, 'saves', 'RustMismatched', 'level.dat')), true);
+    assert.equal(fs.existsSync(path.join(wsRoot, 'saves', 'RustMismatched')), false);
+    assert.equal(fs.existsSync(path.join(wsRoot, 'saves', 'Java12111', 'level.dat')), true);
+    assert.equal(fs.existsSync(path.join(rustWs, 'saves', 'Java12111')), false);
+  } finally {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});
