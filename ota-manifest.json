@@ -1,31 +1,31 @@
 {
-  "version": "42.5.2",
-  "releasedAt": "2026-11-18T12:38:30.370Z",
-  "notes": "v42.5.2 PRO — Vào thẳng thế giới có Datapack (Terralith/SkyBlock/OneBlock) chỉ 1 chạm (tắt bảng hỏi Cài đặt thử nghiệm), đồng bộ nhãn 1.21.11 đúng profile đang chơi trên horizon-rust/saves, giữ nguyên DataVersion 5023 & đệm token Microsoft 0ms.",
+  "version": "42.6.0",
+  "releasedAt": "2026-11-19T05:54:34.514Z",
+  "notes": "v42.6.0 PRO (Final Stable Release) — Nâng cấp lõi Electron 45 & thư viện hiện đại (adm-zip 0.6, minecraft-launcher-core 3.18), bổ sung nút trạng thái Nhân BlockWay Rust trực tiếp trên thanh bên kèm nâng cấp ngầm tự động, mở game <1s với đệm token Microsoft 0ms, vào map Datapack 1 chạm và đồng bộ toàn diện README/Docs.",
   "files": {
     "package.json": {
-      "sha256": "f7450c0751b4c2f4567053079075a1f948c3209f39211390ec071f2be65975a6",
-      "size": 2572
+      "sha256": "fb68de8c41c71712b4127cc3c58d060471199c3839d4a6ced41895b02d0c90b7",
+      "size": 2580
     },
     "src/aether-cloud-auth.js": {
       "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
       "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "b5f43d6c0751d710148403cc23cc4efaa832a4fd7211ed8ba52793561cb55256",
+      "sha256": "f2172994c45078fc1a6c3c1756e05f16fd256d35e88cb2f53e02308f9415e04f",
       "size": 713243
     },
     "src/main.js": {
-      "sha256": "cc61fe7bd7b89dfd9892d6e4af53f6be7131032d7dede2c6675905eb990cbf79",
-      "size": 125294
+      "sha256": "6dd21d8317969df8c194eed1ed74aa95acfc3446bd194d8d5de204bc87987478",
+      "size": 125872
     },
     "src/microsoft-auth.js": {
       "sha256": "f2742264a4e6ed66f3bba7d6c419db338a79886ce5d621e610abc3cea10b62a4",
       "size": 74618
     },
     "src/preload.js": {
-      "sha256": "a3f73a54820ad9d058c8f1acb00953f898a46020d8e1cf7c936336be076b2883",
-      "size": 16204
+      "sha256": "9d1832e3a23cea78373f85ae21bbca748d405776ab9991ef5da8436188f554ca",
+      "size": 16293
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -84,8 +84,8 @@
       "size": 25697
     },
     "src/ui/index.html": {
-      "sha256": "357e0a9c12c3c57518632e327bc9853075dc7013e3ba730ec3deb364648d0a5d",
-      "size": 239371
+      "sha256": "b6647d70bb0a837d4829866928be3a4b86066afb582cf51004ec1e1c62d8b1fc",
+      "size": 239701
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
@@ -100,8 +100,8 @@
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "6eb9a779f78825825b9698cf6feee527cdf0b7c60bd31c8dc4a0df5045165c0d",
-      "size": 183773
+      "sha256": "7eaeca07dab5e75d7d6a8d3688854b11b8137740fa69103e90d93e1024ab8701",
+      "size": 186192
     },
     "src/ui/skinview3d.bundle.js": {
       "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",

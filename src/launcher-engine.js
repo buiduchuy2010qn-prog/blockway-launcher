@@ -15401,7 +15401,7 @@ function downloadFileWithProgress(url, destPath, onProgress, redirectsLeft = 6) 
   return new Promise((resolve, reject) => {
     const dir = path.dirname(destPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    const req = https.get(url, { agent: httpsKeepAliveAgent, headers: { 'User-Agent': 'BlockWay-Launcher/41.3' }, timeout: 45000 }, (res) => {
+    const req = https.get(url, { agent: httpsKeepAliveAgent, headers: { 'User-Agent': 'BlockWay-Launcher/42.6' }, timeout: 45000 }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         res.resume();
         if (redirectsLeft <= 0) return reject(new Error('Quá nhiều chuyển hướng khi tải tệp'));

@@ -1578,7 +1578,7 @@ async function checkAndPromptLauncherUpdate(manualClick = false) {
       }
       if (topUpdVer) {
         topUpdVer.textContent = '⚠ Lỗi mạng';
-        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '41.0.0'}`), 2000);
+        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '42.6.0'}`), 2000);
       }
     }
     return;
@@ -1705,6 +1705,54 @@ window.addEventListener('DOMContentLoaded', async () => {
       state.msProfile = fresh;
     }
   });
+  const refreshSidebarRustStatusBadge = async () => {
+    const verEl = document.getElementById('sidebarRustVer');
+    if (!verEl || typeof window.aetherAPI?.getHorizonStatus !== 'function') return;
+    try {
+      const st = await window.aetherAPI.getHorizonStatus(state.gameDir);
+      if (st?.engineInstalled) {
+        const shortHash = String(st.buildCommit || '').trim().slice(0, 7);
+        verEl.textContent = shortHash ? `#${shortHash} ✓` : (st.isPrepared ? '✓ Sẵn sàng' : 'Đã cài');
+      } else {
+        verEl.textContent = 'Chưa tải';
+      }
+    } catch (_) {
+      verEl.textContent = 'Sẵn sàng';
+    }
+  };
+  const btnSidebarRust = document.getElementById('btnSidebarRustStatus');
+  if (btnSidebarRust) {
+    btnSidebarRust.onclick = async () => {
+      const verEl = document.getElementById('sidebarRustVer');
+      if (verEl) verEl.textContent = '⏳ Kiểm tra...';
+      showAetherNotification('🦀 Đang kiểm tra & nâng cấp Nhân BlockWay Rust từ GitHub...', 'info', 4000);
+      try {
+        const upRes = await window.aetherAPI.upgradeHorizonEngine(state.gameDir, true);
+        if (upRes?.ok) {
+          const shortHash = String(upRes.commit || upRes.status?.buildCommit || '').trim().slice(0, 7);
+          if (verEl && shortHash) verEl.textContent = `#${shortHash} ✓`;
+          showAetherNotification(upRes.message || '🦀 Nhân BlockWay Rust đã ở bản mới nhất!', 'success', 5500);
+          await refreshLoaderBuilds();
+          updateSummaryUI();
+        } else {
+          showAetherNotification(upRes?.message || upRes?.error || '⏳ Chưa có bản Nhân Rust mới hơn.', 'info', 5000);
+          await refreshSidebarRustStatusBadge();
+        }
+      } catch (err) {
+        showAetherNotification(`⚠ Lỗi kiểm tra Nhân Rust: ${err.message || err}`, 'error', 5000);
+        await refreshSidebarRustStatusBadge();
+      }
+    };
+  }
+  window.aetherAPI.onHorizonUpgraded?.((info) => {
+    const verEl = document.getElementById('sidebarRustVer');
+    const shortHash = String(info?.shortCommit || info?.commit || '').trim().slice(0, 7);
+    if (verEl && shortHash) verEl.textContent = `#${shortHash} ✓`;
+    if (shortHash) {
+      showAetherNotification(`🦀 Đã tự động cập nhật ngầm Nhân BlockWay Rust lên bản #${shortHash}!`, 'success', 5500);
+    }
+  });
+  setTimeout(() => { refreshSidebarRustStatusBadge(); }, 600);
   setTimeout(() => {
     if (
       state.msProfile?.isOfficialLicense

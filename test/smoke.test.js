@@ -692,8 +692,11 @@ test('12. v42.4.1 PRO Instant <1s Rust Launch: zero-network warm ensureHorizonEn
     assert.equal(fs.existsSync(path.join(zipDest, 'horizon-windows-x64', 'horizon-client.exe')), true);
     assert.equal(fs.existsSync(path.join(zipDest, 'horizon-windows-x64', 'crates', 'foo.rs')), false);
 
-    const evilZip = new AdmZip();
-    evilZip.addFile('../evil.txt', Buffer.from('pwn'));
+    const evilZip = {
+      getEntries: () => [
+        { entryName: '../evil.txt', isDirectory: false, getData: () => Buffer.from('pwn') }
+      ]
+    };
     assert.throws(() => {
       engine.extractZipSafely(evilZip, zipDest, { filterEntry: () => true });
     }, /Zip-Slip/i);
@@ -920,4 +923,28 @@ test('14. v42.5.1 PRO Instant 0ms Cached Microsoft Token, Non-Blocking Rust Sing
   } finally {
     fs.rmSync(tmpRoot, { recursive: true, force: true });
   }
+});
+
+test('15. v42.6.0 PRO Final Release Polish: Sidebar Rust Core Status, Modern Dependencies & README Sync', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf8'));
+  const html = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/index.html'), 'utf8');
+  const preloadSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/preload.js'), 'utf8');
+  const mainSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/main.js'), 'utf8');
+  const readme = fs.readFileSync(path.join(REPO_ROOT, 'README.md'), 'utf8');
+
+  // 15a. Upgraded dependencies in package.json
+  const parseMajor = (spec) => Number(String(spec || '').replace(/^[^\d]*/, '').split('.')[0]) || 0;
+  assert.ok(String(pkg.dependencies['adm-zip'] || '').includes('0.6'), 'adm-zip should be on 0.6.x');
+  assert.ok(String(pkg.dependencies['minecraft-launcher-core'] || '').includes('3.18'), 'minecraft-launcher-core should be on 3.18.x');
+  assert.ok(parseMajor(pkg.devDependencies.electron) >= 40, `Expected Electron >= 40, got ${pkg.devDependencies.electron}`);
+  assert.ok(parseMajor(pkg.devDependencies['electron-builder']) >= 26, `Expected electron-builder >= 26, got ${pkg.devDependencies['electron-builder']}`);
+
+  // 15b. Live Rust Core sidebar status badge & IPC event hook
+  assert.ok(html.includes('id="btnSidebarRustStatus"'), 'index.html must include sidebar Rust Core status button');
+  assert.ok(html.includes('id="sidebarRustVer"'), 'index.html must include sidebar Rust Core version badge');
+  assert.ok(preloadSrc.includes('onHorizonUpgraded'), 'preload.js must expose onHorizonUpgraded');
+  assert.ok(mainSrc.includes("'horizon:upgraded'"), 'main.js must emit horizon:upgraded when background core update finishes');
+
+  // 15c. README stays synced with package.json version
+  assert.ok(readme.includes(`BlockWay Launcher v${pkg.version} PRO`), `README.md must reflect v${pkg.version} PRO`);
 });

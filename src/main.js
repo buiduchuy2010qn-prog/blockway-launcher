@@ -751,7 +751,9 @@ if (gotSingleInstanceLock) {
         if (hzSt?.engineInstalled && !mcGameRunning) {
           const upRes = await freshEngine.upgradeHorizonEngine({ rootDir: targetGameDir, force: false });
           if (upRes?.upgraded && upRes.commit) {
-            mainWindow?.webContents.send('mc:status', `🦀 Đã tự động cập nhật ngầm Nhân BlockWay Rust bản mới nhất (#${String(upRes.commit).slice(0, 7)})!`);
+            const shortCommit = String(upRes.commit).slice(0, 7);
+            mainWindow?.webContents.send('horizon:upgraded', { commit: upRes.commit, shortCommit });
+            mainWindow?.webContents.send('mc:status', `🦀 Đã tự động cập nhật ngầm Nhân BlockWay Rust bản mới nhất (#${shortCommit})!`);
           }
         }
       } catch (_) {}
@@ -1393,6 +1395,12 @@ ipcMain.handle('mc:launch', async (_e, config) => {
               freshEngine.upgradeHorizonEngine({
                 rootDir: config.gameDir || freshEngine.getDefaultGameDir(),
                 force: false
+              }).then((upRes) => {
+                if (upRes?.upgraded && upRes.commit) {
+                  const shortCommit = String(upRes.commit).slice(0, 7);
+                  mainWindow?.webContents.send('horizon:upgraded', { commit: upRes.commit, shortCommit });
+                  mainWindow?.webContents.send('mc:status', `🦀 Đã hoàn tất cập nhật ngầm Nhân BlockWay Rust (#${shortCommit})!`);
+                }
               }).catch(() => {});
             }
           } catch (_) {}

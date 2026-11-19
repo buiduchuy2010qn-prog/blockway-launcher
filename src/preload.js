@@ -190,6 +190,7 @@ contextBridge.exposeInMainWorld('aetherAPI', {
   checkModrinthForHorizon: (params) => ipcRenderer.invoke('horizon:check-modrinth', params),
   prepareHorizonEngine: (gameDir) => ipcRenderer.invoke('horizon:prepare', gameDir),
   upgradeHorizonEngine: (gameDir, force = true) => ipcRenderer.invoke('horizon:upgrade', { gameDir, force }),
+  onHorizonUpgraded: (cb) => ipcRenderer.on('horizon:upgraded', (_e, data) => cb(data)),
   portJavaJarsToHorizon: (params) => ipcRenderer.invoke('horizon:port-jars', params),
   pickAndPortJarsToHorizon: (params) => ipcRenderer.invoke('horizon:pick-jars', params),
   portModpackToHorizon: (params) => ipcRenderer.invoke('horizon:port-pack', params),

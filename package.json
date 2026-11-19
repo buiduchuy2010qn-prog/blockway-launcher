@@ -1,7 +1,7 @@
 {
   "name": "blockway-launcher",
-  "version": "42.5.2",
-  "description": "BlockWay Launcher v42.5.2 PRO — Pure Horizon Glass Unified Monorepo, One-Click Datapack Worlds (No Experimental Nag), 0ms Cached MS Auth & Isolated Rust Saves • Every World, One Place.",
+  "version": "42.6.0",
+  "description": "BlockWay Launcher v42.6.0 PRO — Pure Horizon Glass Unified Release (Electron 45, 0ms Cached MS Auth, Instant <1s Rust Core, One-Click Datapack Worlds & Isolated Saves) • Every World, One Place.",
   "homepage": "https://buiduchuy2010qn-prog.github.io/blockway-launcher/",
   "repository": {
     "type": "git",
@@ -37,12 +37,12 @@
   "author": "buiduchuy2010qn-prog",
   "license": "MIT",
   "dependencies": {
-    "adm-zip": "^0.4.16",
-    "minecraft-launcher-core": "^3.16.2"
+    "adm-zip": "^0.6.1",
+    "minecraft-launcher-core": "^3.18.2"
   },
   "devDependencies": {
-    "electron": "^30.0.0",
-    "electron-builder": "^24.13.3"
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
   },
   "build": {
     "appId": "com.blockway.launcher",

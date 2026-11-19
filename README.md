@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v42.4.1 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
+# ⚡ BlockWay Launcher v42.6.0 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.4.1_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.6.0_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-8_Core_Loaders_+_Horizon_Rust-f97316?style=for-the-badge" alt="8 Core Loaders" /></a>
 </p>
 
@@ -16,7 +16,19 @@
 
 ---
 
-## ✨ Điểm mới trong `v42.4.1 PRO` (Instant `<1s` Rust Launch, Ultra-Light Rust HeapCompact & Full-Version Smooth v5)
+## ✨ Điểm mới trong `v42.6.0 PRO` (Final Stable Release — Electron 45, Instant `<1s` Rust & One-Click Datapack Worlds)
+
+- **🚀 Nâng cấp nền tảng hiện đại & Thanh trạng thái Nhân Rust (`v42.6.0 PRO`):**
+  - Nâng cấp lõi đóng gói lên **Electron 45**, **electron-builder 26**, **`adm-zip` 0.6** và **`minecraft-launcher-core` 3.18** giúp khởi động app nhanh hơn khi dùng pin, tăng tốc giải nén Modpack/Datapack UTF-8 và vá bảo mật Chromium mới nhất.
+  - Bổ sung nút hiển thị **trạng thái Nhân BlockWay Rust trực tiếp ngay thanh bên** (`🦀 Nhân Rust #commit ✓`), bấm 1 chạm để kiểm tra/nâng cấp và tự đồng bộ khi bản nâng cấp ngầm từ GitHub hoàn tất.
+- **⚡ Mở game `<1s` ngay cả khi đăng nhập Microsoft & Khi dùng pin (`v42.5.0` → `v42.5.1 PRO`):**
+  - **Đệm token Microsoft 24 giờ (`0ms` khi bấm Chơi)** kèm tự làm mới ngầm lúc mở app và không chặn nút Play khi vào Nhân Rust chơi đơn.
+  - **Mở khóa CPU Hybrid dòng U & Chế độ Pin:** gỡ trần 3 worker trên chip lai ít P-core (như Intel Core U-series 12 luồng → `9 worker threads`), tắt giới hạn EcoQoS (`disable_thread_power_throttling`) trên toàn bộ luồng worker Rust, bỏ `batteryMode:true` mặc định, loại bỏ hoàn toàn các lệnh PowerShell đồng bộ (`EmptyWorkingSet`, `Win32Title`), lười tải backend và giữ `powerSaveBlocker` khi đang chơi.
+- **🌍 Cô lập Thế giới Nhân Rust & Vào map Datapack 1 chạm (`v42.5.0` → `v42.5.2 PRO`):**
+  - Tách riêng toàn bộ thế giới chơi đơn của Nhân Rust vào thư mục **`horizon-rust/saves`** (tự di chuyển map cũ bị lệch siêu dữ liệu, bảo vệ nguyên vẹn `.minecraft/saves` của Java Edition) và đồng bộ nhãn phiên bản theo đúng profile đang chọn (`1.21.11` / `26.3`) với `DataVersion: 5023` chuẩn xác.
+  - Tắt bảng hỏi *"Cài đặt thử nghiệm / Experimental Settings"* khi mở các thế giới dùng Datapack thế hệ mới (*Terralith*, *SkyBlock*, *OneBlock*) từ menu **Chọn thế giới**.
+
+## ✨ Nền tảng `v42.4.x PRO` (Instant `<1s` Rust Warm Path, Ultra-Light Rust HeapCompact & Full-Version Smooth v5)
 
 - **⚡ Khởi chạy BlockWay Rust `<1s` (`v42.4.1 PRO`):**
   - Loại bỏ kiểm tra OTA chặn đồng bộ trên nút Play khi nhân `horizon-client.exe` và tài nguyên `26.3` đã sẵn sàng (`<1ms` warm fast-path).
