@@ -949,8 +949,9 @@ test('15. v42.6.0 PRO Final Release Polish: Sidebar Rust Core Status, Modern Dep
   assert.ok(readme.includes(`BlockWay Launcher v${pkg.version} PRO`), `README.md must reflect v${pkg.version} PRO`);
 });
 
-test('16. v42.6.1 PRO Legacy OTA Self-Healing & Horizontal Drag/Wheel Tab Scroll', () => {
+test('16. v42.6.2 PRO Legacy OTA Self-Healing & Zero-Snap Horizontal Drag/Wheel/Chevron Tab Scroll', () => {
   const mainSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/main.js'), 'utf8');
+  const html = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/index.html'), 'utf8');
   const rendererSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/renderer.js'), 'utf8');
   const glassCss = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/horizon-glass.css'), 'utf8');
   const glassJs = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/horizon-glass.js'), 'utf8');
@@ -969,17 +970,24 @@ test('16. v42.6.1 PRO Legacy OTA Self-Healing & Horizontal Drag/Wheel Tab Scroll
   assert.ok(mainSrc.includes("'src/ui/horizon-glass.js'"), 'src/main.js must guard src/ui/horizon-glass.js');
   assert.ok(rendererSrc.includes('repairMissingAssets'), 'src/ui/renderer.js must handle repairMissingAssets prompt');
 
-  // 16b. Draggable & mouse-wheel scrollable horizontal tab strips (top nav + home subtabs)
+  // 16b. Draggable, wheel-scrollable & chevron-navigable horizontal tab strips without MutationObserver snap-back
+  assert.ok(html.includes('class="hzl-top-nav-shell"'), 'index.html must wrap top nav in .hzl-top-nav-shell');
+  assert.ok(html.includes('id="btnTopNavScrollLeft"'), 'index.html must include #btnTopNavScrollLeft');
+  assert.ok(html.includes('id="btnTopNavScrollRight"'), 'index.html must include #btnTopNavScrollRight');
   for (const sym of [
     'enableHorizontalStripScroll',
     "'wheel'",
     "'pointerdown'",
     "'pointermove'",
     'hzl-is-dragging',
+    'lastActiveTopTab',
+    'syncScrollArrows',
     'hzlHomeTabbedStrip'
   ]) {
     assert.ok(glassJs.includes(sym), `src/ui/horizon-glass.js must include ${sym}`);
   }
+  assert.ok(glassCss.includes('.hzl-top-nav-shell'), 'horizon-glass.css must style .hzl-top-nav-shell');
+  assert.ok(glassCss.includes('.hzl-nav-scroll-btn'), 'horizon-glass.css must style .hzl-nav-scroll-btn');
   assert.ok(glassCss.includes('-webkit-app-region: no-drag !important'), 'horizon-glass.css must enforce no-drag on top nav strip');
   assert.ok(glassCss.includes('.hzl-is-dragging'), 'horizon-glass.css must style .hzl-is-dragging grab feedback');
   assert.ok(glassCss.includes('cursor: grabbing !important'), 'horizon-glass.css must show grabbing cursor while dragging tabs');

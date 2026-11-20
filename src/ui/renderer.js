@@ -1578,7 +1578,7 @@ async function checkAndPromptLauncherUpdate(manualClick = false) {
       }
       if (topUpdVer) {
         topUpdVer.textContent = '⚠ Lỗi mạng';
-        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '42.6.1'}`), 2000);
+        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '42.6.2'}`), 2000);
       }
     }
     return;

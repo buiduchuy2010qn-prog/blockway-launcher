@@ -690,14 +690,13 @@ html:root:root[data-ui-sidebar="rail"] body .hzl-side-core-item {
   z-index: 40;
 }
 
-:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip {
+:root:root body .app-shell header.titlebar .hzl-top-nav-shell {
   display: inline-flex !important;
   flex-direction: row !important;
   align-items: center !important;
   flex: 0 1 auto !important;
   min-width: 0 !important;
-  gap: 1.5px !important;
-  padding: 4px !important;
+  max-width: 100% !important;
   height: 40px !important;
   box-sizing: border-box !important;
   border-radius: 13px !important;
@@ -706,18 +705,66 @@ html:root:root[data-ui-sidebar="rail"] body .hzl-side-core-item {
   -webkit-backdrop-filter: var(--hzl-blur) !important;
   border: 1px solid var(--hzl-hairline) !important;
   -webkit-app-region: no-drag !important;
+  overflow: hidden !important;
+}
+
+:root:root body .app-shell header.titlebar .hzl-nav-scroll-btn {
+  flex: 0 0 22px !important;
+  width: 22px !important;
+  height: 30px !important;
+  margin: 0 2px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  background: var(--hzl-fill-1) !important;
+  color: var(--hzl-ink-1) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  -webkit-app-region: no-drag !important;
+  user-select: none !important;
+  transition: background 0.14s ease, color 0.14s ease !important;
+}
+
+:root:root body .app-shell header.titlebar .hzl-nav-scroll-btn:hover:not(:disabled) {
+  background: var(--hzl-fill-2) !important;
+  color: var(--hzl-ink-1) !important;
+}
+
+:root:root body .app-shell header.titlebar .hzl-nav-scroll-btn:disabled {
+  opacity: 0.28 !important;
+  cursor: default !important;
+}
+
+:root:root body .app-shell header.titlebar .hzl-nav-scroll-btn.hidden {
+  display: none !important;
+}
+
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  gap: 1.5px !important;
+  padding: 4px !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  -webkit-app-region: no-drag !important;
   user-select: none !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   scroll-behavior: auto;
   cursor: grab;
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip:hover,
-:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip.hzl-is-dragging {
-  scrollbar-color: var(--hzl-ink-3) transparent;
 }
 
 :root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip::-webkit-scrollbar {
@@ -1461,13 +1508,6 @@ html:root:root[data-theme="prism"] body .hzl-ed-btn.active {
   overflow-y: hidden;
   user-select: none;
   cursor: grab;
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-:root:root body .hzl-tp-tabs:hover,
-:root:root body .hzl-tp-tabs.hzl-is-dragging {
-  scrollbar-color: var(--hzl-ink-3) transparent;
 }
 
 :root:root body .hzl-tp-tabs::-webkit-scrollbar {

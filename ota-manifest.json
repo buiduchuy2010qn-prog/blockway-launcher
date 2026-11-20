@@ -1,10 +1,10 @@
 {
-  "version": "42.6.1",
-  "generatedAt": "2026-11-20T05:27:30.623Z",
+  "version": "42.6.2",
+  "generatedAt": "2026-11-20T05:40:12.257Z",
   "algorithm": "sha256",
   "files": {
     "package.json": {
-      "sha256": "77cf24dfb266ce57c1a7f5c169fcf8d9487ac9a4a7a59cbd47ff9333848a61c8",
+      "sha256": "d89adbf9de7bb7eb02ea7479933d6a0847f380de239984903e7e5edce4d57034",
       "size": 2598
     },
     "src/aether-cloud-auth.js": {
@@ -76,16 +76,16 @@
       "size": 4383
     },
     "src/ui/horizon-glass.css": {
-      "sha256": "2bab3aa1674032e98802d576466f151b3baf5e77bd2e148a3f916c6ed2b720ea",
-      "size": 71982
+      "sha256": "006b3ea90ff57f5b0bd3d27db0536f2b921a0193342dd42da00d2f88f7b32873",
+      "size": 73168
     },
     "src/ui/horizon-glass.js": {
-      "sha256": "66ee0b4f8a44eab601b3f0a3f6d21e6360789bc0f06a89fa933f7834d28f1d74",
-      "size": 28868
+      "sha256": "3a60d94dd7bb41abd5c9e29922bcbc716a2e8fa5eed4ca7f799e5e0826d023ac",
+      "size": 31109
     },
     "src/ui/index.html": {
-      "sha256": "3a7007e7c8b8be3a089c0b9ca68c23c4adb7e53239a92db7411dc529a65ea4ee",
-      "size": 239689
+      "sha256": "f78188843653cb8d562668efa10a7fb53de957741d47cd745734085a1604c501",
+      "size": 240144
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
@@ -100,7 +100,7 @@
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "902e4d65f8c64f30b99281a3d96b76f1f34ae202b3f8d5f76f9a8804b37ebaba",
+      "sha256": "c1e87477c82cdb585f72b32090348c8a02802cdf1183e5956d234bd0cb9e2633",
       "size": 186702
     },
     "src/ui/skinview3d.bundle.js": {

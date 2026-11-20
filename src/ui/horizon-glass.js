@@ -632,12 +632,55 @@
     });
     document.getElementById('ramSlider')?.addEventListener('input', () => setTimeout(syncHeroEditionUI, 40));
 
-    // v42.6.1 PRO: Enable smooth horizontal mouse-wheel & click-and-drag scrolling on clipped tab strips
-    function enableHorizontalStripScroll(strip) {
+    // v42.6.2 PRO: Smooth horizontal drag, wheel & chevron scroll on clipped tab strips (zero snap-back)
+    function enableHorizontalStripScroll(strip, opts = {}) {
       if (!strip || strip.dataset.hzlHScrollBound === '1') return;
       strip.dataset.hzlHScrollBound = '1';
 
-      strip.addEventListener(
+      const leftBtn = opts.leftBtn || null;
+      const rightBtn = opts.rightBtn || null;
+      const wheelHost = opts.wheelHost || strip;
+
+      const syncScrollArrows = () => {
+        if (!leftBtn && !rightBtn) return;
+        const leftExtra = leftBtn && !leftBtn.classList.contains('hidden') ? 26 : 0;
+        const rightExtra = rightBtn && !rightBtn.classList.contains('hidden') ? 26 : 0;
+        const overflow = strip.scrollWidth > strip.clientWidth + leftExtra + rightExtra + 2;
+        const canLeft = overflow && strip.scrollLeft > 2;
+        const canRight = overflow && strip.scrollLeft + strip.clientWidth < strip.scrollWidth - 2;
+        if (leftBtn) {
+          leftBtn.classList.toggle('hidden', !overflow);
+          leftBtn.disabled = !canLeft;
+        }
+        if (rightBtn) {
+          rightBtn.classList.toggle('hidden', !overflow);
+          rightBtn.disabled = !canRight;
+        }
+      };
+
+      if (leftBtn) {
+        leftBtn.addEventListener('click', () => {
+          strip.scrollBy({ left: -160, behavior: 'smooth' });
+        });
+      }
+      if (rightBtn) {
+        rightBtn.addEventListener('click', () => {
+          strip.scrollBy({ left: 160, behavior: 'smooth' });
+        });
+      }
+
+      strip.addEventListener('scroll', syncScrollArrows, { passive: true });
+      strip.addEventListener('dragstart', (e) => e.preventDefault());
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(syncScrollArrows);
+        ro.observe(strip);
+      }
+      window.addEventListener('resize', syncScrollArrows);
+      syncScrollArrows();
+      requestAnimationFrame(syncScrollArrows);
+      document.fonts?.ready?.then(syncScrollArrows).catch(() => {});
+
+      wheelHost.addEventListener(
         'wheel',
         (e) => {
           if (strip.scrollWidth <= strip.clientWidth + 1) return;
@@ -645,6 +688,7 @@
           if (!delta) return;
           e.preventDefault();
           strip.scrollLeft += delta;
+          syncScrollArrows();
         },
         { passive: false }
       );
@@ -675,6 +719,7 @@
           }, 0);
         }
         dragMoved = false;
+        syncScrollArrows();
       };
 
       strip.addEventListener('pointerdown', (e) => {
@@ -700,6 +745,7 @@
         if (dragMoved) {
           e.preventDefault();
           strip.scrollLeft = startScrollLeft - dx;
+          syncScrollArrows();
         }
       });
 
@@ -720,16 +766,23 @@
       );
     }
 
-    // Recompute notch whenever top navigation returns to Home & keep active tabs scrolled into view
+    // Recompute notch whenever top navigation switches tabs (ignore drag class mutations so dragged position never snaps back)
     const topNav = document.querySelector('.hzl-top-nav-strip');
     if (topNav) {
-      enableHorizontalStripScroll(topNav);
+      enableHorizontalStripScroll(topNav, {
+        leftBtn: document.getElementById('btnTopNavScrollLeft'),
+        rightBtn: document.getElementById('btnTopNavScrollRight'),
+        wheelHost: topNav.closest('.hzl-top-nav-shell') || topNav
+      });
+      let lastActiveTopTab = topNav.querySelector('.nav-item.active')?.dataset?.tab || 'home';
       const navObs = new MutationObserver(() => {
         const activeBtn = topNav.querySelector('.nav-item.active');
+        const activeTab = activeBtn?.dataset?.tab || 'home';
+        if (activeTab === lastActiveTopTab) return;
+        lastActiveTopTab = activeTab;
         if (activeBtn && typeof activeBtn.scrollIntoView === 'function') {
           activeBtn.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
         }
-        const activeTab = activeBtn?.dataset?.tab || 'home';
         if (activeTab === 'home') {
           requestAnimationFrame(updateTabbedPanelNotch);
         }
