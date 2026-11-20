@@ -1,4 +1,4 @@
-# ⚡ BlockWay Launcher v42.6.2 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
+# ⚡ BlockWay Launcher v42.6.3 PRO — Pure Horizon Glass Unified Edition (`blockway-launcher`)
 
 <p align="center">
   <img src="src/ui/app-banner.png" alt="BlockWay Launcher — Every World, One Place" width="100%" style="border-radius:14px;" />
@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://buiduchuy2010qn-prog.github.io/blockway-launcher/"><img src="https://img.shields.io/badge/Official_Website-BlockWay_Launcher-0284c7?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.6.2_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher/releases/latest"><img src="https://img.shields.io/badge/Release-v42.6.3_PRO-6b4bff?style=for-the-badge" alt="Latest Release" /></a>
   <a href="https://github.com/buiduchuy2010qn-prog/blockway-launcher"><img src="https://img.shields.io/badge/Minecraft_1.7.10_to_26.3-8_Core_Loaders_+_Horizon_Rust-f97316?style=for-the-badge" alt="8 Core Loaders" /></a>
 </p>
 
@@ -16,9 +16,9 @@
 
 ---
 
-## ✨ Điểm mới trong `v42.6.2 PRO` (Final Stable Release — Electron 45, Instant `<1s` Rust & One-Click Datapack Worlds)
+## ✨ Điểm mới trong `v42.6.3 PRO` (Final Stable Release — Electron 45, Instant `<1s` Rust & One-Click Datapack Worlds)
 
-- **🚀 Nâng cấp nền tảng hiện đại & Thanh trạng thái Nhân Rust (`v42.6.2 PRO`):**
+- **🚀 Nâng cấp nền tảng hiện đại & Thanh trạng thái Nhân Rust (`v42.6.3 PRO`):**
   - Nâng cấp lõi đóng gói lên **Electron 45**, **electron-builder 26**, **`adm-zip` 0.6** và **`minecraft-launcher-core` 3.18** giúp khởi động app nhanh hơn khi dùng pin, tăng tốc giải nén Modpack/Datapack UTF-8 và vá bảo mật Chromium mới nhất.
   - Bổ sung nút hiển thị **trạng thái Nhân BlockWay Rust trực tiếp ngay thanh bên** (`🦀 Nhân Rust #commit ✓`), bấm 1 chạm để kiểm tra/nâng cấp và tự đồng bộ khi bản nâng cấp ngầm từ GitHub hoàn tất.
 - **⚡ Mở game `<1s` ngay cả khi đăng nhập Microsoft & Khi dùng pin (`v42.5.0` → `v42.5.1 PRO`):**

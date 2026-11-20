@@ -1,10 +1,10 @@
 {
-  "version": "42.6.2",
-  "generatedAt": "2026-11-20T05:40:12.257Z",
+  "version": "42.6.3",
+  "generatedAt": "2026-11-20T13:09:28.120Z",
   "algorithm": "sha256",
   "files": {
     "package.json": {
-      "sha256": "d89adbf9de7bb7eb02ea7479933d6a0847f380de239984903e7e5edce4d57034",
+      "sha256": "0130ef365cbc764adbccf41bb05c4965b808b49e96e2b7231fb3c13e4f53b4c7",
       "size": 2598
     },
     "src/aether-cloud-auth.js": {
@@ -12,20 +12,20 @@
       "size": 100
     },
     "src/launcher-engine.js": {
-      "sha256": "f2172994c45078fc1a6c3c1756e05f16fd256d35e88cb2f53e02308f9415e04f",
-      "size": 713243
+      "sha256": "638bca4acef61e3a17e6f6b636cecd2eba6114ee9be1f80b05ef3bb6cd1e14ce",
+      "size": 714132
     },
     "src/main.js": {
-      "sha256": "0f823dce7a5a7c609b4f8bd039d49acbdcc8b8ac82d54dd184d8a1bbe4b6998f",
-      "size": 129523
+      "sha256": "627bd5db2a89bd0456fea143873080a40c31c98ab7b87b8d7bd28733e3250b41",
+      "size": 129881
     },
     "src/microsoft-auth.js": {
       "sha256": "f2742264a4e6ed66f3bba7d6c419db338a79886ce5d621e610abc3cea10b62a4",
       "size": 74618
     },
     "src/preload.js": {
-      "sha256": "9d1832e3a23cea78373f85ae21bbca748d405776ab9991ef5da8436188f554ca",
-      "size": 16293
+      "sha256": "8f421a7b3ed8f27be253977588e7c30ccea0078882f4cda22b604431da09f729",
+      "size": 16418
     },
     "src/ui/app-banner-hero.png": {
       "sha256": "92ee9d30e1aebfb481190a35b3fd7443c0c99bf470762e7ac577695dfd983661",
@@ -76,32 +76,32 @@
       "size": 4383
     },
     "src/ui/horizon-glass.css": {
-      "sha256": "006b3ea90ff57f5b0bd3d27db0536f2b921a0193342dd42da00d2f88f7b32873",
-      "size": 73168
+      "sha256": "07f2d98c41d3a4a27e0b3ec68ff8152f3d2ab1bf984b90ff4b03c084182f677f",
+      "size": 77564
     },
     "src/ui/horizon-glass.js": {
       "sha256": "3a60d94dd7bb41abd5c9e29922bcbc716a2e8fa5eed4ca7f799e5e0826d023ac",
       "size": 31109
     },
     "src/ui/index.html": {
-      "sha256": "f78188843653cb8d562668efa10a7fb53de957741d47cd745734085a1604c501",
-      "size": 240144
+      "sha256": "d73ab012af1fa84dc613e431540e03d9b1ba7ed5806d678cf1b275d38a658ffa",
+      "size": 240340
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
       "size": 1682
     },
     "src/ui/layout-v33.css": {
-      "sha256": "368a3a55f10320a0bd54e44bf7d807abd010e933612245e4ca5a665880ade8fa",
-      "size": 266091
+      "sha256": "be2012bee4b5030a7050903b20309c27073af3686d3f1482d74571f5089ae3e4",
+      "size": 266093
     },
     "src/ui/minecraft-logo.png": {
       "sha256": "ad1d472fa01a083342dc17bf938cbef0a54f94e42ec70a866aea47cf5b778e37",
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "c1e87477c82cdb585f72b32090348c8a02802cdf1183e5956d234bd0cb9e2633",
-      "size": 186702
+      "sha256": "11ca3d017c16e724ab1fefe4318c002c3b1c3c2cb404987f23b8d3f4a029c06a",
+      "size": 189419
     },
     "src/ui/skinview3d.bundle.js": {
       "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",

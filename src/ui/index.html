@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>BlockWay Launcher v42.6.2 PRO — Every World, One Place</title>
+  <title>BlockWay Launcher v42.6.3 PRO — Every World, One Place</title>
   <link rel="icon" href="app-icon.ico" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="layout-v33.css" />
@@ -294,7 +294,7 @@
           </div>
           <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
             <span>BlockWay OTA</span>
-            <strong id="titlebarUpdateVer">v42.6.2</strong>
+            <strong id="titlebarUpdateVer">v42.6.3</strong>
           </button>
           <button class="titlebar-update-btn" id="btnSidebarRustStatus" title="Trạng thái Nhân BlockWay Rust — Bấm để kiểm tra hoặc nâng cấp bản mới từ GitHub">
             <span>🦀 Nhân Rust</span>
@@ -581,12 +581,12 @@
                         <div class="hrw-head">
                           <div class="hrw-title">
                             <span>Nhật ký &amp; Trạng thái Nhân</span>
-                            <small class="hzl-patch-ver-tag">v42.6.2 PRO · Pure Glass</small>
+                            <small class="hzl-patch-ver-tag">v42.6.3 PRO · Pure Glass</small>
                           </div>
                           <button type="button" class="hrw-view-all" id="btnHomeOpenChangelog">Cài đặt ›</button>
                         </div>
                         <ul class="hzl-patch-list">
-                          <li>Tự phục hồi giao diện OTA v42.6.2 PRO: tự phát hiện và tải bù ngay <code>horizon-glass.css</code>/<code>.js</code>/font nếu cập nhật từ bản cũ v41.x, đi kèm lõi Electron 45, nút trạng thái Nhân Rust trên thanh bên, mở game &lt;1s (token Microsoft 0ms) &amp; vào map Datapack 1 chạm.</li>
+                          <li><strong>v42.6.3 PRO</strong>: sửa thanh tab bị trống khi thu gọn thanh bên (Rail), cố định Phòng Thay Đồ 3D 2 cột gọn không còn khoảng trống, khóa zoom tránh nhân vật tự phóng to/nhỏ thất thường &amp; thêm nút/kéo thả tải Skin <code>.PNG</code> từ máy ngay đầu bảng.</li>
                           <li>Siêu nhẹ &amp; Đa phiên bản: <strong>Full-Version Smooth v5 (1.8.9 → 26.3)</strong> (VBO/FBO, tắt mờ túi đồ, BadOptimizations, G1GC &amp; AlwaysPreTouch), <strong>Ultra-Light Rust</strong> (<code>HeapCompact</code> &amp; <code>mimalloc</code> v3) và <strong>Ngủ Đông 1 FPS</strong> khi chơi.</li>
                           <li>Cuộn 120Hz siêu mượt (<code>content-visibility: auto</code> &amp; GPU Zero-Copy) trên kính mờ Horizon kèm Kho Mod ưu tiên gói đã cài lên đầu danh sách.</li>
                         </ul>
@@ -609,6 +609,7 @@
                     <button class="stage-expand-btn" id="btnExpandSkinStudio" title="Mở phòng thay đồ Skin & Nhân vật 3D toàn màn hình">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
                     </button>
+                    <div class="hzl-skin-drop-overlay" id="skinDropOverlay">📤 Thả file Skin (.PNG) vào đây để mặc ngay</div>
                     <div class="starfield-layer"></div>
                     <canvas id="skinViewerCanvas"></canvas>
                     <div class="webgl-floor-glow"></div>
@@ -1590,40 +1591,22 @@
                 </div>
               </div>
 
-              <div class="wardrobe-toolbar" style="display:flex;flex-direction:column;gap:14px;">
+              <div class="wardrobe-toolbar" style="display:flex;flex-direction:column;gap:12px;">
                 <div class="wtab-nav" id="wardrobeTabNav">
-                  <button type="button" class="wtab-btn active" data-wtab="pose">🎭 Tư Thế &amp; Ảnh 3D</button>
-                  <button type="button" class="wtab-btn" data-wtab="skin">👕 Đổi Skin &amp; Tải PNG</button>
+                  <button type="button" class="wtab-btn active" data-wtab="skin">👕 Đổi Skin &amp; Tải PNG</button>
+                  <button type="button" class="wtab-btn" data-wtab="pose">🎭 Tư Thế &amp; Ảnh 3D</button>
                   <button type="button" class="wtab-btn" data-wtab="cape">🦸 Áo Choàng &amp; Elytra</button>
                 </div>
 
-                <!-- SUB-TAB 1: TƯ THẾ & CHỤP ẢNH -->
-                <div class="wtab-panel active" id="wtab-pose">
+                <!-- PANEL 1: TẢI FILE SKIN (.PNG) TỪ MÁY & KHO SKIN MẪU -->
+                <div class="wtab-panel active" id="wtab-skin">
                   <div class="wtab-sec-head">
-                    <span class="wtab-sec-title">🎭 1. Chuyển động 3D &amp; Lớp áo nổi</span>
-                    <span class="wtab-sec-hint">Xoay 360° trực tiếp trên khung 3D</span>
+                    <span class="wtab-sec-title">👕 1. Tải Skin (.PNG) từ máy &amp; Kho Skin mẫu</span>
+                    <span class="wtab-sec-hint">Bấm nút dưới hoặc kéo thả file .PNG vào nhân vật 3D</span>
                   </div>
-                  <div class="pose-grid-5">
-                    <button class="pose-btn active" data-pose="walk">Đi bộ</button>
-                    <button class="pose-btn" data-pose="run">Chạy</button>
-                    <button class="pose-btn" data-pose="hit">Đánh</button>
-                    <button class="pose-btn" data-pose="fly">Bay</button>
-                    <button class="pose-btn" data-pose="idle">Đứng</button>
-                  </div>
-                  <div class="wt-row-2col" style="margin-top:8px;">
-                    <button class="wt-snap-btn" id="btnSnap3DSkin">
-                      <span>📸 Chụp Ảnh 3D (.PNG)</span>
-                    </button>
-                    <button class="wt-layer-inline-btn active" id="btnToggleOuterLayer">🧥 Lớp Áo 3D: BẬT</button>
-                  </div>
-                </div>
-
-                <!-- SUB-TAB 2: KHO SKIN MẪU & TẢI PNG -->
-                <div class="wtab-panel hidden" id="wtab-skin">
-                  <div class="wtab-sec-head">
-                    <span class="wtab-sec-title">👕 2. Kho Skin nổi tiếng &amp; Tải file Skin (.PNG)</span>
-                    <span class="wtab-sec-hint">Tự chuẩn hóa 64×64</span>
-                  </div>
+                  <button class="wt-upload-btn full-width-btn hzl-skin-upload-primary" id="btnUploadSkinPng">
+                    <span>📤 Tải Ảnh Skin (.PNG 64×64 / 64×32) Từ Máy Tính</span>
+                  </button>
                   <div class="wt-skin-presets" id="skinPresetBar">
                     <button class="skin-preset-chip" data-skinpreset="Technoblade">Techno</button>
                     <button class="skin-preset-chip" data-skinpreset="Dream">Dream</button>
@@ -1631,10 +1614,7 @@
                     <button class="skin-preset-chip" data-skinpreset="MHF_Alex">Alex</button>
                     <button class="skin-preset-chip" data-skinpreset="MHF_Steve">Steve</button>
                   </div>
-                  <button class="wt-upload-btn full-width-btn" id="btnUploadSkinPng" style="margin-top:8px;">
-                    <span>📤 Tải File Skin (.PNG 64x64 / 64x32) Từ Máy Tính</span>
-                  </button>
-                  <div class="wt-avatar-quick-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+                  <div class="wt-avatar-quick-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
                     <button type="button" class="wt-upload-btn" id="btnTabSkinUploadAvatar" style="flex:1 1 140px;" title="Chọn ảnh .PNG / .JPG / .WEBP bất kỳ làm ảnh đại diện hồ sơ trên Launcher (giữ nguyên Skin 3D trong game)">
                       <span>🖼️ Đổi Ảnh Avatar Hồ Sơ</span>
                     </button>
@@ -1645,15 +1625,36 @@
                       <span>✨ Khôi Phục Skin Chuẩn</span>
                     </button>
                   </div>
-                  <button class="btn-fps-boost-1click" id="btnInstallFriendSkinSync" style="width:100%;margin-top:6px;" title="Tự động trang bị CustomSkinLoader + Lớp Áo 3D + Áo Choàng để khi chơi chung LAN / Internet Offline bạn bè đều nhìn thấy đúng Skin của nhau (không bị trùng thành Steve/Alex)">
+                  <button class="btn-fps-boost-1click" id="btnInstallFriendSkinSync" style="width:100%;margin-top:4px;" title="Tự động trang bị CustomSkinLoader + Lớp Áo 3D + Áo Choàng để khi chơi chung LAN / Internet Offline bạn bè đều nhìn thấy đúng Skin của nhau (không bị trùng thành Steve/Alex)">
                     <span>🤝 Đồng Bộ Để Bạn Bè Thấy Đúng Skin Nhau (Offline / LAN)</span>
                   </button>
                   <div class="skin-closet-head">🧺 Tủ đồ skin gần đây <span>— bấm để mặc lại</span></div>
                   <div class="skin-closet-tray" id="skinClosetTray"></div>
                 </div>
 
-                <!-- SUB-TAB 3: ÁO CHOÀNG & CÁNH ELYTRA -->
-                <div class="wtab-panel hidden" id="wtab-cape">
+                <!-- PANEL 2: TƯ THẾ & CHỤP ẢNH -->
+                <div class="wtab-panel active" id="wtab-pose">
+                  <div class="wtab-sec-head">
+                    <span class="wtab-sec-title">🎭 2. Chuyển động 3D &amp; Lớp áo nổi</span>
+                    <span class="wtab-sec-hint">Xoay 360° trực tiếp trên khung 3D</span>
+                  </div>
+                  <div class="pose-grid-5">
+                    <button class="pose-btn active" data-pose="walk">Đi bộ</button>
+                    <button class="pose-btn" data-pose="run">Chạy</button>
+                    <button class="pose-btn" data-pose="hit">Đánh</button>
+                    <button class="pose-btn" data-pose="fly">Bay</button>
+                    <button class="pose-btn" data-pose="idle">Đứng</button>
+                  </div>
+                  <div class="wt-row-2col" style="margin-top:6px;">
+                    <button class="wt-snap-btn" id="btnSnap3DSkin">
+                      <span>📸 Chụp Ảnh 3D (.PNG)</span>
+                    </button>
+                    <button class="wt-layer-inline-btn active" id="btnToggleOuterLayer">🧥 Lớp Áo 3D: BẬT</button>
+                  </div>
+                </div>
+
+                <!-- PANEL 3: ÁO CHOÀNG & CÁNH ELYTRA -->
+                <div class="wtab-panel active" id="wtab-cape">
                   <div class="wtab-sec-head">
                     <span class="wtab-sec-title">🦸 3. Áo choàng (Cape) &amp; Cánh cứng Elytra 3D</span>
                     <span class="wtab-sec-hint">Hiển thị trực tiếp trên lưng</span>
@@ -1666,13 +1667,13 @@
                     <button class="cape-chip" data-cape="diamond">BlockWay</button>
                     <button class="cape-chip hidden" data-cape="custom" title="Áo choàng bạn tự tải lên">⭐ Của tôi</button>
                   </div>
-                  <div class="wt-row-2col" style="margin-top:8px;">
+                  <div class="wt-row-2col" style="margin-top:6px;">
                     <button class="wt-upload-btn" id="btnUploadCapePng" title="Ảnh PNG tỉ lệ 2:1 (VD 64x32) — bạn bè dùng BlockWay sẽ thấy khi chơi Offline / LAN">
                       <span>📤 Tải Áo Choàng Riêng (.PNG)</span>
                     </button>
                     <button class="wt-upload-btn hidden" id="btnRemoveCustomCape"><span>🗑️ Gỡ áo choàng riêng</span></button>
                   </div>
-                  <button class="wt-upload-btn full-width-btn" id="btnToggleElytra" style="margin-top:8px;">
+                  <button class="wt-upload-btn full-width-btn" id="btnToggleElytra" style="margin-top:6px;">
                     <span>🪽 Đeo Thử Cánh Cứng Elytra 3D</span>
                   </button>
                 </div>
@@ -1929,7 +1930,7 @@
               </div>
             </div>
             <div class="console-terminal" id="consoleOutput">
-              <div class="log-entry info">[BlockWay Launcher v42.6.2 PRO] Horizon Glass Edition — Sẵn sàng khởi chạy.</div>
+              <div class="log-entry info">[BlockWay Launcher v42.6.3 PRO] Horizon Glass Edition — Sẵn sàng khởi chạy.</div>
             </div>
           </div>
         </section>
@@ -1951,7 +1952,7 @@
                 📦 GitHub Repo
               </button>
               <button class="btn-sync-skin" id="btnCheckUpdate">
-                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v42.6.2</span>)
+                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v42.6.3</span>)
               </button>
             </div>
           </div>

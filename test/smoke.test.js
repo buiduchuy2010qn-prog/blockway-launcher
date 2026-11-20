@@ -992,3 +992,83 @@ test('16. v42.6.2 PRO Legacy OTA Self-Healing & Zero-Snap Horizontal Drag/Wheel/
   assert.ok(glassCss.includes('.hzl-is-dragging'), 'horizon-glass.css must style .hzl-is-dragging grab feedback');
   assert.ok(glassCss.includes('cursor: grabbing !important'), 'horizon-glass.css must show grabbing cursor while dragging tabs');
 });
+
+test('17. v42.6.3 PRO Rail Top-Nav Protection, 2-Col Skin Studio, Stable 3D Framing & Local PNG Skin Upload', () => {
+  const layoutCss = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/layout-v33.css'), 'utf8');
+  const glassCss = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/horizon-glass.css'), 'utf8');
+  const html = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/index.html'), 'utf8');
+  const rendererSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/renderer.js'), 'utf8');
+  const preloadSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/preload.js'), 'utf8');
+  const mainSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/main.js'), 'utf8');
+  const engine = require('../src/launcher-engine');
+
+  // 17a. Rail mode must never hide top navigation spans or squish top nav pills
+  assert.equal(
+    /html\[data-ui-sidebar="rail"\]\s+\.sidebar-nav\b/.test(layoutCss),
+    false,
+    'layout-v33.css must scope rail .sidebar-nav rules to .sidebar'
+  );
+  assert.ok(
+    layoutCss.includes('html[data-ui-sidebar="rail"] .sidebar .sidebar-nav .nav-item span'),
+    'layout-v33.css must scope rail .nav-item span hiding to .sidebar'
+  );
+  assert.equal(
+    /#tab-skin\s+\.wtab-panel\.hidden\s*\{/.test(layoutCss),
+    false,
+    'layout-v33.css must not hide #tab-skin .wtab-panel sections'
+  );
+  assert.ok(
+    glassCss.includes('html:root:root[data-ui-sidebar="rail"]') && glassCss.includes('.hzl-top-nav-strip .nav-item span'),
+    'horizon-glass.css must protect .hzl-top-nav-strip .nav-item span in rail mode'
+  );
+
+  // 17b. 2-col Skin Studio layout & all 3 wardrobe panels visible with prominent upload + drop overlay
+  assert.ok(glassCss.includes('#tab-skin .skin-studio-page-grid'), 'horizon-glass.css must define #tab-skin 2-col grid');
+  assert.ok(glassCss.includes('@media (max-width: 780px)'), 'horizon-glass.css must keep #tab-skin 2-col down to 780px');
+  assert.ok(glassCss.includes('.hzl-skin-upload-primary'), 'horizon-glass.css must style .hzl-skin-upload-primary');
+  assert.ok(glassCss.includes('.hzl-skin-drop-overlay'), 'horizon-glass.css must style .hzl-skin-drop-overlay');
+
+  assert.ok(html.includes('id="skinDropOverlay"'), 'index.html must include #skinDropOverlay');
+  assert.ok(html.includes('id="btnUploadSkinPng"'), 'index.html must include #btnUploadSkinPng');
+  assert.ok(/<div class="wtab-panel active" id="wtab-skin">/.test(html), '#wtab-skin must be visible (not hidden)');
+  assert.ok(/<div class="wtab-panel active" id="wtab-cape">/.test(html), '#wtab-cape must be visible (not hidden)');
+
+  // 17c. Stable 3D character framing & local PNG upload + dataUrl save path
+  for (const sym of ['resizeAndFrame3DSkinViewer', 'enableZoom = false', 'applyUploadedLocalSkinDataUrl', 'saveLocalSkinDataUrl']) {
+    assert.ok(rendererSrc.includes(sym), `src/ui/renderer.js must include ${sym}`);
+  }
+  assert.ok(preloadSrc.includes('saveLocalSkinDataUrl'), 'src/preload.js must expose saveLocalSkinDataUrl');
+  assert.ok(mainSrc.includes('saveCustomLocalSkinDataUrl'), 'src/main.js must wire saveCustomLocalSkinDataUrl');
+
+  // 17d. Unit test saveCustomLocalSkinDataUrl PNG validation & write
+  const tmpSkinDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-v4263-skin-'));
+  try {
+    const fakeValidPng = Buffer.alloc(96, 0);
+    fakeValidPng[0] = 0x89;
+    fakeValidPng[1] = 0x50;
+    fakeValidPng[2] = 0x4e;
+    fakeValidPng[3] = 0x47;
+    fakeValidPng[4] = 0x0d;
+    fakeValidPng[5] = 0x0a;
+    fakeValidPng[6] = 0x1a;
+    fakeValidPng[7] = 0x0a;
+    const validRes = engine.saveCustomLocalSkinDataUrl(
+      tmpSkinDir,
+      'TestUser',
+      `data:image/png;base64,${fakeValidPng.toString('base64')}`
+    );
+    assert.equal(validRes.ok, true);
+    assert.equal(
+      fs.existsSync(path.join(tmpSkinDir, 'CustomSkinLoader', 'LocalSkin', 'skins', 'TestUser.png')),
+      true,
+      'saveCustomLocalSkinDataUrl must write validated PNG into LocalSkin/skins/TestUser.png'
+    );
+    assert.throws(
+      () => engine.saveCustomLocalSkinDataUrl(tmpSkinDir, 'TestUser', 'data:image/png;base64,bm90LXBuZw=='),
+      /PNG/i,
+      'saveCustomLocalSkinDataUrl must reject non-PNG header bytes'
+    );
+  } finally {
+    fs.rmSync(tmpSkinDir, { recursive: true, force: true });
+  }
+});

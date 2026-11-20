@@ -670,6 +670,58 @@ html:root:root[data-ui-sidebar="rail"] body .hzl-side-core-item {
   padding: 7px 4px;
 }
 
+/* Protect Top Nav Bar, Search Pill & Account Pill when Left Sidebar is in compact Rail mode */
+html:root:root[data-ui-sidebar="rail"] body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip {
+  width: auto !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .app-shell header.titlebar .hzl-top-nav-strip .nav-item {
+  width: auto !important;
+  height: 32px !important;
+  padding: 0 6.5px !important;
+  margin: 0 !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .app-shell header.titlebar .hzl-top-nav-strip .nav-item span {
+  display: inline !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .app-shell header.titlebar #sidebarProfileCard.hzl-top-profile-pill {
+  width: auto !important;
+  padding: 0 7px 0 5px !important;
+  justify-content: flex-start !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .app-shell header.titlebar #sidebarProfileCard .sidebar-profile-info {
+  display: flex !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .app-shell header.titlebar #sidebarProfileCard .sidebar-profile-chev {
+  display: inline-flex !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .sidebar-glass-footer {
+  padding: 8px 4px !important;
+  gap: 5px !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .sidebar-glass-footer .titlebar-update-btn {
+  justify-content: center !important;
+  padding: 5px 3px !important;
+  min-height: 26px !important;
+  font-size: 9.5px !important;
+}
+
+html:root:root[data-ui-sidebar="rail"] body .sidebar-glass-footer .titlebar-update-btn strong {
+  display: block;
+  max-width: 54px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  font-size: 9.5px !important;
+}
+
 /* ---------- 4. TOP FLOATING HORIZON GLASS BAR (ALL SECTIONS + PROFILE + CONTROLS) ---------- */
 :root:root body .app-shell > header.titlebar {
   grid-column: 2 !important;
@@ -933,6 +985,8 @@ html:root:root[data-theme="prism"] body .app-shell header.titlebar .hzl-top-nav-
   width: auto !important;
   min-width: 0 !important;
   max-width: 132px !important;
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
   border-radius: 12px !important;
   background: var(--hzl-plate) !important;
   backdrop-filter: var(--hzl-blur) !important;
@@ -2479,4 +2533,98 @@ html:root:root[data-theme="prism"] body .hmi-install-btn {
 
 :root:root body .app-shell #tab-servers .srv-card-row:not(.active) {
   background: var(--hzl-row-plate, var(--hzl-plate)) !important;
+}
+
+/* ---------- 11. v42.6.3 PRO: 2-COL SKIN STUDIO, RAIL SAFETY & PNG SKIN DROP ---------- */
+:root:root body .app-shell #tab-skin .skin-studio-page-grid {
+  display: grid !important;
+  grid-template-columns: clamp(276px, 28vw, 336px) minmax(0, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+@media (max-width: 780px) {
+  :root:root body .app-shell #tab-skin .skin-studio-page-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+:root:root body .app-shell #tab-skin .skin-page-stage-slot {
+  position: sticky;
+  top: 0;
+}
+
+:root:root body .app-shell #tab-skin .skin-page-stage-slot .skin-studio-card {
+  height: auto !important;
+}
+
+:root:root body .app-shell #tab-skin .skin-page-stage-slot #btnGoSkinStudio {
+  display: none !important;
+}
+
+:root:root body .app-shell #tab-skin .skin-page-stage-slot .webgl-stage-wrap {
+  height: 430px !important;
+  min-height: 360px !important;
+  position: relative;
+}
+
+:root:root body .app-shell #tab-skin .wardrobe-toolbar {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+:root:root body .app-shell #tab-skin .wardrobe-toolbar .wtab-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 11px 13px !important;
+  border-radius: 13px !important;
+  background: var(--hzl-plate-inner) !important;
+  border: 1px solid var(--hzl-hairline) !important;
+}
+
+:root:root body .app-shell #tab-skin #btnUploadSkinPng.hzl-skin-upload-primary {
+  background: var(--accent) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 700 !important;
+  min-height: 38px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 6px 18px var(--accent-glow) !important;
+  transition: filter 0.14s ease, transform 0.14s ease !important;
+}
+
+:root:root body .app-shell #tab-skin #btnUploadSkinPng.hzl-skin-upload-primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+:root:root body #webglStageWrap.is-dragover {
+  outline: 2px dashed var(--accent) !important;
+  outline-offset: -4px !important;
+}
+
+:root:root body .hzl-skin-drop-overlay {
+  position: absolute;
+  inset: 8px;
+  z-index: 12;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(15, 12, 32, 0.78);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  padding: 12px;
+  pointer-events: none;
+}
+
+:root:root body #webglStageWrap.is-dragover .hzl-skin-drop-overlay {
+  display: flex;
 }

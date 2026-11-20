@@ -27,6 +27,7 @@ let
   getEquippedAddonsState,
   listLocalWorlds,
   saveCustomLocalSkin,
+  saveCustomLocalSkinDataUrl,
   launchMinecraft,
   forceKillMinecraft,
   cleanupJavaTempAndTrimRam,
@@ -91,6 +92,7 @@ function ensureBackendModulesLoaded() {
     getEquippedAddonsState,
     listLocalWorlds,
     saveCustomLocalSkin,
+    saveCustomLocalSkinDataUrl,
     launchMinecraft,
     forceKillMinecraft,
     cleanupJavaTempAndTrimRam,
@@ -1067,6 +1069,7 @@ ipcMain.handle('skin:fetch-base64', async (_e, username) => {
 
 ipcMain.handle('skin:upload-local', async (_e, gameDir, username) => {
   try {
+    ensureBackendModulesLoaded();
     const res = await dialog.showOpenDialog(mainWindow, {
       title: 'Chọn file ảnh Skin Minecraft (.png - 64x64 hoặc 64x32)',
       properties: ['openFile'],
@@ -1076,6 +1079,15 @@ ipcMain.handle('skin:upload-local', async (_e, gameDir, username) => {
       return { ok: false, canceled: true };
     }
     return saveCustomLocalSkin(gameDir, username, res.filePaths[0]);
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('skin:save-dataurl', async (_e, gameDir, username, dataUrl) => {
+  try {
+    ensureBackendModulesLoaded();
+    return saveCustomLocalSkinDataUrl(gameDir, username, dataUrl);
   } catch (err) {
     return { ok: false, error: err.message };
   }

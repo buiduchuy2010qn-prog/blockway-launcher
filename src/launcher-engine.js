@@ -6129,16 +6129,35 @@ function listLocalWorlds(gameDir, includeInstances = false) {
   return results.sort((a, b) => (b.mtimeMs || 0) - (a.mtimeMs || 0));
 }
 
-function saveCustomLocalSkin(gameDir, username, sourceFilePath) {
-  const rootDir = gameDir && gameDir.trim() ? gameDir.trim() : getDefaultGameDir();
+function writeValidatedCustomLocalSkinBuffer(gameDir, username, buf) {
+  if (!Buffer.isBuffer(buf) || buf.length < 64 || buf[0] !== 0x89 || buf[1] !== 0x50 || buf[2] !== 0x4e || buf[3] !== 0x47) {
+    throw new Error('File không phải ảnh Skin PNG hợp lệ.');
+  }
+  if (buf.length > 5 * 1024 * 1024) {
+    throw new Error('File ảnh Skin vượt quá giới hạn 5 MB.');
+  }
+  const rootDir = gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
   const cleanName = (username || 'StevePlayer').replace(/[^a-zA-Z0-9_]/g, '') || 'StevePlayer';
-  const buf = fs.readFileSync(sourceFilePath);
   const skinsDir = path.join(rootDir, 'CustomSkinLoader', 'LocalSkin', 'skins');
   if (!fs.existsSync(skinsDir)) fs.mkdirSync(skinsDir, { recursive: true });
   const targetPng = path.join(skinsDir, `${cleanName}.png`);
   fs.writeFileSync(targetPng, buf);
-  configureCrackSkinSupport(rootDir, cleanName);
+  configureCrackSkinSupport(rootDir);
   return { ok: true, dataUrl: `data:image/png;base64,${buf.toString('base64')}`, savedPath: targetPng };
+}
+
+function saveCustomLocalSkin(gameDir, username, sourceFilePath) {
+  const buf = fs.readFileSync(sourceFilePath);
+  return writeValidatedCustomLocalSkinBuffer(gameDir, username, buf);
+}
+
+function saveCustomLocalSkinDataUrl(gameDir, username, dataUrl) {
+  const match = /^data:image\/png;base64,([A-Za-z0-9+/=\s]+)$/i.exec(String(dataUrl || '').trim());
+  if (!match) {
+    throw new Error('Dữ liệu ảnh Skin PNG không hợp lệ.');
+  }
+  const buf = Buffer.from(match[1].replace(/\s+/g, ''), 'base64');
+  return writeValidatedCustomLocalSkinBuffer(gameDir, username, buf);
 }
 
 // v40.8: CustomSkinLoader 14.x "Legacy" loader needs explicit skin/cape/elytra paths ("root" is ignored).
@@ -17152,6 +17171,7 @@ module.exports = {
   ensureModsMatchVersion,
   listLocalWorlds,
   saveCustomLocalSkin,
+  saveCustomLocalSkinDataUrl,
   launchMinecraft,
   forceKillMinecraft,
   cleanupJavaTempAndTrimRam,

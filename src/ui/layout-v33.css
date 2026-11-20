@@ -3212,9 +3212,6 @@ html[data-theme="prism"] .main-stage > .tab-panel:not(#tab-home) > .mods-tab-hea
   background: var(--bg-input) !important;
   border: 1px solid var(--border-col) !important;
 }
-#tab-skin .wtab-panel.hidden {
-  display: none !important;
-}
 
 #tab-tools .v413-tools-dup.hidden {
   display: none !important;
@@ -10516,21 +10513,21 @@ html[data-ui-sidebar="rail"] .sidebar {
   padding: 10px 8px !important;
   align-items: center !important;
 }
-html[data-ui-sidebar="rail"] .sidebar-profile-card {
+html[data-ui-sidebar="rail"] .sidebar .sidebar-profile-card {
   padding: 6px !important;
   justify-content: center !important;
   width: 56px !important;
 }
-html[data-ui-sidebar="rail"] .sidebar-profile-info,
-html[data-ui-sidebar="rail"] .sidebar-profile-chev,
-html[data-ui-sidebar="rail"] .sidebar-footer-card,
-html[data-ui-sidebar="rail"] .sidebar-nav .nav-item span {
+html[data-ui-sidebar="rail"] .sidebar .sidebar-profile-info,
+html[data-ui-sidebar="rail"] .sidebar .sidebar-profile-chev,
+html[data-ui-sidebar="rail"] .sidebar .sidebar-footer-card,
+html[data-ui-sidebar="rail"] .sidebar .sidebar-nav .nav-item span {
   display: none !important;
 }
-html[data-ui-sidebar="rail"] .sidebar-nav {
+html[data-ui-sidebar="rail"] .sidebar .sidebar-nav {
   width: 100% !important;
 }
-html[data-ui-sidebar="rail"] .sidebar-nav .nav-item {
+html[data-ui-sidebar="rail"] .sidebar .sidebar-nav .nav-item {
   justify-content: center !important;
   padding: 0 !important;
   height: 42px !important;

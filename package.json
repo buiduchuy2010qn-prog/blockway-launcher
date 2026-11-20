@@ -1,7 +1,7 @@
 {
   "name": "blockway-launcher",
-  "version": "42.6.2",
-  "description": "BlockWay Launcher v42.6.2 PRO — Pure Horizon Glass Unified Release (Auto-Repair Legacy OTA UI Assets, Electron 45, 0ms Cached MS Auth, Instant <1s Rust Core & One-Click Datapack Worlds) • Every World, One Place.",
+  "version": "42.6.3",
+  "description": "BlockWay Launcher v42.6.3 PRO — Pure Horizon Glass Unified Release (Auto-Repair Legacy OTA UI Assets, Electron 45, 0ms Cached MS Auth, Instant <1s Rust Core & One-Click Datapack Worlds) • Every World, One Place.",
   "homepage": "https://buiduchuy2010qn-prog.github.io/blockway-launcher/",
   "repository": {
     "type": "git",

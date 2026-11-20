@@ -314,6 +314,29 @@ async function applyCapeToViewer(capeType) {
   } catch (_) {}
 }
 
+function getActiveSkinOwnerName() {
+  if (state.authMode === 'microsoft' && state.msProfile?.name) return state.msProfile.name;
+  if (state.authMode === 'aether' && state.cloudProfile?.mcUsername) return state.cloudProfile.mcUsername;
+  return state.username || 'StevePlayer';
+}
+
+function resizeAndFrame3DSkinViewer(resetCamera = false) {
+  const stageWrap = document.getElementById('webglStageWrap');
+  if (!skinViewer || !stageWrap || !stageWrap.clientWidth || !stageWrap.clientHeight) return;
+  const w = Math.max(180, Math.round(stageWrap.clientWidth - 8));
+  const h = Math.max(144, Math.round(stageWrap.clientHeight - 8));
+  skinViewer.setSize(w, h);
+  const inSkinTab = Boolean(stageWrap.closest('#tab-skin'));
+  const targetZoom = inSkinTab ? 0.88 : 0.82;
+  skinViewer.fov = 50;
+  skinViewer.zoom = targetZoom;
+  if (resetCamera) {
+    skinViewer.camera.position.set(-14, 11, 42);
+    skinViewer.adjustCameraDistance();
+  }
+  skinViewer.render();
+}
+
 function init3DSkinViewer() {
   const canvas = document.getElementById('skinViewerCanvas');
   if (!canvas || !window.skinview3d) return;
@@ -333,8 +356,15 @@ function init3DSkinViewer() {
     skinViewer.cameraLight.intensity = 1.95;
     skinViewer.cameraLight.position.set(12, 24, 38);
   }
+  if (skinViewer.controls) {
+    skinViewer.controls.enableZoom = false;
+    skinViewer.controls.enablePan = false;
+    skinViewer.controls.enableRotate = true;
+  }
+  skinViewer.fov = 50;
   skinViewer.camera.position.set(-14, 11, 42);
-  skinViewer.zoom = 0.74;
+  skinViewer.zoom = 0.86;
+  skinViewer.adjustCameraDistance();
   skinViewer.autoRotate = false;
   skinViewer.autoRotateSpeed = 0.45;
   skinViewer.animation = new window.skinview3d.WalkingAnimation();
@@ -374,13 +404,10 @@ function init3DSkinViewer() {
   }
   const stageWrap = canvas.parentElement;
   if (stageWrap && window.ResizeObserver) {
-    const ro = new ResizeObserver(() => {
-      if (!skinViewer || !stageWrap.clientWidth || !stageWrap.clientHeight) return;
-      skinViewer.setSize(Math.max(180, stageWrap.clientWidth - 10), Math.max(180, stageWrap.clientHeight - 16));
-      skinViewer.render();
-    });
+    const ro = new ResizeObserver(() => resizeAndFrame3DSkinViewer(false));
     ro.observe(stageWrap);
   }
+  resizeAndFrame3DSkinViewer(true);
 }
 
 async function loadCharacterSkin(username) {
@@ -656,12 +683,9 @@ function switchMainTab(tabId) {
   // Resize WebGL 3D viewer after slot transition, or pause GPU rendering on non-3D tabs
   if ((targetTab === 'home' || targetTab === 'skin') && skinViewer) {
     setTimeout(() => {
-      const stageWrap = document.getElementById('webglStageWrap');
-      if (stageWrap && stageWrap.clientWidth && stageWrap.clientHeight) {
-        skinViewer.setSize(Math.max(180, stageWrap.clientWidth - 10), Math.max(180, stageWrap.clientHeight - 16));
-        skinViewer.renderPaused = false;
-        skinViewer.render();
-      }
+      resizeAndFrame3DSkinViewer(true);
+      skinViewer.renderPaused = false;
+      skinViewer.render();
     }, 30);
   } else if (skinViewer) {
     skinViewer.renderPaused = true;
@@ -1578,7 +1602,7 @@ async function checkAndPromptLauncherUpdate(manualClick = false) {
       }
       if (topUpdVer) {
         topUpdVer.textContent = '⚠ Lỗi mạng';
-        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '42.6.2'}`), 2000);
+        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '42.6.3'}`), 2000);
       }
     }
     return;
@@ -2636,10 +2660,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (btnCam) {
     btnCam.onclick = () => {
       if (!skinViewer) return;
-      skinViewer.camera.position.set(-14, 11, 42);
       if (skinViewer.playerObject) skinViewer.playerObject.rotation.y = 0;
       skinViewer.renderPaused = false;
-      skinViewer.render();
+      resizeAndFrame3DSkinViewer(true);
       scheduleIdleGpuPause(2000);
     };
   }
@@ -2680,7 +2703,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     };
   });
 
-  window.applyExternalSkinDataUrl = async (rawDataUrl, skinLabel = 'Skin 3D') => {
+  async function applyUploadedLocalSkinDataUrl(rawDataUrl, skinLabel = 'Skin tải lên', customSuccessMsg = '') {
     if (!rawDataUrl) return;
     preserveOutgoingSkinInCloset();
     const normUrl = typeof convertSkinTo64x64DataUrl === 'function'
@@ -2691,7 +2714,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     state.selectedSkinPreset = '';
     document.querySelectorAll('#skinPresetBar .skin-preset-chip').forEach((c) => c.classList.remove('active'));
     saveCurrentConfig();
-    syncCloudCosmeticsIfActive(`👕 Đã mặc mẫu "${skinLabel}" lên nhân vật 3D & đồng bộ tự động!`);
     if (skinViewer) {
       try {
         skinViewer.renderPaused = false;
@@ -2702,38 +2724,78 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     draw2DAvatarFace(normUrl);
     rememberSkinInCloset(normUrl, skinLabel);
+    if (state.authMode === 'aether' && state.cloudProfile?.accountId) {
+      syncCloudCosmeticsIfActive(customSuccessMsg || '🎉 Đã tải ảnh Skin (.PNG) lên nhân vật 3D & lưu lên BlockWay Cloud!');
+    } else if (typeof showAetherNotification === 'function') {
+      showAetherNotification(customSuccessMsg || '🎉 Đã tải & mặc ảnh Skin (.PNG) từ máy lên nhân vật 3D!', 'success', 4200);
+    }
+  }
+
+  window.applyExternalSkinDataUrl = async (rawDataUrl, skinLabel = 'Skin 3D') => {
+    await applyUploadedLocalSkinDataUrl(rawDataUrl, skinLabel, `👕 Đã mặc mẫu "${skinLabel}" lên nhân vật 3D!`);
   };
 
   document.getElementById('btnUploadSkinPng').onclick = async () => {
-    const targetName = (state.authMode === 'aether' && state.cloudProfile?.mcUsername) ? state.cloudProfile.mcUsername : state.username;
-    const res = await window.aetherAPI.uploadLocalSkin(state.gameDir, targetName);
+    const res = await window.aetherAPI.uploadLocalSkin(state.gameDir, getActiveSkinOwnerName());
     if (res?.ok && res.dataUrl) {
-      preserveOutgoingSkinInCloset();
-      const normUrl = typeof convertSkinTo64x64DataUrl === 'function'
-        ? await convertSkinTo64x64DataUrl(res.dataUrl)
-        : res.dataUrl;
-      currentSkinDataUrl = normUrl;
-      state.cachedSkinDataUrl = normUrl;
-      state.selectedSkinPreset = '';
-      saveCurrentConfig();
-      syncCloudCosmeticsIfActive('🎉 Đã tải ảnh Skin (.PNG) lên nhân vật 3D & lưu vào tài khoản BlockWay Cloud 24/7!');
-      if (skinViewer) {
-        try {
-          await skinViewer.loadSkin(normUrl, { model: state.skinModel });
-          skinViewer.render();
-        } catch (_) {}
-      }
-      draw2DAvatarFace(normUrl);
-      rememberSkinInCloset(normUrl, 'Skin tải lên');
+      await applyUploadedLocalSkinDataUrl(res.dataUrl, 'Skin từ máy');
+    } else if (res && !res.canceled && res.error && typeof showAetherNotification === 'function') {
+      showAetherNotification(`⚠️ ${res.error}`, 'error', 4500);
     }
   };
+
+  const stageDropTarget = document.getElementById('webglStageWrap');
+  if (stageDropTarget && stageDropTarget.dataset.hzlDropBound !== '1') {
+    stageDropTarget.dataset.hzlDropBound = '1';
+    stageDropTarget.addEventListener('dragover', (ev) => {
+      ev.preventDefault();
+      stageDropTarget.classList.add('is-dragover');
+    });
+    stageDropTarget.addEventListener('dragleave', (ev) => {
+      if (!stageDropTarget.contains(ev.relatedTarget)) {
+        stageDropTarget.classList.remove('is-dragover');
+      }
+    });
+    stageDropTarget.addEventListener('drop', (ev) => {
+      ev.preventDefault();
+      stageDropTarget.classList.remove('is-dragover');
+      const file = [...(ev.dataTransfer?.files || [])].find(
+        (f) => f && (f.type === 'image/png' || /\.png$/i.test(f.name || ''))
+      );
+      if (!file) {
+        if (typeof showAetherNotification === 'function') {
+          showAetherNotification('⚠️ Vui lòng thả file ảnh Skin định dạng .PNG (64×64 hoặc 64×32).', 'error', 4000);
+        }
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const dataUrl = String(reader.result || '');
+        if (!/^data:image\/png;base64,/i.test(dataUrl)) return;
+        let finalUrl = dataUrl;
+        if (typeof window.aetherAPI?.saveLocalSkinDataUrl === 'function') {
+          const saveRes = await window.aetherAPI.saveLocalSkinDataUrl(state.gameDir, getActiveSkinOwnerName(), dataUrl);
+          if (!saveRes?.ok) {
+            if (typeof showAetherNotification === 'function') {
+              showAetherNotification(`⚠️ ${saveRes?.error || 'Không lưu được file Skin PNG.'}`, 'error', 4500);
+            }
+            return;
+          }
+          if (saveRes.dataUrl) finalUrl = saveRes.dataUrl;
+        }
+        const shortLabel = (file.name || 'Skin thả vào').replace(/\.png$/i, '').slice(0, 32) || 'Skin thả vào';
+        await applyUploadedLocalSkinDataUrl(finalUrl, shortLabel, `🎉 Đã mặc Skin "${shortLabel}.png" vừa kéo thả!`);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
   document.getElementById('btnTabSkinUploadAvatar')?.addEventListener('click', handleUploadCustomAvatar);
   document.getElementById('btnTabSkinResetAvatar')?.addEventListener('click', handleResetCustomAvatar);
   document.getElementById('btnTabSkinReloadDefault')?.addEventListener('click', handleReloadDefaultSkin);
   syncCustomAvatarUI();
 
   // v40.8: custom cape upload / remove (shown in-game via CustomSkinLoader LocalSkin/capes)
-  const capeOwnerName = () => ((state.authMode === 'aether' && state.cloudProfile?.mcUsername) ? state.cloudProfile.mcUsername : state.username);
+  const capeOwnerName = () => getActiveSkinOwnerName();
   const btnUploadCape = document.getElementById('btnUploadCapePng');
   if (btnUploadCape) {
     btnUploadCape.onclick = async () => {
