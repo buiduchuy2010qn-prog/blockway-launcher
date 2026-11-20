@@ -1578,7 +1578,7 @@ async function checkAndPromptLauncherUpdate(manualClick = false) {
       }
       if (topUpdVer) {
         topUpdVer.textContent = '⚠ Lỗi mạng';
-        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '42.6.0'}`), 2000);
+        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '42.6.1'}`), 2000);
       }
     }
     return;
@@ -1610,10 +1610,15 @@ async function checkAndPromptLauncherUpdate(manualClick = false) {
   if (!manualClick && !isNewDetectedVer) return;
   lastNotifiedUpdateVersion = res.latestVersion;
 
+  const isRepairOnly = Boolean(res.repairMissingAssets && res.latestVersion === res.currentVersion);
   const ask = await askUserAgreement({
-    title: `🚀 Có Bản Cập Nhật Launcher Mới (v${res.latestVersion})!`,
-    message: `Phát hiện phiên bản mới v${res.latestVersion} trên GitHub Cloud (bản hiện tại: v${res.currentVersion}). Bấm "Cập Nhật Ngay" để Launcher tải về, tự tắt bản cũ và mở bản mới lên ngay lập tức!`,
-    agreeText: '⚡ Cập Nhật Ngay (Tự tắt & Mở mới)',
+    title: isRepairOnly
+      ? `🛠️ Khôi Phục Tệp Giao Diện Horizon Glass (v${res.latestVersion})`
+      : `🚀 Có Bản Cập Nhật Launcher Mới (v${res.latestVersion})!`,
+    message: isRepairOnly
+      ? `Phát hiện một số tệp giao diện bị thiếu sau khi nâng cấp từ phiên bản cũ. Bấm "Cập Nhật Ngay" để Launcher tự tải bù đầy đủ và khôi phục giao diện đẹp mượt ngay lập tức!`
+      : `Phát hiện phiên bản mới v${res.latestVersion} trên GitHub Cloud (bản hiện tại: v${res.currentVersion}). Bấm "Cập Nhật Ngay" để Launcher tải về, tự tắt bản cũ và mở bản mới lên ngay lập tức!`,
+    agreeText: isRepairOnly ? '⚡ Khôi Phục Ngay' : '⚡ Cập Nhật Ngay (Tự tắt & Mở mới)',
     cancelText: 'Để sau'
   });
 

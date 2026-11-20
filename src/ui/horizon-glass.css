@@ -705,14 +705,42 @@ html:root:root[data-ui-sidebar="rail"] body .hzl-side-core-item {
   backdrop-filter: var(--hzl-blur) !important;
   -webkit-backdrop-filter: var(--hzl-blur) !important;
   border: 1px solid var(--hzl-hairline) !important;
-  -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag !important;
+  user-select: none !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
-  scrollbar-width: none;
+  scroll-behavior: auto;
+  cursor: grab;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip:hover,
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip.hzl-is-dragging {
+  scrollbar-color: var(--hzl-ink-3) transparent;
 }
 
 :root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip::-webkit-scrollbar {
-  display: none;
+  height: 3px;
+}
+
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip:hover::-webkit-scrollbar-thumb,
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip.hzl-is-dragging::-webkit-scrollbar-thumb {
+  background: var(--hzl-ink-3);
+}
+
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip.hzl-is-dragging,
+:root:root body .app-shell header.titlebar nav.sidebar-nav.hzl-top-nav-strip.hzl-is-dragging .nav-item {
+  cursor: grabbing !important;
 }
 
 :root:root body .app-shell header.titlebar .hzl-top-nav-strip .nav-item {
@@ -732,6 +760,8 @@ html:root:root[data-ui-sidebar="rail"] body .hzl-side-core-item {
   font-size: 11.5px !important;
   font-weight: 500 !important;
   white-space: nowrap !important;
+  -webkit-app-region: no-drag !important;
+  user-select: none !important;
   cursor: pointer;
   display: inline-flex !important;
   align-items: center !important;
@@ -1426,6 +1456,41 @@ html:root:root[data-theme="prism"] body .hzl-ed-btn.active {
   padding: 6px 14px 6px 8px;
   height: 44px;
   box-sizing: border-box;
+  max-width: calc(100% - 44px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  user-select: none;
+  cursor: grab;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+:root:root body .hzl-tp-tabs:hover,
+:root:root body .hzl-tp-tabs.hzl-is-dragging {
+  scrollbar-color: var(--hzl-ink-3) transparent;
+}
+
+:root:root body .hzl-tp-tabs::-webkit-scrollbar {
+  height: 3px;
+}
+
+:root:root body .hzl-tp-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:root:root body .hzl-tp-tabs::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+
+:root:root body .hzl-tp-tabs:hover::-webkit-scrollbar-thumb,
+:root:root body .hzl-tp-tabs.hzl-is-dragging::-webkit-scrollbar-thumb {
+  background: var(--hzl-ink-3);
+}
+
+:root:root body .hzl-tp-tabs.hzl-is-dragging,
+:root:root body .hzl-tp-tabs.hzl-is-dragging .hzl-tp-tab {
+  cursor: grabbing !important;
 }
 
 :root:root body .hzl-tp-tab {

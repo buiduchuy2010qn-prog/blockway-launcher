@@ -948,3 +948,39 @@ test('15. v42.6.0 PRO Final Release Polish: Sidebar Rust Core Status, Modern Dep
   // 15c. README stays synced with package.json version
   assert.ok(readme.includes(`BlockWay Launcher v${pkg.version} PRO`), `README.md must reflect v${pkg.version} PRO`);
 });
+
+test('16. v42.6.1 PRO Legacy OTA Self-Healing & Horizontal Drag/Wheel Tab Scroll', () => {
+  const mainSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/main.js'), 'utf8');
+  const rendererSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/renderer.js'), 'utf8');
+  const glassCss = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/horizon-glass.css'), 'utf8');
+  const glassJs = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/horizon-glass.js'), 'utf8');
+
+  // 16a. Legacy pre-v41.8.0 OTA self-heal & missing UI asset detection
+  for (const sym of [
+    'CRITICAL_OTA_UI_FILES',
+    'isWritableUnpackedAppRoot',
+    'findMissingCriticalOtaAssets',
+    'autoRepairMissingOtaAssets',
+    'repairMissingAssets'
+  ]) {
+    assert.ok(mainSrc.includes(sym), `src/main.js must include ${sym}`);
+  }
+  assert.ok(mainSrc.includes("'src/ui/horizon-glass.css'"), 'src/main.js must guard src/ui/horizon-glass.css');
+  assert.ok(mainSrc.includes("'src/ui/horizon-glass.js'"), 'src/main.js must guard src/ui/horizon-glass.js');
+  assert.ok(rendererSrc.includes('repairMissingAssets'), 'src/ui/renderer.js must handle repairMissingAssets prompt');
+
+  // 16b. Draggable & mouse-wheel scrollable horizontal tab strips (top nav + home subtabs)
+  for (const sym of [
+    'enableHorizontalStripScroll',
+    "'wheel'",
+    "'pointerdown'",
+    "'pointermove'",
+    'hzl-is-dragging',
+    'hzlHomeTabbedStrip'
+  ]) {
+    assert.ok(glassJs.includes(sym), `src/ui/horizon-glass.js must include ${sym}`);
+  }
+  assert.ok(glassCss.includes('-webkit-app-region: no-drag !important'), 'horizon-glass.css must enforce no-drag on top nav strip');
+  assert.ok(glassCss.includes('.hzl-is-dragging'), 'horizon-glass.css must style .hzl-is-dragging grab feedback');
+  assert.ok(glassCss.includes('cursor: grabbing !important'), 'horizon-glass.css must show grabbing cursor while dragging tabs');
+});

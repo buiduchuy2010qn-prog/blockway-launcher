@@ -1,11 +1,11 @@
 {
-  "version": "42.6.0",
-  "releasedAt": "2026-11-19T05:54:34.514Z",
-  "notes": "v42.6.0 PRO (Final Stable Release) — Nâng cấp lõi Electron 45 & thư viện hiện đại (adm-zip 0.6, minecraft-launcher-core 3.18), bổ sung nút trạng thái Nhân BlockWay Rust trực tiếp trên thanh bên kèm nâng cấp ngầm tự động, mở game <1s với đệm token Microsoft 0ms, vào map Datapack 1 chạm và đồng bộ toàn diện README/Docs.",
+  "version": "42.6.1",
+  "generatedAt": "2026-11-20T05:27:30.623Z",
+  "algorithm": "sha256",
   "files": {
     "package.json": {
-      "sha256": "fb68de8c41c71712b4127cc3c58d060471199c3839d4a6ced41895b02d0c90b7",
-      "size": 2580
+      "sha256": "77cf24dfb266ce57c1a7f5c169fcf8d9487ac9a4a7a59cbd47ff9333848a61c8",
+      "size": 2598
     },
     "src/aether-cloud-auth.js": {
       "sha256": "52017e2eace13720f3a038dbc216d8df4ff700bac3951788a90793726cc99fd4",
@@ -16,8 +16,8 @@
       "size": 713243
     },
     "src/main.js": {
-      "sha256": "6dd21d8317969df8c194eed1ed74aa95acfc3446bd194d8d5de204bc87987478",
-      "size": 125872
+      "sha256": "0f823dce7a5a7c609b4f8bd039d49acbdcc8b8ac82d54dd184d8a1bbe4b6998f",
+      "size": 129523
     },
     "src/microsoft-auth.js": {
       "sha256": "f2742264a4e6ed66f3bba7d6c419db338a79886ce5d621e610abc3cea10b62a4",
@@ -76,16 +76,16 @@
       "size": 4383
     },
     "src/ui/horizon-glass.css": {
-      "sha256": "91a268cf752eef7843d8fddb0b2ee8870b43db1e0e97baf0d7c652984076d204",
-      "size": 69876
+      "sha256": "2bab3aa1674032e98802d576466f151b3baf5e77bd2e148a3f916c6ed2b720ea",
+      "size": 71982
     },
     "src/ui/horizon-glass.js": {
-      "sha256": "accf783df25d5196c192eb943190d65ce0d0a1c3aae7e4ba9bb71bcf92247af3",
-      "size": 25697
+      "sha256": "66ee0b4f8a44eab601b3f0a3f6d21e6360789bc0f06a89fa933f7834d28f1d74",
+      "size": 28868
     },
     "src/ui/index.html": {
-      "sha256": "b6647d70bb0a837d4829866928be3a4b86066afb582cf51004ec1e1c62d8b1fc",
-      "size": 239701
+      "sha256": "3a7007e7c8b8be3a089c0b9ca68c23c4adb7e53239a92db7411dc529a65ea4ee",
+      "size": 239689
     },
     "src/ui/installer-eula.txt": {
       "sha256": "9f493c67ec1d18ce85b7dd0c43283182b37962f80219a189b4703b649f16e94c",
@@ -100,8 +100,8 @@
       "size": 830387
     },
     "src/ui/renderer.js": {
-      "sha256": "7eaeca07dab5e75d7d6a8d3688854b11b8137740fa69103e90d93e1024ab8701",
-      "size": 186192
+      "sha256": "902e4d65f8c64f30b99281a3d96b76f1f34ae202b3f8d5f76f9a8804b37ebaba",
+      "size": 186702
     },
     "src/ui/skinview3d.bundle.js": {
       "sha256": "e2a60ce607f2169e24b18bfd6e5214113b66f30d92e23f9a021ebbd4b21c08d3",

@@ -731,6 +731,9 @@ if (gotSingleInstanceLock) {
       session.defaultSession.setPermissionRequestHandler((_wc, _perm, callback) => callback(false));
     } catch (_) {}
     createWindow();
+    if (findMissingCriticalOtaAssets(path.resolve(__dirname, '..')).length > 0) {
+      autoRepairMissingOtaAssets().catch(() => {});
+    }
     if (discordRpcEnabled) {
       setTimeout(() => setDiscordLobbyPresence(), 1200);
     }
@@ -1532,6 +1535,90 @@ async function resolveGitHubRepoAndRef() {
   return { repoSlug, refBranch };
 }
 
+const CRITICAL_OTA_UI_FILES = [
+  'src/ui/horizon-glass.css',
+  'src/ui/horizon-glass.js',
+  'src/ui/fonts/Geist-Regular.ttf',
+  'src/ui/fonts/BricolageGrotesque-SemiBold.ttf',
+  'src/ui/worlds-real/survival.jpg'
+];
+
+function isWritableUnpackedAppRoot(appRoot) {
+  const portableExeFile = process.env.PORTABLE_EXECUTABLE_FILE || '';
+  const appImageFile = process.env.APPIMAGE || '';
+  if (portableExeFile || appImageFile) return false;
+  if (path.basename(appRoot).toLowerCase() !== 'app' || appRoot.endsWith('.asar')) return false;
+  try {
+    fs.accessSync(appRoot, fs.constants.W_OK);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function findMissingCriticalOtaAssets(appRoot) {
+  if (!isWritableUnpackedAppRoot(appRoot)) return [];
+  return CRITICAL_OTA_UI_FILES.filter((rel) => {
+    const p = path.resolve(appRoot, rel);
+    try {
+      return !fs.existsSync(p) || fs.statSync(p).size === 0;
+    } catch (_) {
+      return true;
+    }
+  });
+}
+
+let autoRepairMissingAssetsInFlight = false;
+
+async function autoRepairMissingOtaAssets() {
+  if (autoRepairMissingAssetsInFlight) return { repaired: false, count: 0 };
+  const appRoot = path.resolve(__dirname, '..');
+  const missing = findMissingCriticalOtaAssets(appRoot);
+  if (missing.length === 0) return { repaired: false, count: 0 };
+  autoRepairMissingAssetsInFlight = true;
+  try {
+    const { repoSlug, refBranch } = await resolveGitHubRepoAndRef();
+    const baseRaw = `https://raw.githubusercontent.com/buiduchuy2010qn-prog/${repoSlug}/${refBranch}`;
+    const fallbackRaw = `https://raw.githubusercontent.com/buiduchuy2010qn-prog/aether-mine-launcher/${refBranch}`;
+    const manBuf = await fetchBinaryBuffer(`${baseRaw}/ota-manifest.json?t=${Date.now()}`);
+    const manJson = JSON.parse(manBuf.toString('utf8'));
+    const entries = parseOtaManifestEntries(manJson);
+    if (entries.length < 8) return { repaired: false, count: 0 };
+
+    let written = 0;
+    for (const item of entries) {
+      const localFile = path.resolve(appRoot, item.path);
+      const relCheck = path.relative(appRoot, localFile);
+      if (relCheck.startsWith('..') || path.isAbsolute(relCheck)) continue;
+      if (fs.existsSync(localFile) && fs.statSync(localFile).size > 0) continue;
+      try {
+        let buf;
+        try {
+          buf = await fetchBinaryBuffer(`${baseRaw}/${item.path}?t=${Date.now()}`);
+        } catch (_) {
+          buf = await fetchBinaryBuffer(`${fallbackRaw}/${item.path}?t=${Date.now()}`);
+        }
+        if (!buf || buf.length < 16 || !sha256MatchesExpected(buf, item.sha256, item.path)) {
+          continue;
+        }
+        const dir = path.dirname(localFile);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(localFile, buf);
+        written++;
+      } catch (_) {}
+    }
+    if (written > 0) {
+      try { fs.writeFileSync(path.resolve(appRoot, 'ota-manifest.json'), manBuf); } catch (_) {}
+      if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
+        mainWindow.webContents.reloadIgnoringCache();
+      }
+    }
+    return { repaired: written > 0, count: written };
+  } finally {
+    autoRepairMissingAssetsInFlight = false;
+  }
+}
+
 ipcMain.handle('updater:check', async () => {
   try {
     const currentVersion = (() => { try { const p = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8').replace(/^\uFEFF/, '')); if (p && p.version) return String(p.version).trim(); } catch (_) {} return app.getVersion(); })();
@@ -1577,8 +1664,19 @@ ipcMain.handle('updater:check', async () => {
       }
     } catch (_) {}
 
-    const hasUpdate = compareSemver(latestVersion, currentVersion) > 0;
-    return { ok: true, hasUpdate, currentVersion, latestVersion, downloadUrl, commitSha: refBranch, isPortable: isPortableRun, platform: process.platform };
+    const missingAssets = findMissingCriticalOtaAssets(path.resolve(__dirname, '..'));
+    const hasUpdate = compareSemver(latestVersion, currentVersion) > 0 || missingAssets.length > 0;
+    return {
+      ok: true,
+      hasUpdate,
+      repairMissingAssets: missingAssets.length > 0,
+      currentVersion,
+      latestVersion,
+      downloadUrl,
+      commitSha: refBranch,
+      isPortable: isPortableRun,
+      platform: process.platform
+    };
   } catch (err) {
     return { ok: false, error: err.message, currentVersion: app.getVersion() };
   }
@@ -1646,6 +1744,8 @@ ipcMain.handle('updater:install-now', async (_e, downloadUrl, latestVersion) => 
         'src/ui/index.html',
         'src/ui/styles.css',
         'src/ui/layout-v33.css',
+        'src/ui/horizon-glass.css',
+        'src/ui/horizon-glass.js',
         'src/ui/skinview3d.bundle.js',
         'src/ui/renderer.js',
         'src/ui/store-features.js',

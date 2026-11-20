@@ -632,16 +632,114 @@
     });
     document.getElementById('ramSlider')?.addEventListener('input', () => setTimeout(syncHeroEditionUI, 40));
 
-    // Recompute notch whenever top navigation returns to Home
+    // v42.6.1 PRO: Enable smooth horizontal mouse-wheel & click-and-drag scrolling on clipped tab strips
+    function enableHorizontalStripScroll(strip) {
+      if (!strip || strip.dataset.hzlHScrollBound === '1') return;
+      strip.dataset.hzlHScrollBound = '1';
+
+      strip.addEventListener(
+        'wheel',
+        (e) => {
+          if (strip.scrollWidth <= strip.clientWidth + 1) return;
+          const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+          if (!delta) return;
+          e.preventDefault();
+          strip.scrollLeft += delta;
+        },
+        { passive: false }
+      );
+
+      let isPointerDown = false;
+      let dragMoved = false;
+      let suppressNextClick = false;
+      let activePointerId = null;
+      let startX = 0;
+      let startScrollLeft = 0;
+
+      const finishDrag = () => {
+        if (!isPointerDown) return;
+        isPointerDown = false;
+        strip.classList.remove('hzl-is-dragging');
+        if (activePointerId !== null) {
+          try {
+            if (strip.hasPointerCapture?.(activePointerId)) {
+              strip.releasePointerCapture(activePointerId);
+            }
+          } catch (_) {}
+        }
+        activePointerId = null;
+        if (dragMoved) {
+          suppressNextClick = true;
+          setTimeout(() => {
+            suppressNextClick = false;
+          }, 0);
+        }
+        dragMoved = false;
+      };
+
+      strip.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        if (strip.scrollWidth <= strip.clientWidth + 1) return;
+        isPointerDown = true;
+        dragMoved = false;
+        activePointerId = e.pointerId;
+        startX = e.clientX;
+        startScrollLeft = strip.scrollLeft;
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (!isPointerDown || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+        const dx = e.clientX - startX;
+        if (!dragMoved && Math.abs(dx) > 5) {
+          dragMoved = true;
+          strip.classList.add('hzl-is-dragging');
+          try {
+            strip.setPointerCapture?.(e.pointerId);
+          } catch (_) {}
+        }
+        if (dragMoved) {
+          e.preventDefault();
+          strip.scrollLeft = startScrollLeft - dx;
+        }
+      });
+
+      window.addEventListener('pointerup', finishDrag);
+      window.addEventListener('pointercancel', finishDrag);
+      window.addEventListener('blur', finishDrag);
+
+      strip.addEventListener(
+        'click',
+        (e) => {
+          if (suppressNextClick) {
+            e.preventDefault();
+            e.stopPropagation();
+            suppressNextClick = false;
+          }
+        },
+        true
+      );
+    }
+
+    // Recompute notch whenever top navigation returns to Home & keep active tabs scrolled into view
     const topNav = document.querySelector('.hzl-top-nav-strip');
     if (topNav) {
+      enableHorizontalStripScroll(topNav);
       const navObs = new MutationObserver(() => {
-        const activeTab = topNav.querySelector('.nav-item.active')?.dataset?.tab || 'home';
+        const activeBtn = topNav.querySelector('.nav-item.active');
+        if (activeBtn && typeof activeBtn.scrollIntoView === 'function') {
+          activeBtn.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+        }
+        const activeTab = activeBtn?.dataset?.tab || 'home';
         if (activeTab === 'home') {
           requestAnimationFrame(updateTabbedPanelNotch);
         }
       });
       navObs.observe(topNav, { attributes: true, subtree: true, attributeFilter: ['class'] });
+    }
+
+    const homeSubTabs = document.getElementById('hzlHomeTabbedStrip');
+    if (homeSubTabs) {
+      enableHorizontalStripScroll(homeSubTabs);
     }
 
     // Ctrl+K global search shortcut
