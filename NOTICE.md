@@ -8,7 +8,7 @@
 The integrated Rust game client, server, and toolset under [`rust-engine/`](rust-engine/) are derived from the open-source **Horizon** project:
 * **Upstream Project:** **[horizon-rust/horizon](https://github.com/horizon-rust/horizon)** (*Minecraft: Java Edition rewritten in Rust*)
 * **Upstream Copyright:** `Copyright (c) 2026 Ludovic Marie and the Horizon contributors`
-* **Upstream License:** **[MIT License](rust-engine/LICENSE)**
+* **Upstream License & Boundary:** **[MIT License](rust-engine/LICENSE)** — Derived strictly from **`horizon-rust/horizon`** snapshots prior to **November 15, 2026** (while upstream was `MIT License`, prior to upstream PR `#17111` switching to `LGPL-3.0-or-later`). Any future sync incorporating commits from **2026-11-15** onward requires adopting `LGPL-3.0-or-later`.
 * **Multi-Version (`1.16.5–26.3`) & Ultra-Light (`HeapCompact` / `P-Core`) Modifications:** `Copyright (c) 2026 Bùi Đức Huy (@buiduchuy2010qn-prog)` — licensed under **[MIT License](LICENSE)**. These modifications are maintained independently and are not endorsed by or affiliated with the upstream Horizon team.
 * **Third-Party Rust Crates, Fonts, Icons & Redistributables:** Preserved in full in **[rust-engine/THIRD_PARTY_NOTICES.md](rust-engine/THIRD_PARTY_NOTICES.md)** (including `wgpu-hal` & `naga` MIT/Apache-2.0, `mimalloc` v3 MIT, `Pixelify Sans` SIL OFL 1.1, `Pixelarticons` MIT, `Hugeicons` MIT, `Catnip / Ponder` MIT, and Microsoft DirectX Shader Compiler `dxcompiler.dll` redistributable terms on Windows x64).
 
