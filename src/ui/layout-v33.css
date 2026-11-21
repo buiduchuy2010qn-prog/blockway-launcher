@@ -7782,7 +7782,7 @@ body input[type="checkbox"]:checked::after {
   transition: transform 0.14s ease, border-color 0.14s ease, background 0.14s ease;
 }
 
-body:not(.theme-prism):not(.theme-sakura) .home-controls-2col .lpc-optifine-link {
+html:not([data-theme="prism"]):not([data-theme="sakura"]) .home-controls-2col .lpc-optifine-link {
   color: #fbbf24;
   border-color: rgba(251, 191, 36, 0.42);
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(185, 28, 28, 0.16));
@@ -7804,7 +7804,7 @@ body:not(.theme-prism):not(.theme-sakura) .home-controls-2col .lpc-optifine-link
   color: #d97706 !important;
 }
 
-body:not(.theme-prism):not(.theme-sakura) .home-controls-2col .core-tab-btn[data-core="optifine"].active strong {
+html:not([data-theme="prism"]):not([data-theme="sakura"]) .home-controls-2col .core-tab-btn[data-core="optifine"].active strong {
   color: #fbbf24 !important;
 }
 
@@ -10208,7 +10208,7 @@ html[data-theme="sakura"] .ds-sig-pill {
   border-radius: 999px !important;
 }
 
-body:not(.theme-prism):not(.theme-sakura) .home-play-card #statusText.is-error {
+html:not([data-theme="prism"]):not([data-theme="sakura"]) .home-play-card #statusText.is-error {
   color: #f87171 !important;
   background: rgba(239, 68, 68, 0.18) !important;
 }

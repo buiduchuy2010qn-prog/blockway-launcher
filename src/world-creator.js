@@ -599,7 +599,7 @@ async function createQuickWorld({
     const info = jar.info;
 
     const loader = String(loaderType || 'vanilla').toLowerCase();
-    const isUnmoddedWorldLoader = loader === 'vanilla' || loader === 'horizon' || loader === 'optifine';
+    const isUnmoddedWorldLoader = loader === 'vanilla' || loader === 'horizon' || loader === 'blockway-rust' || loader === 'optifine';
     const modScan = isUnmoddedWorldLoader ? { enabled: new Set(), disabled: new Set(), normalOverride: null } : scanModDataPacks(path.join(gameDir, 'mods'));
     let dpNormalOverride = null;
     const validExtraZips = [];
@@ -1148,10 +1148,22 @@ function rescueAndPatchWorldNbt(worldDir, patches = {}) {
     const valStr = patches.keepInventory ? 'true' : 'false';
     dataObj.GameRules.v.keepInventory = nbt.string(valStr);
     dataObj.GameRules.v.keep_inventory = nbt.string(valStr);
-    // Also sync blockway-rules datapack if world uses modern 26.x gamerule registry
+    // Also sync blockway-rules datapack while preserving existing alwaysDay & version-appropriate pack_version
     const bwRulesDir = path.join(worldDir, 'datapacks', 'blockway-rules');
+    const worldDataVer = Number(dataObj.DataVersion?.v || dataObj.Version?.v?.Id?.v || 0);
+    const rulesPackInfo = worldDataVer >= 5000
+      ? { pack_version: { data_major: 101, data_minor: 0 } }
+      : (worldDataVer >= 3953 ? { pack_version: 48 } : { pack_version: 26 });
+    let existingAlwaysDay = false;
+    try {
+      const legacyFnPath = path.join(bwRulesDir, 'data', 'blockway', 'function', 'rules_legacy.mcfunction');
+      if (fs.existsSync(legacyFnPath)) {
+        existingAlwaysDay = /doDaylightCycle\s+false/i.test(fs.readFileSync(legacyFnPath, 'utf8'));
+      }
+    } catch (_) {}
+
     if (patches.keepInventory) {
-      writeRulesDatapack(worldDir, { pack_version: 48 }, { keepInventory: true, alwaysDay: false });
+      writeRulesDatapack(worldDir, rulesPackInfo, { keepInventory: true, alwaysDay: existingAlwaysDay });
       if (dataObj.DataPacks?.v?.Enabled?.v) {
         const hasBw = dataObj.DataPacks.v.Enabled.v.some((item) => item.v === 'file/blockway-rules');
         if (!hasBw) {
@@ -1159,8 +1171,15 @@ function rescueAndPatchWorldNbt(worldDir, patches = {}) {
           dataObj.DataPacks.v.Enabled.et = TAG.STRING;
         }
       }
-    } else if (fs.existsSync(bwRulesDir)) {
-      try { fs.rmSync(bwRulesDir, { recursive: true, force: true }); } catch (_) {}
+    } else if (existingAlwaysDay) {
+      writeRulesDatapack(worldDir, rulesPackInfo, { keepInventory: false, alwaysDay: true });
+    } else {
+      if (fs.existsSync(bwRulesDir)) {
+        try { fs.rmSync(bwRulesDir, { recursive: true, force: true }); } catch (_) {}
+      }
+      if (Array.isArray(dataObj.DataPacks?.v?.Enabled?.v)) {
+        dataObj.DataPacks.v.Enabled.v = dataObj.DataPacks.v.Enabled.v.filter((item) => item.v !== 'file/blockway-rules');
+      }
     }
     appliedActions.push(patches.keepInventory ? 'Bật Giữ Đồ Khi Chết' : 'Tắt Giữ Đồ Khi Chết');
   }

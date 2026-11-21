@@ -1072,3 +1072,117 @@ test('17. v42.6.3 PRO Rail Top-Nav Protection, 2-Col Skin Studio, Stable 3D Fram
     fs.rmSync(tmpSkinDir, { recursive: true, force: true });
   }
 });
+
+test('18. v42.7.0 PRO Full-App Audit Fixes: Engine, Security, Auth, IPC & Zero-Clip Horizon UI', () => {
+  const engineSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/launcher-engine.js'), 'utf8');
+  const mainSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/main.js'), 'utf8');
+  const worldCreatorSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/world-creator.js'), 'utf8');
+  const authSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/microsoft-auth.js'), 'utf8');
+  const storeFeaturesSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/store-features.js'), 'utf8');
+  const rendererSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/renderer.js'), 'utf8');
+  const glassJsSrc = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/horizon-glass.js'), 'utf8');
+  const layoutCss = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/layout-v33.css'), 'utf8');
+  const glassCss = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/horizon-glass.css'), 'utf8');
+  const html = fs.readFileSync(path.join(REPO_ROOT, 'src/ui/index.html'), 'utf8');
+  const engine = require('../src/launcher-engine');
+  const AdmZip = require('adm-zip');
+
+  // 18a. Backend launcher engine fixes
+  for (const sym of [
+    'fetchJson(url, redirectsLeft = 6)',
+    'url: v.url',
+    'await getRequiredJavaMajor',
+    "child.on('error'",
+    'INSTANCE_META_FILE',
+    '.horizon-session-',
+    "proc.on('error'",
+    'safeModFilename',
+    'safeZipName'
+  ]) {
+    assert.ok(engineSrc.includes(sym), `src/launcher-engine.js must include ${sym}`);
+  }
+  assert.ok(
+    /function fetchBufferHttps\([^)]*redirectsLeft = 6/.test(engineSrc),
+    'src/launcher-engine.js fetchBufferHttps must enforce redirectsLeft = 6'
+  );
+
+  // 18b. Unit test backupLocalWorld traversal guard & importWorldZip sandboxed extraction
+  const tmpWorldDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bw-v4270-world-'));
+  try {
+    assert.throws(
+      () => engine.backupLocalWorld(tmpWorldDir, '../outside'),
+      'backupLocalWorld must block path traversal outside saves/'
+    );
+    const zip = new AdmZip();
+    zip.addFile('world/level.dat', Buffer.from('blockway-world-test'));
+    zip.addFile('../escaped.txt', Buffer.from('should-not-escape'));
+    const zipPath = path.join(tmpWorldDir, 'SampleWorld.zip');
+    zip.writeZip(zipPath);
+    const importRes = engine.importWorldZip(tmpWorldDir, zipPath);
+    assert.equal(importRes.ok, true);
+    const savesRoot = path.resolve(tmpWorldDir, 'saves');
+    assert.ok(
+      path.resolve(importRes.worldPath).startsWith(savesRoot + path.sep),
+      'importWorldZip must extract strictly inside saves/'
+    );
+    assert.equal(fs.existsSync(path.join(tmpWorldDir, 'escaped.txt')), false, 'Zip traversal must never escape tmpDir');
+    assert.equal(fs.existsSync(path.join(savesRoot, 'escaped.txt')), false, 'Zip traversal must never escape world folder');
+  } finally {
+    fs.rmSync(tmpWorldDir, { recursive: true, force: true });
+  }
+
+  // 18c. Main IPC, concurrency, CurseForge lazy load & updater semver gating
+  for (const sym of [
+    'if (mcGameRunning)',
+    'clearPlaytimeTimer',
+    'acquiredLock',
+    'compareSemver(relVer, latestVersion) >= 0',
+    '_cfKeyApplied'
+  ]) {
+    assert.ok(mainSrc.includes(sym), `src/main.js must include ${sym}`);
+  }
+  assert.equal(
+    /^loadCurseForgeKeyFromDisk\s*\(/m.test(mainSrc),
+    false,
+    'src/main.js must not execute loadCurseForgeKeyFromDisk() unconditionally at top-level'
+  );
+
+  // 18d. World creator & Microsoft Auth fixes
+  assert.ok(worldCreatorSrc.includes("'blockway-rust'"), 'src/world-creator.js must include blockway-rust unmodded check');
+  assert.ok(worldCreatorSrc.includes("'file/blockway-rules'"), 'src/world-creator.js must manage file/blockway-rules cleanup');
+  for (const sym of [
+    'crypto.randomInt(100000, 1000000)',
+    "server.once('error'",
+    'activeAuthAbort',
+    'activeBrowserAbort'
+  ]) {
+    assert.ok(authSrc.includes(sym), `src/microsoft-auth.js must include ${sym}`);
+  }
+
+  // 18e. Frontend JS guards & DOM ID alignment
+  assert.ok(storeFeaturesSrc.includes('formatWorldLastPlayed'), 'store-features.js must define formatWorldLastPlayed');
+  assert.equal(
+    /getElementById\(['"]username['"]\)/.test(storeFeaturesSrc),
+    false,
+    'store-features.js must use usernameInput instead of missing username element'
+  );
+  assert.ok(storeFeaturesSrc.includes('usernameInput'), 'store-features.js must reference usernameInput');
+  assert.ok(storeFeaturesSrc.includes('cleanName'), 'store-features.js must safely guard cleanName');
+  assert.ok(rendererSrc.includes("typeof uuid === 'string'"), 'renderer.js must guard uuid type in updateCrackUuidPreview');
+  assert.ok(glassJsSrc.includes('modTargetInstanceSelect'), 'horizon-glass.js must reference modTargetInstanceSelect');
+  assert.equal(glassJsSrc.includes('modTargetPackSelect'), false, 'horizon-glass.js must not reference stale modTargetPackSelect');
+
+  // 18f. CSS & HTML polish (zero stale theme selectors, Section 12 zero-clip rules, clean Tools header)
+  assert.equal(/\.theme-(?:prism|sakura)\b/.test(layoutCss), false, 'layout-v33.css must not use stale .theme-prism/.theme-sakura selectors');
+  for (const cssRule of [
+    '#homeRightSkinSlot .stage-ctrl-btn',
+    '#tab-play .version-selectors-row .vtype-btn',
+    '.mods-cat-primary-chips',
+    '.soi-side-action'
+  ]) {
+    assert.ok(glassCss.includes(cssRule), `horizon-glass.css must include v42.7.0 rule: ${cssRule}`);
+  }
+  assert.equal(html.includes('giữ nút cho JS'), false, 'index.html #tab-tools subtitle must not expose internal DOM note');
+  assert.equal(html.includes('0% GPU'), false, 'index.html must not contain unverified 0% GPU text');
+  assert.equal(html.includes('260 FPS • 0ms'), false, 'index.html must not contain unverified 260 FPS • 0ms text');
+});

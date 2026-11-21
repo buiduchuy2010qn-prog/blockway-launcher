@@ -17,6 +17,8 @@ const AZURE_CLIENT_ID = 'c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb';
 const AZURE_SCOPE = 'XboxLive.signin offline_access openid profile email';
 
 let activeAuthServer = null;
+let activeAuthAbort = null;
+let activeBrowserAbort = null;
 
 function formatUUID(rawId) {
   if (!rawId) return '';
@@ -339,6 +341,10 @@ function buildErrorHtml(errorMsg) {
 
 function openMicrosoftLoginPopup(parentWindow) {
   return new Promise((resolve, reject) => {
+    if (activeAuthAbort) {
+      try { activeAuthAbort(); } catch (_) {}
+      activeAuthAbort = null;
+    }
     if (activeAuthServer) {
       try { activeAuthServer.close(); } catch (_) {}
       activeAuthServer = null;
@@ -353,9 +359,20 @@ function openMicrosoftLoginPopup(parentWindow) {
         clearTimeout(timeoutTimer);
         timeoutTimer = null;
       }
-      if (activeAuthServer) {
-        try { activeAuthServer.close(); } catch (_) {}
+      if (activeAuthServer === server) {
+        try { server.close(); } catch (_) {}
         activeAuthServer = null;
+      }
+      if (activeAuthAbort === abortPendingAuth) {
+        activeAuthAbort = null;
+      }
+    };
+
+    const abortPendingAuth = () => {
+      if (!completed) {
+        completed = true;
+        cleanup();
+        reject(new Error('Phiên đăng nhập Microsoft trước đã được thay thế bởi phiên mới.'));
       }
     };
 
@@ -427,6 +444,7 @@ function openMicrosoftLoginPopup(parentWindow) {
     });
 
     activeAuthServer = server;
+    activeAuthAbort = abortPendingAuth;
 
     server.listen(25560, '127.0.0.1', () => {
       const port = server.address().port;
@@ -435,7 +453,14 @@ function openMicrosoftLoginPopup(parentWindow) {
       shell.openExternal(authUrl);
     });
 
-    server.on('error', () => {
+    server.once('error', () => {
+      server.once('error', (err2) => {
+        if (!completed) {
+          completed = true;
+          cleanup();
+          reject(err2);
+        }
+      });
       server.listen(0, '127.0.0.1', () => {
         const port = server.address().port;
         const redirectUri = `http://localhost:${port}`;
@@ -859,7 +884,10 @@ async function registerCloudAccount({
   db.users[accountId] = newUser;
   db.usernames[nameKey] = accountId;
 
-  await saveCloudDatabase(db, customDbUrl);
+  const saved = await saveCloudDatabase(db, customDbUrl);
+  if (!saved) {
+    throw new Error('Không thể kết nối máy chủ BlockWay Cloud để lưu tài khoản mới. Vui lòng thử lại sau ít phút!');
+  }
   antiSpamState.lastRegisterAt = Date.now();
   resetFailedAuthAttempts();
   return toPublicProfile(newUser);
@@ -1083,7 +1111,7 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
         return reject(new Error('Vui lòng nhập Email hoặc Tên tài khoản ở ô bên trên trước khi bấm Nhận Mã OTP!'));
       }
 
-      const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+      const otpCode = String(crypto.randomInt(100000, 1000000));
       const otpHashLegacy = hashPasswordLegacy(otpCode);
       const otpHash = hashPassword(otpCode);
       const otpExpires = now + 10 * 60 * 1000;
@@ -1144,13 +1172,23 @@ function requestPasswordResetOtp({ loginId, parentWindow, customDbUrl = '' }) {
       };
 
       // Listen on localhost:3000 in case the user clicks the Magic Link inside their real Gmail email from Supabase
+      if (activeBrowserAbort) {
+        try { activeBrowserAbort(); } catch (_) {}
+        activeBrowserAbort = null;
+      }
       if (activeBrowserServer) {
         try { activeBrowserServer.close(); } catch (_) {}
         activeBrowserServer = null;
       }
 
       const server = http.createServer(async (req, res) => {
-        const reqUrl = new URL(req.url, 'http://localhost:3000');
+        let reqUrl;
+        try {
+          reqUrl = new URL(req.url || '/', 'http://localhost:3000');
+        } catch (_) {
+          res.writeHead(400);
+          return res.end('Bad Request');
+        }
         if (reqUrl.pathname === '/verify-token') {
           const accessToken = reqUrl.searchParams.get('access_token') || '';
           try {
@@ -1431,6 +1469,10 @@ function parseFormBody(req) {
 
 function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
   return new Promise((resolve, reject) => {
+    if (activeBrowserAbort) {
+      try { activeBrowserAbort(); } catch (_) {}
+      activeBrowserAbort = null;
+    }
     if (activeBrowserServer) {
       try { activeBrowserServer.close(); } catch (_) {}
       activeBrowserServer = null;
@@ -1445,9 +1487,20 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
         clearTimeout(timeoutTimer);
         timeoutTimer = null;
       }
-      if (activeBrowserServer) {
-        try { activeBrowserServer.close(); } catch (_) {}
+      if (activeBrowserServer === server) {
+        try { server.close(); } catch (_) {}
         activeBrowserServer = null;
+      }
+      if (activeBrowserAbort === abortPendingPortal) {
+        activeBrowserAbort = null;
+      }
+    };
+
+    const abortPendingPortal = () => {
+      if (!completed) {
+        completed = true;
+        cleanup();
+        reject(new Error('Phiên đăng nhập BlockWay Cloud trước đã được thay thế bởi phiên mới.'));
       }
     };
 
@@ -1527,13 +1580,21 @@ function loginCloudViaBrowser({ parentWindow, customDbUrl = '' }) {
     });
 
     activeBrowserServer = server;
+    activeBrowserAbort = abortPendingPortal;
 
     const openPortal = (port) => {
       shell.openExternal(`http://127.0.0.1:${port}/`);
     };
 
     server.listen(25561, '127.0.0.1', () => openPortal(server.address().port));
-    server.on('error', () => {
+    server.once('error', () => {
+      server.once('error', (err2) => {
+        if (!completed) {
+          completed = true;
+          cleanup();
+          reject(err2);
+        }
+      });
       server.listen(0, '127.0.0.1', () => openPortal(server.address().port));
     });
 

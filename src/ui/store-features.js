@@ -617,7 +617,7 @@ async function refreshLocalAddonsCount() {
       if (item.mcVersion) return item.mcVersion === ver;
       return true;
     });
-    const lowerNames = compat.map((i) => i.cleanName.toLowerCase());
+    const lowerNames = compat.map((i) => String(i?.cleanName || i?.fileName || i?.name || '').toLowerCase());
     const hasSodium = lowerNames.some((n) => n.startsWith('sodium-') || n.startsWith('embeddium-'));
     const hasLithium = lowerNames.some((n) => n.startsWith('lithium-') || n.startsWith('ferritecore-'));
     return { installed: hasSodium && hasLithium, count: compat.length };
@@ -2473,6 +2473,22 @@ async function quickLaunchWorld(w) {
 }
 window.quickLaunchWorld = quickLaunchWorld;
 
+function formatWorldLastPlayed(val) {
+  if (typeof val === 'number' || /^\d{11,14}$/.test(String(val || '').trim())) {
+    const ms = Number(val);
+    if (Number.isFinite(ms) && ms > 0) {
+      return new Date(ms).toLocaleString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+  }
+  return String(val || '').trim();
+}
+
 function renderHomeRecentWorlds(worlds = []) {
   const homeGrid = document.getElementById('homeRecentWorldsGrid');
   if (!homeGrid) return;
@@ -2481,7 +2497,7 @@ function renderHomeRecentWorlds(worlds = []) {
     const hasRealIcon = Boolean(w.iconDataUrl && /^data:image\//i.test(String(w.iconDataUrl)));
     const safePath = escapeHtml(w.path);
     const safeName = escapeHtml(w.name);
-    const safePlayed = escapeHtml(w.lastPlayed || 'Mới tạo');
+    const safePlayed = escapeHtml(formatWorldLastPlayed(w.lastPlayed) || 'Mới tạo');
     const verPart = w.isRustWorld
       ? '🦀 Nhân Rust (26.3)'
       : (w.version ? `MC ${escapeHtml(w.version)}` : 'Chơi đơn');
@@ -2593,7 +2609,7 @@ async function renderLocalWorlds() {
   container.innerHTML = filteredWorlds.map((w, idx) => {
     const safeName = escapeHtml(w.name);
     const safeFolder = escapeHtml(w.folderName || w.name);
-    const safePlayed = escapeHtml(w.lastPlayed);
+    const safePlayed = escapeHtml(formatWorldLastPlayed(w.lastPlayed) || 'Mới tạo');
     const safePath = escapeHtml(w.path);
     const safeIcon = (w.iconDataUrl && /^data:image\//i.test(String(w.iconDataUrl))) ? escapeHtml(w.iconDataUrl) : '';
     const verInfo = w.isRustWorld
@@ -6149,7 +6165,7 @@ async function copyFramedScreenshotToClipboard(item) {
         const padX = Math.round(barH * 0.42);
         const fontMain = Math.max(13, Math.round(barH * 0.36));
         const fontSub = Math.max(11, Math.round(barH * 0.30));
-        const player = (document.getElementById('username')?.value || state.username || 'Player').trim();
+        const player = (document.getElementById('usernameInput')?.value || state.username || 'Player').trim();
         const mcVer = item.instanceName || state.selectedVersion || '1.21.4';
         const dateStr = item.dateLabel || (item.mtimeMs ? new Date(item.mtimeMs).toLocaleString('vi-VN') : new Date().toLocaleDateString('vi-VN'));
 
@@ -9752,7 +9768,7 @@ function initV412PowerSuiteUI() {
       let cmd = btn.dataset.lscmd;
       if (!cmd) return;
       if (cmd === 'op_me') {
-        const player = (document.getElementById('username')?.value || state.username || 'Player').trim();
+        const player = (document.getElementById('usernameInput')?.value || state.username || 'Player').trim();
         cmd = `op ${player}`;
       }
       const r = await window.aetherAPI.sendLocalServerCmd(cmd);

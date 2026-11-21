@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; base-uri 'self';" />
-  <title>BlockWay Launcher v42.6.3 PRO — Every World, One Place</title>
+  <title>BlockWay Launcher v42.7.0 PRO — Every World, One Place</title>
   <link rel="icon" href="app-icon.ico" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="layout-v33.css" />
@@ -294,7 +294,7 @@
           </div>
           <button class="titlebar-update-btn" id="btnTitlebarCheckUpdate" title="Kiểm tra và cập nhật phiên bản mới từ GitHub">
             <span>BlockWay OTA</span>
-            <strong id="titlebarUpdateVer">v42.6.3</strong>
+            <strong id="titlebarUpdateVer">v42.7.0</strong>
           </button>
           <button class="titlebar-update-btn" id="btnSidebarRustStatus" title="Trạng thái Nhân BlockWay Rust — Bấm để kiểm tra hoặc nâng cấp bản mới từ GitHub">
             <span>🦀 Nhân Rust</span>
@@ -581,12 +581,12 @@
                         <div class="hrw-head">
                           <div class="hrw-title">
                             <span>Nhật ký &amp; Trạng thái Nhân</span>
-                            <small class="hzl-patch-ver-tag">v42.6.3 PRO · Pure Glass</small>
+                            <small class="hzl-patch-ver-tag">v42.7.0 PRO · Pure Glass</small>
                           </div>
                           <button type="button" class="hrw-view-all" id="btnHomeOpenChangelog">Cài đặt ›</button>
                         </div>
                         <ul class="hzl-patch-list">
-                          <li><strong>v42.6.3 PRO</strong>: sửa thanh tab bị trống khi thu gọn thanh bên (Rail), cố định Phòng Thay Đồ 3D 2 cột gọn không còn khoảng trống, khóa zoom tránh nhân vật tự phóng to/nhỏ thất thường &amp; thêm nút/kéo thả tải Skin <code>.PNG</code> từ máy ngay đầu bảng.</li>
+                          <li><strong>v42.7.0 PRO</strong>: kiểm toán &amp; vá toàn diện lõi khởi chạy, bản đồ, bảo mật OAuth/URL, sửa triệt để lỗi giao diện (không cắt chữ nút, tương phản sáng/tối, cân lưới tab Công cụ) &amp; hoàn thiện tải Skin <code>.PNG</code> từ máy.</li>
                           <li>Siêu nhẹ &amp; Đa phiên bản: <strong>Full-Version Smooth v5 (1.8.9 → 26.3)</strong> (VBO/FBO, tắt mờ túi đồ, BadOptimizations, G1GC &amp; AlwaysPreTouch), <strong>Ultra-Light Rust</strong> (<code>HeapCompact</code> &amp; <code>mimalloc</code> v3) và <strong>Ngủ Đông 1 FPS</strong> khi chơi.</li>
                           <li>Cuộn 120Hz siêu mượt (<code>content-visibility: auto</code> &amp; GPU Zero-Copy) trên kính mờ Horizon kèm Kho Mod ưu tiên gói đã cài lên đầu danh sách.</li>
                         </ul>
@@ -1721,7 +1721,7 @@
           <div class="subtab-header">
             <div class="subpage-title-block">
               <h2>🛠️ Công Cụ Hữu Ích &amp; Nhật Ký Hệ Thống (Console)</h2>
-              <p>Bốn nhóm: Tối ưu • Sửa lỗi &amp; Console • Media F2/Replay • Migrate &amp; dọn rác. Studio trùng tab khác đã ẩn (giữ nút cho JS).</p>
+              <p>Tối ưu hiệu năng • Sửa lỗi &amp; Console • Media F2 / Replay • Migrate &amp; Dọn rác an toàn.</p>
             </div>
           </div>
 
@@ -1774,7 +1774,7 @@
             </div>
 
             <!-- TOOL 2: RAM CLEANER & FPS BOOST -->
-            <div class="bento-card settings-card-unit">
+            <div class="bento-card settings-card-unit" style="grid-column: 1 / -1;">
               <div class="dsp-head">
                 <div class="dsp-head-left">
                   <span class="card-dot cyan"></span>
@@ -1810,7 +1810,7 @@
 
             <div class="v413-tools-group-label">🩺 Sửa lỗi &amp; Console</div>
             <!-- TOOL 3: SMART CRASH DOCTOR -->
-            <div class="bento-card settings-card-unit">
+            <div class="bento-card settings-card-unit" style="grid-column: 1 / -1;">
               <div class="dsp-head">
                 <div class="dsp-head-left">
                   <span class="card-dot emerald"></span>
@@ -1840,7 +1840,7 @@
             </div>
 
             <!-- TOOL 5B (v40.7 PRO): 1-CLICK REPLAY STUDIO & CINEMATIC CAM -->
-            <div class="bento-card settings-card-unit" id="replayStudioToolCard" style="grid-column: 1 / -1;">
+            <div class="bento-card settings-card-unit" id="replayStudioToolCard">
               <div class="dsp-head">
                 <div class="dsp-head-left">
                   <span class="card-dot cyan"></span>
@@ -1870,7 +1870,7 @@
             </div>
 
             <!-- TOOL 5: SMART DISK CLEANER (SAFE 100% FOR WORLDS & ACTIVE MODS) -->
-            <div class="bento-card settings-card-unit" style="grid-column: 1 / -1;">
+            <div class="bento-card settings-card-unit">
               <div class="dsp-head">
                 <div class="dsp-head-left">
                   <span class="card-dot emerald"></span>
@@ -1930,7 +1930,7 @@
               </div>
             </div>
             <div class="console-terminal" id="consoleOutput">
-              <div class="log-entry info">[BlockWay Launcher v42.6.3 PRO] Horizon Glass Edition — Sẵn sàng khởi chạy.</div>
+              <div class="log-entry info">[BlockWay Launcher v42.7.0 PRO] Horizon Glass Edition — Sẵn sàng khởi chạy.</div>
             </div>
           </div>
         </section>
@@ -1952,7 +1952,7 @@
                 📦 GitHub Repo
               </button>
               <button class="btn-sync-skin" id="btnCheckUpdate">
-                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v42.6.3</span>)
+                🔄 Kiểm tra cập nhật (<span id="updateBtnText">v42.7.0</span>)
               </button>
             </div>
           </div>

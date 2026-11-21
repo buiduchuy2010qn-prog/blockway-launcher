@@ -377,7 +377,7 @@
       if (dot) dot.classList.toggle('is-online', isAct);
       if (subText && subWrap) {
         subText.textContent = isAct
-          ? `Sẵn sàng · ${ver} · ${ram} GB`
+          ? `Sẵn sàng · ${ver} · ${ram}G`
           : (subWrap.getAttribute('data-default-sub') || '');
       }
     });
@@ -389,7 +389,7 @@
       jumpBtn.replaceChildren(span);
     }
 
-    const targetSel = document.getElementById('modTargetPackSelect');
+    const targetSel = document.getElementById('modTargetInstanceSelect');
     if (targetSel && targetSel.options && targetSel.options[0] && targetSel.options[0].value === '') {
       targetSel.options[0].textContent = `🏠 Thư mục chính (.minecraft — MC ${ver} • ${isRust ? 'NHÂN RUST HORIZON' : String(core).toUpperCase()})`;
     }

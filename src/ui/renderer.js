@@ -1225,7 +1225,7 @@ function renderSavedAccounts() {
 async function updateCrackUuidPreview(name) {
   const uuid = await window.aetherAPI.getCrackUuid(name || 'StevePlayer');
   const tag = document.getElementById('uuidPreviewTag');
-  if (tag && uuid) tag.textContent = `UUID: ${uuid.slice(0, 8)}...`;
+  if (tag && typeof uuid === 'string' && uuid) tag.textContent = `UUID: ${uuid.slice(0, 8)}...`;
 }
 
 async function refreshLoaderBuilds() {
@@ -1602,7 +1602,7 @@ async function checkAndPromptLauncherUpdate(manualClick = false) {
       }
       if (topUpdVer) {
         topUpdVer.textContent = '⚠ Lỗi mạng';
-        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '42.6.3'}`), 2000);
+        setTimeout(() => (topUpdVer.textContent = `v${res?.currentVersion || '42.7.0'}`), 2000);
       }
     }
     return;

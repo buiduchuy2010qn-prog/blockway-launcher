@@ -543,14 +543,19 @@ html:root:root[data-theme="prism"] body .hzl-side-core-item.active {
 }
 
 :root:root body .hsc-sub {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 5px;
+  width: 100%;
+  min-width: 0;
   font-size: 10.5px;
   color: var(--hzl-ink-3);
-  white-space: nowrap;
+}
+:root:root body .hsc-sub > span {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 :root:root body .hzl-side-core-item.active .hsc-sub {
@@ -2627,4 +2632,182 @@ html:root:root[data-theme="prism"] body .hmi-install-btn {
 
 :root:root body #webglStageWrap.is-dragover .hzl-skin-drop-overlay {
   display: flex;
+}
+
+/* ---------- 12. v42.7.0 PRO: FULL-APP VISUAL POLISH (ZERO CLIPPING, LIGHT CONTRAST & GRID BALANCE) ---------- */
+:root:root body .app-shell .card-link-btn:not(.turbo-link-btn) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 26px !important;
+  padding: 0 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--hzl-line-soft) !important;
+  background: var(--hzl-fill-1) !important;
+  color: var(--hzl-ink-1) !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease !important;
+}
+:root:root body .app-shell .card-link-btn:not(.turbo-link-btn):hover {
+  background: var(--hzl-fill-2) !important;
+  border-color: var(--accent-border) !important;
+  color: var(--accent) !important;
+}
+
+/* Home 3D character controls: keep all 3 buttons unclipped inside right rail */
+:root:root body .app-shell #homeRightSkinSlot .stage-bottom-controls {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 5px !important;
+  width: 100% !important;
+}
+:root:root body .app-shell #homeRightSkinSlot .stage-ctrl-btn {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  height: 30px !important;
+  padding: 0 6px !important;
+  gap: 3px !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+/* Play tab version filter pills: natural flex sizing so "Chính thức" never clips or overlaps "Snapshot" */
+:root:root body .app-shell #tab-play .version-selectors-row .vtype-group {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+:root:root body .app-shell #tab-play .version-selectors-row .vtype-btn {
+  flex: 1 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  height: 36px !important;
+  padding: 0 11px !important;
+  font-size: 12.2px !important;
+  line-height: 1.2 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+/* Light-theme high-contrast OptiFine link pill */
+:root[data-theme="sakura"] body .app-shell .home-controls-2col .lpc-optifine-link,
+:root[data-theme="prism"] body .app-shell .home-controls-2col .lpc-optifine-link {
+  color: #92400e !important;
+  border-color: rgba(217, 119, 6, 0.55) !important;
+  background: rgba(254, 243, 199, 0.92) !important;
+}
+:root[data-theme="sakura"] body .app-shell .home-controls-2col .lpc-optifine-link:hover,
+:root[data-theme="prism"] body .app-shell .home-controls-2col .lpc-optifine-link:hover {
+  color: #78350f !important;
+  border-color: #d97706 !important;
+  background: rgba(253, 230, 138, 0.95) !important;
+}
+
+/* Mods primary category chips: wrap cleanly instead of clipping mid-button */
+:root:root body .app-shell #tab-mods .mods-cat-primary-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+:root:root body .app-shell #tab-mods .mods-cat-primary-chips {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+:root:root body .app-shell #tab-mods .mods-cat-primary-chips .mqt-chip {
+  flex: 0 0 auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+/* Settings UI Studio & Turbo Smooth action button breathing room */
+:root:root body .app-shell #tab-settings .res-pill-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 36px !important;
+  height: auto !important;
+  padding: 6px 12px !important;
+  line-height: 1.25 !important;
+  font-size: 12.6px !important;
+}
+:root:root body .app-shell #tab-settings .ui-studio-layout-grid .vtype-group {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+:root:root body .app-shell #tab-settings .ui-studio-layout-grid .vtype-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 34px !important;
+  height: auto !important;
+  padding: 6px 12px !important;
+  font-size: 12.2px !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+}
+:root:root body .app-shell #tab-settings .settings-opt-item .soi-side-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 32px !important;
+  height: auto !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+}
+
+/* Horizon core button & Servers action pills: zero horizontal/vertical clipping */
+:root:root body .app-shell #sharedLoaderRamWrap .core-tab-btn,
+:root:root body .app-shell .home-controls-2col .core-tab-btn {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+  min-width: 0 !important;
+}
+:root:root body .app-shell .home-controls-2col .core-tab-btn.active .core-check-dot {
+  top: 4px !important;
+  right: 4px !important;
+  width: 15px !important;
+  height: 15px !important;
+}
+:root:root body .app-shell #sharedLoaderRamWrap .core-tab-btn > span:not(.core-check-dot),
+:root:root body .app-shell .home-controls-2col .core-tab-btn > span:not(.core-check-dot) {
+  font-size: 10.6px !important;
+  letter-spacing: -0.01em !important;
+  white-space: nowrap !important;
+}
+:root:root body .app-shell #tab-servers .cmb-actions .vtype-btn,
+:root:root body .app-shell #tab-servers .cmb-actions .btn-sync-skin,
+:root:root body .app-shell #btnCoopRefreshRooms {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 34px !important;
+  height: auto !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
 }

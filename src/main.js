@@ -138,6 +138,9 @@ function ensureBackendModulesLoaded() {
     listCoopRooms
   } = require('./microsoft-auth'));
   _backendLoaded = true;
+  try {
+    if (app.isReady()) loadCurseForgeKeyFromDisk();
+  } catch (_) {}
   return _engineMod;
 }
 
@@ -733,6 +736,10 @@ if (gotSingleInstanceLock) {
       session.defaultSession.setPermissionRequestHandler((_wc, _perm, callback) => callback(false));
     } catch (_) {}
     createWindow();
+    try {
+      ensureBackendModulesLoaded();
+      loadCurseForgeKeyFromDisk();
+    } catch (_) {}
     if (findMissingCriticalOtaAssets(path.resolve(__dirname, '..')).length > 0) {
       autoRepairMissingOtaAssets().catch(() => {});
     }
@@ -1311,7 +1318,17 @@ ipcMain.handle('mc:force-kill', async () => {
 });
 
 ipcMain.handle('mc:launch', async (_e, config) => {
+  if (mcGameRunning) {
+    return { ok: false, error: 'Minecraft đang chạy rồi — hãy đóng cửa sổ game hiện tại trước khi mở mới.' };
+  }
   let launchPowerSaveId = null;
+  let playtimeTimer = null;
+  const clearPlaytimeTimer = () => {
+    if (playtimeTimer) {
+      clearInterval(playtimeTimer);
+      playtimeTimer = null;
+    }
+  };
   const releasePowerSave = () => {
     if (launchPowerSaveId !== null) {
       try {
@@ -1349,7 +1366,7 @@ ipcMain.handle('mc:launch', async (_e, config) => {
       worldFolderName: config.worldFolderName
     });
 
-    const playtimeTimer = setInterval(() => {
+    playtimeTimer = setInterval(() => {
       const now = Date.now();
       const deltaSec = Math.floor((now - lastPlaytimeCheckpointMs) / 1000);
       if (deltaSec >= 30) {
@@ -1385,7 +1402,7 @@ ipcMain.handle('mc:launch', async (_e, config) => {
       onClose: (code) => {
         releasePowerSave();
         mcGameRunning = false;
-        clearInterval(playtimeTimer);
+        clearPlaytimeTimer();
         const remSec = Math.max(0, Math.round((Date.now() - lastPlaytimeCheckpointMs) / 1000));
         const finalStats = recordPlaytimeDelta(remSec, { instanceSlug, mcVersion: config.mcVersion, isFinal: true });
         if (discordRpcEnabled) setDiscordLobbyPresence();
@@ -1435,6 +1452,7 @@ ipcMain.handle('mc:launch', async (_e, config) => {
     });
     return { ok: true };
   } catch (err) {
+    clearPlaytimeTimer();
     releasePowerSave();
     mcGameRunning = false;
     setLauncherGameplayHibernation(mainWindow, false, config?.displayHz);
@@ -1489,24 +1507,53 @@ function fetchJsonSimple(url, redirects = 3) {
 
 function downloadWithProgress(url, destPath, onPct, redirects = 3) {
   return new Promise((resolve, reject) => {
+    let activeFile = null;
+    let activeRes = null;
+    let settled = false;
+    const cleanupAndUnlink = (cb) => {
+      if (activeFile) {
+        const f = activeFile;
+        activeFile = null;
+        try { f.destroy(); } catch (_) {}
+        fs.unlink(destPath, () => cb());
+      } else {
+        fs.unlink(destPath, () => cb());
+      }
+    };
+    const fail = (err) => {
+      if (settled) return;
+      settled = true;
+      try { activeRes?.destroy(); } catch (_) {}
+      try { req?.destroy(); } catch (_) {}
+      cleanupAndUnlink(() => reject(err));
+    };
     const req = https.get(
       url,
-      { headers: { 'User-Agent': 'BlockWay-Updater/35.0' }, timeout: 15000 },
+      { headers: { 'User-Agent': 'BlockWay-Updater/42.7.0' }, timeout: 15000 },
       (res) => {
+        activeRes = res;
         if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location && redirects > 0) {
           const nextUrl = res.headers.location.startsWith('http')
             ? res.headers.location
             : new URL(res.headers.location, url).toString();
           res.resume();
+          settled = true;
           return downloadWithProgress(nextUrl, destPath, onPct, redirects - 1).then(resolve).catch(reject);
         }
         if (res.statusCode !== 200) {
           res.resume();
-          return reject(new Error(`HTTP ${res.statusCode}`));
+          if (!settled) {
+            settled = true;
+            reject(new Error(`HTTP ${res.statusCode}`));
+          }
+          return;
         }
         const total = parseInt(res.headers['content-length'] || '0', 10);
         let received = 0;
         const file = fs.createWriteStream(destPath);
+        activeFile = file;
+        res.on('error', fail);
+        file.on('error', fail);
         res.on('data', (chunk) => {
           received += chunk.length;
           if (total > 0 && onPct) {
@@ -1514,18 +1561,18 @@ function downloadWithProgress(url, destPath, onPct, redirects = 3) {
           }
         });
         res.pipe(file);
-        file.on('finish', () => file.close(resolve));
+        file.on('finish', () => {
+          file.close(() => {
+            if (!settled) {
+              settled = true;
+              resolve();
+            }
+          });
+        });
       }
     );
-    req.on('error', (err) => {
-      fs.unlink(destPath, () => {});
-      reject(err);
-    });
-    req.on('timeout', () => {
-      req.destroy();
-      fs.unlink(destPath, () => {});
-      reject(new Error('Timeout'));
-    });
+    req.on('error', fail);
+    req.on('timeout', () => fail(new Error('Timeout')));
   });
 }
 
@@ -1658,7 +1705,7 @@ ipcMain.handle('updater:check', async () => {
       if (relVer && compareSemver(relVer, latestVersion) > 0) {
         latestVersion = relVer;
       }
-      if (Array.isArray(relInfo?.assets)) {
+      if (relVer && compareSemver(relVer, latestVersion) >= 0 && Array.isArray(relInfo?.assets)) {
         if (isLinux) {
           const linuxAssets = relInfo.assets.filter((a) => typeof a?.browser_download_url === 'string' && /\.(AppImage|deb)$/i.test(a.name || a.browser_download_url));
           const appImgAsset = linuxAssets.find((a) => /\.AppImage$/i.test(a.name || '')) || linuxAssets[0];
@@ -1925,18 +1972,22 @@ ipcMain.handle('updater:install-now', async (_e, downloadUrl, latestVersion) => 
    v40.0 PRO — KHO MODPACK TOÀN CẦU (IPC)
    ============================================================================ */
 const cfKeyPath = path.join(app.getPath('userData'), 'curseforge-api-key.txt');
+let _cfKeyApplied = false;
 function loadCurseForgeKeyFromDisk() {
   try {
+    if (_cfKeyApplied) return '';
     if (fs.existsSync(cfKeyPath)) {
       const raw = fs.readFileSync(cfKeyPath, 'utf8').replace(/^\uFEFF/, '').trim();
       const k = decryptSecretFromDisk(raw).trim();
-      if (k) setCurseForgeApiKey(k);
+      if (k && typeof setCurseForgeApiKey === 'function') {
+        setCurseForgeApiKey(k);
+        _cfKeyApplied = true;
+      }
       return k;
     }
   } catch (_) {}
   return '';
 }
-loadCurseForgeKeyFromDisk();
 
 function resolveUserGameDir(gameDir) {
   return gameDir && String(gameDir).trim() ? String(gameDir).trim() : getDefaultGameDir();
@@ -1978,6 +2029,7 @@ ipcMain.handle('packs:install', async (_e, params) => {
 
 ipcMain.handle('packs:import-file', async (_e, params) => {
   if (packInstallBusy) return { ok: false, error: 'Đang cài một gói khác, vui lòng đợi hoàn tất.' };
+  let acquiredLock = false;
   try {
     let filePath = params?.filePath;
     if (!filePath) {
@@ -1992,13 +2044,15 @@ ipcMain.handle('packs:import-file', async (_e, params) => {
       if (res.canceled || !res.filePaths?.length) return { ok: false, canceled: true };
       filePath = res.filePaths[0];
     }
+    if (packInstallBusy) return { ok: false, error: 'Đang cài một gói khác, vui lòng đợi hoàn tất.' };
     packInstallBusy = true;
+    acquiredLock = true;
     return await importPackFromFile({ filePath, gameDir: resolveUserGameDir(params?.gameDir), worldTarget: params?.worldTarget }, sendPackProgress);
   } catch (err) {
     sendPackProgress({ stage: 'error', text: `❌ ${err.message}`, percent: 0 });
     return { ok: false, error: err.message };
   } finally {
-    packInstallBusy = false;
+    if (acquiredLock) packInstallBusy = false;
   }
 });
 
@@ -2017,19 +2071,22 @@ ipcMain.handle('packs:import-url', async (_e, params) => {
 
 ipcMain.handle('packs:import-from-downloads', async (_e, params) => {
   if (packInstallBusy) return { ok: false, error: 'Đang cài một gói khác, vui lòng đợi hoàn tất.' };
+  let acquiredLock = false;
   try {
     const fileName = path.basename(String(params?.fileName || ''));
     if (!fileName) return { ok: false, error: 'Thiếu tên file.' };
     const dirs = [path.join(os.homedir(), 'Downloads'), path.join(os.homedir(), 'Desktop')];
     const found = dirs.map((d) => path.join(d, fileName)).find((p) => fs.existsSync(p));
     if (!found) return { ok: false, notFound: true, error: `Chưa thấy "${fileName}" trong thư mục Downloads.` };
+    if (packInstallBusy) return { ok: false, error: 'Đang cài một gói khác, vui lòng đợi hoàn tất.' };
     packInstallBusy = true;
+    acquiredLock = true;
     return await importPackFromFile({ filePath: found, gameDir: resolveUserGameDir(params?.gameDir) }, sendPackProgress);
   } catch (err) {
     sendPackProgress({ stage: 'error', text: `❌ ${err.message}`, percent: 0 });
     return { ok: false, error: err.message };
   } finally {
-    packInstallBusy = false;
+    if (acquiredLock) packInstallBusy = false;
   }
 });
 
@@ -2239,11 +2296,10 @@ ipcMain.handle('horizon:pick-pack', async (_e, options = {}) => {
     const chosenPack = picked.filePaths[0];
     // If importAsInstance is requested, first import into .minecraft/instances/<slug>, then port to Rust!
     if (options?.importAsInstance) {
-      const imp = await importPackFromFile({
-        filePath: chosenPack,
-        gameDir: options?.rootDir || options?.gameDir || '',
-        onProgress: (p) => mainWindow?.webContents.send('packs:progress', p)
-      });
+      const imp = await importPackFromFile(
+        { filePath: chosenPack, gameDir: options?.rootDir || options?.gameDir || '' },
+        (p) => mainWindow?.webContents.send('packs:progress', p)
+      );
       if (!imp?.ok || !imp?.instance?.dir) {
         return imp || { ok: false, error: 'Không thể nhập gói Modpack.' };
       }
@@ -2257,7 +2313,7 @@ ipcMain.handle('horizon:pick-pack', async (_e, options = {}) => {
           onProgress: (p) => mainWindow?.webContents.send('mc:progress', p)
         }
       });
-      return { ...ported, ok: true, instance: imp.instance };
+      return { ...ported, ok: Boolean(ported?.ok), instance: imp.instance };
     }
     return await portModpackToHorizonRust({
       packPath: chosenPack,
@@ -2621,7 +2677,7 @@ ipcMain.handle('coop:import-basket-file', async (_e, params) => {
   }
 });
 
-ipcMain.handle('worlds:backup', async (_e, { gameDir, worldName }) => {
+ipcMain.handle('worlds:backup', async (_e, { gameDir, worldName } = {}) => {
   try {
     return backupLocalWorld(gameDir, worldName);
   } catch (err) {
@@ -2638,7 +2694,7 @@ ipcMain.handle('worlds:backups-list', async (_e, gameDir) => {
   }
 });
 
-ipcMain.handle('worlds:backup-restore', async (_e, { gameDir, fileName }) => {
+ipcMain.handle('worlds:backup-restore', async (_e, { gameDir, fileName } = {}) => {
   try {
     return restoreWorldBackup(gameDir, fileName);
   } catch (err) {
@@ -2646,7 +2702,7 @@ ipcMain.handle('worlds:backup-restore', async (_e, { gameDir, fileName }) => {
   }
 });
 
-ipcMain.handle('worlds:backup-delete', async (_e, { gameDir, fileName }) => {
+ipcMain.handle('worlds:backup-delete', async (_e, { gameDir, fileName } = {}) => {
   try {
     return deleteWorldBackup(gameDir, fileName);
   } catch (err) {
@@ -2654,7 +2710,7 @@ ipcMain.handle('worlds:backup-delete', async (_e, { gameDir, fileName }) => {
   }
 });
 
-ipcMain.handle('worlds:export-zip', async (_e, { gameDir, worldName }) => {
+ipcMain.handle('worlds:export-zip', async (_e, { gameDir, worldName } = {}) => {
   try {
     const baseLabel = path.basename(String(worldName || 'World').trim()) || 'World';
     const safeName = baseLabel.replace(/[^A-Za-z0-9._ -]/g, '_');
@@ -2671,7 +2727,7 @@ ipcMain.handle('worlds:export-zip', async (_e, { gameDir, worldName }) => {
   }
 });
 
-ipcMain.handle('worlds:import-zip', async (_e, { gameDir, filePath }) => {
+ipcMain.handle('worlds:import-zip', async (_e, { gameDir, filePath } = {}) => {
   try {
     let targetZip = filePath;
     if (!targetZip) {
@@ -2714,7 +2770,7 @@ ipcMain.handle('screenshots:copy-image', async (_e, fullPath) => {
   }
 });
 
-ipcMain.handle('screenshots:delete', async (_e, { gameDir, fullPath }) => {
+ipcMain.handle('screenshots:delete', async (_e, { gameDir, fullPath } = {}) => {
   try {
     return deleteLocalScreenshot(gameDir, fullPath);
   } catch (err) {
@@ -2738,7 +2794,7 @@ ipcMain.handle('screenshots:reveal', async (_e, fullPath) => {
 /* ============================================================================
    v40.4 PRO — AUTO-EQUIP IN-GAME, XUẤT GÓI .MRPACK & DỌN RÁC Ổ CỨNG THÔNG MINH
    ============================================================================ */
-ipcMain.handle('addons:equip', async (_e, { gameDir, folderType, fileName, enable = true }) => {
+ipcMain.handle('addons:equip', async (_e, { gameDir, folderType, fileName, enable = true } = {}) => {
   try {
     if (folderType === 'shaderpacks' || folderType === 'shader') {
       return equipShaderInGame(gameDir, enable ? fileName : '');
